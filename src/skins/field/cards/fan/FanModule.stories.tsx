@@ -57,7 +57,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** A three-speed tower fan at speed 2, sweeping: 067% on the screen, "Speed 2 of 3" beside it. */
+/** A three-speed tower fan at speed 2, sweeping: 066% on the screen, "Speed 2 of 3" beside it. */
 export const On: Story = {};
 export const Off: Story = { args: { fan: "off" } };
 /** A stepless ceiling fan at 40%, turning in reverse; its panel sets the direction. */

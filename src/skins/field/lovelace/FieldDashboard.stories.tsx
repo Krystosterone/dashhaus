@@ -40,7 +40,7 @@ const ENTITIES: HassEntities = {
   ...entity("input_boolean.guest_mode", "Guest mode", "on", {}),
   ...entity("switch.white_noise", "White noise", "on", {}),
   ...entity("number.white_noise_volume", "White noise volume", "62", { min: 0, max: 100, step: 1 }),
-  ...entity("fan.office", "Desk fan", "on", { percentage: 67, percentage_step: 100 / 3, preset_modes: ["normal", "sleep"], oscillating: true, supported_features: 1 | 2 | 8 | 16 | 32 }),
+  ...entity("fan.office", "Desk fan", "on", { percentage: 66, percentage_step: 100 / 3, preset_modes: ["normal", "sleep"], oscillating: true, supported_features: 1 | 2 | 8 | 16 | 32 }),
   ...entity("cover.living_room_curtains", "Curtains", "open", { device_class: "curtain", current_position: 70, supported_features: 1 | 2 | 4 | 8 }),
   ...entity("cover.garage_door", "Garage door", "closed", { device_class: "garage", supported_features: 1 | 2 | 8 }),
   ...entity("alarm_control_panel.house", "Alarm", "disarmed", { code_format: "number", code_arm_required: true, supported_features: 1 | 2 | 4, changed_by: "Alex" }),

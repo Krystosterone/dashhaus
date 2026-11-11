@@ -20,6 +20,7 @@ describe("fan speeds", () => {
 
   it("maps a percentage to the nearest speed, never below the first", () => {
     expect(speedOf(33, 3)).toBe(1);
+    expect(speedOf(66, 3)).toBe(2);
     expect(speedOf(67, 3)).toBe(2);
     expect(speedOf(100, 3)).toBe(3);
     expect(speedOf(0, 3)).toBe(1);
@@ -28,10 +29,21 @@ describe("fan speeds", () => {
   });
 
   it("maps a speed back to the whole percentage Home Assistant takes", () => {
-    expect([1, 2, 3].map((s) => percentOf(s, 3))).toEqual([33, 67, 100]);
+    expect([1, 2, 3].map((s) => percentOf(s, 3))).toEqual([33, 66, 100]);
     expect(percentOf(42, 100)).toBe(42);
     expect(percentOf(0, 4)).toBe(25);
     expect(percentOf(9, 4)).toBe(100);
+  });
+
+  it("sends a percentage every integration reads back as the same speed", () => {
+    // Home Assistant truncates (ranged_value_to_percentage); ESPHome, ZHA and Tuya read a speed back by rounding up.
+    for (let count = 2; count <= 10; count++) {
+      for (let speed = 1; speed <= count; speed++) {
+        const percent = percentOf(speed, count);
+        expect(speedOf(percent, count)).toBe(speed);
+        expect(Math.ceil((percent * count) / 100)).toBe(speed);
+      }
+    }
   });
 
   it("round-trips every speed of every count", () => {

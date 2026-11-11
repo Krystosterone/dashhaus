@@ -7,7 +7,7 @@ const entity: FanEntity = {
   name: "Bedroom",
   state: "on",
   supportsSpeed: true,
-  percentage: 67,
+  percentage: 66,
   speedCount: 3,
   supportsPreset: true,
   presetModes: ["normal", "sleep"],

@@ -35,8 +35,8 @@ describe("createDemoFanHaTransport", () => {
 
   it("sets the speed, turning the fan on, and 0 turns it off", async () => {
     const { transport, seen } = await subscribe();
-    await transport.callService("fan", "set_percentage", { entity_id: "fan.bedroom", percentage: 67 });
-    expect(seen.latest?.["fan.bedroom"]).toMatchObject({ state: "on", attributes: { percentage: 67 } });
+    await transport.callService("fan", "set_percentage", { entity_id: "fan.bedroom", percentage: 66 });
+    expect(seen.latest?.["fan.bedroom"]).toMatchObject({ state: "on", attributes: { percentage: 66 } });
     await transport.callService("fan", "set_percentage", { entity_id: "fan.bedroom", percentage: 0 });
     expect(seen.latest?.["fan.bedroom"].state).toBe("off");
   });

@@ -1,6 +1,6 @@
 /**
  * A fan's speeds as whole steps over Home Assistant's percentage. A three-speed fan reports a `percentage_step` of
- * 33.33 and takes 33, 67 or 100; a stepless one takes any whole percent. Skins set the speed in steps, so a key
+ * 33.33 and takes 33, 66 or 100; a stepless one takes any whole percent. Skins set the speed in steps, so a key
  * press or a drag moves one speed, and send the percentage the step stands for.
  */
 
@@ -13,16 +13,25 @@ export function speedCountOf(step: number | undefined): number {
   return Math.min(MAX_SPEEDS, Math.max(1, Math.round(100 / step)));
 }
 
-/** The speed, 1 to `count`, a percentage stands for; the nearest, and never below the first. */
+/**
+ * The speed, 1 to `count`, a percentage stands for: the one that sends it exactly (`percentOf`), else the nearest,
+ * and never below the first. The exact match matters past 50 speeds, where a truncated percentage can sit nearer
+ * the speed below.
+ */
 export function speedOf(percent: number, count: number): number {
   const n = Math.max(1, Math.round(count));
-  return Math.min(n, Math.max(1, Math.round((percent / 100) * n)));
+  const nearest = Math.min(n, Math.max(1, Math.round((percent / 100) * n)));
+  return nearest < n && percentOf(nearest + 1, n) === percent ? nearest + 1 : nearest;
 }
 
-/** The whole percentage Home Assistant takes for a speed, 1 to `count`. */
+/**
+ * The whole percentage Home Assistant takes for a speed, 1 to `count`, truncated as its own
+ * `ranged_value_to_percentage` does: 2 of 3 is 66, not 67. Integrations that map a percentage back to a speed by
+ * rounding up (ESPHome, ZHA, Tuya) would read 67 as speed 3.
+ */
 export function percentOf(speed: number, count: number): number {
   const n = Math.max(1, Math.round(count));
-  return Math.min(100, Math.max(1, Math.round((Math.min(n, Math.max(1, speed)) / n) * 100)));
+  return Math.min(100, Math.max(1, Math.floor((Math.min(n, Math.max(1, speed)) * 100) / n)));
 }
 
 /** The most speeds a fan's speeds are named for ("Speed 2 of 3"); past it, a speed reads as a percent. */
