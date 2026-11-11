@@ -23,6 +23,8 @@ export interface MediaPlayerModuleProps {
   onPlay?: () => void;
   /** Pause: the first key, while it plays. */
   onPause?: () => void;
+  /** Stops it, what a press does while it plays for a player that stops but doesn't pause (`mediaPress`). */
+  onStop?: () => void;
   /** Skip back: the panel's Previous key. */
   onPrevious?: () => void;
   /** Skip on: the Next key, in the row and the panel. */
@@ -79,7 +81,7 @@ const FIGURE: Partial<Record<MediaPlayerEntity["state"], string>> = { playing: "
  * volume), Mute, the source, Power, inside Home Assistant a key to its own player (browsing media, grouping), and today's
  * playing.
  */
-export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, onOpenMore, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
+export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onStop, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, onOpenMore, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
@@ -92,7 +94,7 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   // Why the volume doesn't sound now (Muted, Paused, Idle), or nothing while it does.
   const quietVolume = volumeReason(e);
 
-  const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, turnOn: onTurnOn, turnOff: onTurnOff };
+  const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, stop: onStop, turnOn: onTurnOn, turnOff: onTurnOff };
   const wanted = mediaPress(e);
   const press = wanted && handlers[wanted] ? wanted : null;
 

@@ -4,7 +4,7 @@ import type { MediaPlayerEntity } from "../../entities/mediaPlayer/types";
 
 const entity: MediaPlayerEntity = {
   entityId: "media_player.kitchen", name: "Kitchen speaker", state: "playing", sources: ["Spotify", "Radio"],
-  supportsPlay: true, supportsPause: true, supportsPrevious: true, supportsNext: true, supportsVolume: true,
+  supportsPlay: true, supportsPause: true, supportsStop: true, supportsPrevious: true, supportsNext: true, supportsVolume: true,
   supportsMute: true, supportsSource: true, supportsTurnOn: true, supportsTurnOff: true,
 };
 const id = { entity_id: "media_player.kitchen" };
@@ -15,6 +15,7 @@ describe("createMediaPlayerHandlers", () => {
     const h = createMediaPlayerHandlers({ callService }, entity);
     h.onPlay();
     h.onPause();
+    h.onStop?.();
     h.onPrevious();
     h.onNext();
     h.onTurnOn();
@@ -25,6 +26,7 @@ describe("createMediaPlayerHandlers", () => {
     expect(callService.mock.calls).toEqual([
       ["media_player", "media_play", id],
       ["media_player", "media_pause", id],
+      ["media_player", "media_stop", id],
       ["media_player", "media_previous_track", id],
       ["media_player", "media_next_track", id],
       ["media_player", "turn_on", id],

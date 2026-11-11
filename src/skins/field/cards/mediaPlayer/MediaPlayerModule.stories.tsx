@@ -79,6 +79,8 @@ export const Buffering: Story = { args: { mediaPlayer: "buffering" } };
 export const Muted: Story = { args: { mediaPlayer: "muted" } };
 /** A radio stream: no duration, so no rule along the screen's foot, never a guessed one; no artwork, so the pictogram. */
 export const Stream: Story = { args: { mediaPlayer: "stream" } };
+/** A web radio that stops but can't pause: while it plays, the first key says Stop, never Turn off. */
+export const StopsNoPause: Story = { name: "Stops, no pause", args: { mediaPlayer: "stops" } };
 export const Idle: Story = { args: { mediaPlayer: "idle" } };
 /** A TV that is on with nothing it reports as playing: ON, and its source on the meta line. */
 export const On: Story = { args: { mediaPlayer: "on" } };

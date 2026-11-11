@@ -57,6 +57,8 @@ export interface MediaPlayerEntity {
   supportsPlay?: boolean;
   /** It pauses (`PAUSE`). */
   supportsPause?: boolean;
+  /** It stops (`STOP`): what a press does while it plays, for a player that stops but doesn't pause (`mediaPress`). */
+  supportsStop?: boolean;
   /** It skips back (`PREVIOUS_TRACK`). */
   supportsPrevious?: boolean;
   /** It skips on (`NEXT_TRACK`). */

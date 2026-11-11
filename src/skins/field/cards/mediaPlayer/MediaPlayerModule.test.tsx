@@ -10,7 +10,7 @@ import type { MediaPlayerEntity } from "@dashhaus/core/entities/mediaPlayer/type
  * (footprints, details) is ModuleFrame's, tested in shared/ui.test.tsx; test what this media player itself does here.
  */
 const handlers = () => ({
-  onPlay: vi.fn(), onPause: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onTurnOn: vi.fn(), onTurnOff: vi.fn(),
+  onPlay: vi.fn(), onPause: vi.fn(), onStop: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onTurnOn: vi.fn(), onTurnOff: vi.fn(),
   onVolumeChange: vi.fn(), onMuteChange: vi.fn(), onSourceChange: vi.fn(),
 });
 const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false, quiet = false, onOpenMore?: () => void) => {
@@ -242,5 +242,12 @@ describe("MediaPlayerModule", () => {
 
   it("leads a compact row with its key", () => {
     expect(draw(S.playing.entity, "compact").container.querySelector(".fd-module > .fd-key")).not.toBeNull();
+  });
+
+  it("stops a player that can't pause while it plays, never turning it off", () => {
+    const { h } = draw(S.stops.entity);
+    fireEvent.click(screen.getByRole("button", { name: "Stop Workshop radio" }));
+    expect(h.onStop).toHaveBeenCalledOnce();
+    expect(h.onTurnOff).not.toHaveBeenCalled();
   });
 });

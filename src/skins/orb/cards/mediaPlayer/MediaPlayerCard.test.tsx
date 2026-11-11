@@ -270,4 +270,13 @@ describe("MediaPlayerCard", () => {
     const { container } = render(<MediaPlayerCard entity={{ ...playing, state: "off" }} footprint="compact" {...press()} />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Off");
   });
+
+  it("stops a player that can't pause while it plays, never turning it off", () => {
+    const onStop = vi.fn();
+    const onTurnOff = vi.fn();
+    render(<MediaPlayerCard entity={MEDIA_PLAYER_SEEDS.stops.entity} {...press()} onStop={onStop} onTurnOff={onTurnOff} />);
+    fireEvent.click(screen.getByRole("button", { name: "Stop Workshop radio" }));
+    expect(onStop).toHaveBeenCalledOnce();
+    expect(onTurnOff).not.toHaveBeenCalled();
+  });
 });

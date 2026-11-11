@@ -48,6 +48,8 @@ describe("media player words", () => {
     expect(mediaPress({ state: "off", ...ALL })).toBe("turnOn");
     expect(mediaPress({ state: "standby", ...ALL })).toBe("turnOn");
     expect(mediaPress({ state: "playing", supportsPlay: true })).toBeNull();
+    // A player that stops but can't pause stops, never turns off, while it plays.
+    expect(mediaPress({ state: "playing", ...ALL, supportsPause: false, supportsStop: true })).toBe("stop");
     expect(mediaPress({ state: "paused", supportsPause: true })).toBeNull();
     expect(mediaPress({ state: "off", supportsPlay: true })).toBeNull();
     expect(mediaPress({ state: "unavailable", ...ALL })).toBeNull();

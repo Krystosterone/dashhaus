@@ -863,6 +863,7 @@
     "actions": [
       "onPlay",
       "onPause",
+      "onStop",
       "onPrevious",
       "onNext",
       "onTurnOn",
@@ -926,6 +927,7 @@
       "picture",
       "supportsPlay",
       "supportsPause",
+      "supportsStop",
       "supportsPrevious",
       "supportsNext",
       "supportsSeek",

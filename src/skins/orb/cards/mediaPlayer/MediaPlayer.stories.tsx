@@ -5,7 +5,7 @@ import { onHourCycle } from "@dashhaus/core/seeds/clock";
 import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["playing", "paused", "buffering", "muted", "stream", "idle", "on", "steps", "standby", "off", "other", "unavailable", "long"] as const;
+const SEEDS = ["playing", "paused", "buffering", "muted", "stream", "stops", "idle", "on", "steps", "standby", "off", "other", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/MediaPlayer",
@@ -50,6 +50,8 @@ export const Buffering: Story = { args: { seed: "buffering" } };
 export const Muted: Story = { args: { seed: "muted" } };
 /** A radio stream: no duration, so no progress is drawn, never a guessed one; no artwork, so no empty well. */
 export const Stream: Story = { args: { seed: "stream", footprint: "featured" } };
+/** A web radio that stops but can't pause: while it plays, the orb and the pill say Stop, never Turn off. */
+export const StopsNoPause: Story = { name: "Stops, no pause", args: { seed: "stops" } };
 export const Idle: Story = { args: { seed: "idle" } };
 /** A TV that is on with nothing it reports as playing: the room on the status line. */
 export const On: Story = { args: { seed: "on" } };
