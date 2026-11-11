@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FieldPage, Area, Areas } from "../dashboards/layout";
@@ -7,22 +8,29 @@ import { LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
 import type { LightSeedName } from "@dashhaus/core/seeds/light";
 import { ClimateModule } from "../cards/climate/ClimateModule";
 import { CLIMATE_SEEDS, useDemoClimate } from "@dashhaus/core/seeds/climate";
-import type { ClimateSeedName } from "@dashhaus/core/seeds/climate";
 import { CoverModule } from "../cards/cover/CoverModule";
 import { COVER_SEEDS, useDemoCover } from "@dashhaus/core/seeds/cover";
-import type { CoverSeedName } from "@dashhaus/core/seeds/cover";
+import type { CoverSeed } from "@dashhaus/core/seeds/cover";
 import { LockModule } from "../cards/lock/LockModule";
 import { LOCK_SEEDS, useDemoLock } from "@dashhaus/core/seeds/lock";
-import type { LockSeedName } from "@dashhaus/core/seeds/lock";
+import type { LockSeed } from "@dashhaus/core/seeds/lock";
 import { BinarySensorModule } from "../cards/binarySensor/BinarySensorModule";
 import { BINARY_SENSOR_SEEDS, useDemoBinarySensor } from "@dashhaus/core/seeds/binarySensor";
-import type { BinarySensorSeedName } from "@dashhaus/core/seeds/binarySensor";
+import type { BinarySensorSeed } from "@dashhaus/core/seeds/binarySensor";
+import { VacuumModule } from "../cards/vacuum/VacuumModule";
+import { VACUUM_SEEDS, useDemoVacuum } from "@dashhaus/core/seeds/vacuum";
+import type { VacuumSeed } from "@dashhaus/core/seeds/vacuum";
+import { OwletModule } from "../cards/owlet/OwletModule";
+import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
+import type { OwletSeed } from "@dashhaus/core/seeds/owlet";
+import { SCAN_CATCH, SCAN_PAGES, ScanOrder, scanStoryName } from "../../../../.storybook/blocks/ScanPlan";
+import type { ScanDevice, ScanPage } from "../../../../.storybook/blocks/ScanPlan";
 
 /*
- * The scan-task comparison (issue #186) on Field: Orb → Foundations → Scan task's pages, the same rooms in the same
- * order under the same names, so both skins' budgets are judged on one task, "Is anything at home that needs you?".
- * Field has no glow to damp, so each page is drawn once: its alert line under the title is what it brings to the task.
- * Orb's featured hero is a whole module here, and its compact rows are rows.
+ * The scan-task comparison (issues #186 and #188) on Field: Orb → Foundations → Scan task's pages, from the same plan
+ * (.storybook/blocks/ScanPlan.tsx), so both skins' budgets are judged on one task, "Is anything at home that needs
+ * you?". Field has no glow to damp and its own alert line, so each page is drawn once, named by its codes alone. Orb's
+ * featured lamp is a whole module here, and its compact rows are rows.
  */
 
 /** The example time, fixed so screenshots stay stable; every module's demo is at 11:54 too. */
@@ -32,7 +40,7 @@ const meta = {
   title: "Field/Foundations/Scan task",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "The pages for the scan-task comparison, as Orb draws them: plain areas, the lit hero above or below the urgent module, on a phone and a 1280 × 800 wall panel. Show a page on its own (the story's canvas, full screen) so its name doesn't give the answer away. Example data; the time is fixed at 11:54." } },
+    docs: { description: { component: "The pages for the scan-task comparison, as Orb draws them (issues #186 and #188), named by codes alone: the facilitator's order says which page each participant sees, and in which position. Show a page on its own (the story's canvas, full screen). Example data; the time is fixed at 11:54." } },
   },
 } satisfies Meta;
 
@@ -51,23 +59,25 @@ function Device({ label, width, height, children }: { label: string; width: numb
   );
 }
 
-/** A module's seed, its footprint, and the area it sits in, so a plate never names another room than its legend. */
-interface Placed { footprint?: FieldFootprint; area: string; name?: string }
-const placed = <T extends { area?: string; name: string }>(entity: T, { area, name }: Placed): T => ({ ...entity, area, ...(name ? { name } : {}) });
+/** A seed moved to the page's room, under the plan's name, so a plate never names another room than its legend. */
+const placed = <S extends { entity: { area?: string; name: string } }>(seed: S, area: string, name?: string): S =>
+  ({ ...seed, entity: { ...seed.entity, area, ...(name ? { name } : {}) } });
 
-function Light({ seed, footprint, ...own }: Placed & { seed: LightSeedName }) {
-  const demo = useDemoLight(LIGHT_SEEDS[seed]);
-  return <LightModule {...demo} entity={placed(demo.entity, own)} footprint={footprint} />;
+const row = "compact" satisfies FieldFootprint;
+
+function Light({ seed, area, name, footprint }: { seed: LightSeedName; area: string; name?: string; footprint?: FieldFootprint }) {
+  const demo = useDemoLight(LIGHT_SEEDS[seed], { area, ...(name ? { name } : {}) });
+  return <LightModule {...demo} footprint={footprint} />;
 }
-function Climate({ seed, footprint, ...own }: Placed & { seed: ClimateSeedName }) {
-  const demo = useDemoClimate(CLIMATE_SEEDS[seed]);
-  return <ClimateModule {...demo} entity={placed(demo.entity, own)} footprint={footprint} />;
+function Climate({ area }: { area: string }) {
+  const demo = useDemoClimate(CLIMATE_SEEDS.heating);
+  return <ClimateModule {...demo} entity={{ ...demo.entity, area }} footprint={row} />;
 }
-function Cover({ seed, footprint, ...own }: Placed & { seed: CoverSeedName }) {
-  const demo = useDemoCover(COVER_SEEDS[seed]);
+function Cover({ seed, footprint }: { seed: CoverSeed; footprint?: FieldFootprint }) {
+  const demo = useDemoCover(seed);
   return (
     <CoverModule
-      entity={placed(demo.entity, own)}
+      entity={demo.entity}
       history={demo.history}
       onOpenCover={demo.onOpenCover}
       onCloseCover={demo.onCloseCover}
@@ -78,71 +88,61 @@ function Cover({ seed, footprint, ...own }: Placed & { seed: CoverSeedName }) {
     />
   );
 }
-function Lock({ seed, footprint, ...own }: Placed & { seed: LockSeedName }) {
-  const demo = useDemoLock(LOCK_SEEDS[seed]);
-  return <LockModule {...demo} entity={placed(demo.entity, own)} footprint={footprint} />;
+function Lock({ seed }: { seed: LockSeed }) {
+  const demo = useDemoLock(seed);
+  return <LockModule {...demo} />;
 }
-function BinarySensor({ seed, footprint, ...own }: Placed & { seed: BinarySensorSeedName }) {
-  const { entity, history } = useDemoBinarySensor(BINARY_SENSOR_SEEDS[seed]);
-  return <BinarySensorModule entity={placed(entity, own)} history={history} footprint={footprint} />;
+function BinarySensor({ seed }: { seed: BinarySensorSeed }) {
+  const { entity, history } = useDemoBinarySensor(seed);
+  return <BinarySensorModule entity={entity} history={history} />;
+}
+function Vacuum({ seed }: { seed: VacuumSeed }) {
+  const demo = useDemoVacuum(seed);
+  return (
+    <VacuumModule
+      entity={demo.entity}
+      history={demo.history}
+      onStart={demo.onStart} onPause={demo.onPause} onReturnToBase={demo.onReturnToBase} onLocate={demo.onLocate} onFanSpeedChange={demo.onFanSpeedChange}
+    />
+  );
+}
+/** An Owlet sock; its base station switches locally. */
+function Owlet({ seed }: { seed: OwletSeed }) {
+  const [baseOn, setBaseOn] = useState(seed.entity.baseOn ?? true);
+  return <OwletModule entity={{ ...seed.entity, baseOn }} history={seed.history} onBaseToggle={() => setBaseOn((on) => !on)} />;
 }
 
-const row = { footprint: "compact" } as const;
+function Problem({ page }: { page: ScanPage }) {
+  switch (page.problem) {
+    case "leak": return <BinarySensor seed={placed(BINARY_SENSOR_SEEDS.leak, page.room, page.name)} />;
+    case "jammed": return <Lock seed={placed(LOCK_SEEDS.jammed, page.room, page.name)} />;
+    case "vacuum": return <Vacuum seed={placed(VACUUM_SEEDS.error, page.room, page.name)} />;
+    case "sockOff": return <Owlet seed={placed(OWLET_SEEDS.sockOff, page.room, page.name)} />;
+  }
+}
 
-/* The rooms every page is built from, as Orb's. */
-const Living = () => (
-  <Area title="Living room">
-    <Light seed="dimmableNoWarmth" area="Living room" name="Floor lamp" />
-    <Climate seed="heating" area="Living room" {...row} />
-    <Cover seed="curtains" area="Living room" {...row} />
-  </Area>
-);
-const Hall = () => (
-  <Area title="Hall">
-    <Lock seed="locked" area="Hall" />
-    <Light seed="onOff" area="Hall" {...row} />
-  </Area>
-);
-const QuietGarage = () => (
-  <Area title="Garage">
-    <Cover seed="garage" area="Garage" />
-    <Light seed="onOff" area="Garage" name="Garage lights" {...row} />
-  </Area>
-);
-const QuietKitchen = () => (
-  <Area title="Kitchen">
-    <Light seed="dimmable" area="Kitchen" name="Pendants" />
-    <BinarySensor seed="open" area="Kitchen" />
-    <BinarySensor seed="lowBattery" area="Kitchen" {...row} />
-  </Area>
-);
-
-/** The lit hero first in the kitchen, the leak under it. */
-const heroAbove = [
-  <Living key="living" />,
-  <Area key="kitchen" title="Kitchen">
-    <Light seed="dimmable" area="Kitchen" name="Pendants" />
-    <BinarySensor seed="leak" area="Kitchen" />
-    <BinarySensor seed="lowBattery" area="Kitchen" {...row} />
-  </Area>,
-  <Hall key="hall" />,
-  <QuietGarage key="garage" />,
-];
-
-/** The jammed lock first in the garage, the lit hero under it. */
-const heroBelow = [
-  <Living key="living" />,
-  <Area key="garage" title="Garage">
-    <Lock seed="jammed" area="Garage" />
-    <Light seed="dimmable" area="Garage" name="Garage lights" />
-    <Cover seed="garage" area="Garage" {...row} />
-  </Area>,
-  <QuietKitchen key="kitchen" />,
-  <Hall key="hall" />,
-];
-
-/** Advisory states and a lit hero, nothing urgent: what a "yes" here counts is a false alarm. */
-const nothingUrgent = [<Living key="living" />, <QuietKitchen key="kitchen" />, <Hall key="hall" />, <QuietGarage key="garage" />];
+/** The page's areas, as Orb's sections: the living room, the problem's room (or the den), the dining room, the driveway. */
+function rooms(page: ScanPage | undefined): ReactNode[] {
+  const room = page?.room ?? SCAN_CATCH.room;
+  const beside = page ? <Problem key="problem" page={page} /> : <BinarySensor key="door" seed={placed(BINARY_SENSOR_SEEDS.open, room)} />;
+  const lamp = <Light key="lamp" seed="dimmable" area={room} name="Ceiling" />;
+  return [
+    <Area key="living" title="Living room">
+      <Light seed="dimmableNoWarmth" area="Living room" name="Floor lamp" />
+      <Climate area="Living room" />
+      <Cover seed={placed(COVER_SEEDS.curtains, "Living room")} footprint={row} />
+    </Area>,
+    <Area key="problem" title={room}>{page?.lamp === "below" ? [beside, lamp] : [lamp, beside]}</Area>,
+    <Area key="dining" title="Dining room">
+      <BinarySensor seed={placed(BINARY_SENSOR_SEEDS.lowBattery, "Dining room", "Smoke detector")} />
+      <Light seed="onOff" area="Dining room" name="Sideboard lamp" footprint={row} />
+    </Area>,
+    <Area key="driveway" title="Driveway">
+      <Cover seed={placed(COVER_SEEDS.garage, "Driveway")} />
+      <Light seed="onOff" area="Driveway" footprint={row} />
+    </Area>,
+  ];
+}
 
 function Phone({ children }: { children: ReactNode }) {
   return (
@@ -162,9 +162,28 @@ function Wall({ children }: { children: ReactNode }) {
   );
 }
 
-export const PhoneHeroAbove: Story = { name: "Phone, hero above", render: () => <Phone>{heroAbove}</Phone> };
-export const PhoneHeroBelow: Story = { name: "Phone, hero below", render: () => <Phone>{heroBelow}</Phone> };
-export const PhoneNothingUrgent: Story = { name: "Phone, nothing urgent", render: () => <Phone>{nothingUrgent}</Phone> };
-export const WallHeroAbove: Story = { name: "Wall panel, hero above", render: () => <Wall>{heroAbove}</Wall> };
-export const WallHeroBelow: Story = { name: "Wall panel, hero below", render: () => <Wall>{heroBelow}</Wall> };
-export const WallNothingUrgent: Story = { name: "Wall panel, nothing urgent", render: () => <Wall>{nothingUrgent}</Wall> };
+const FRAMES = { phone: Phone, wall: Wall };
+
+/** One trial's page: page 1 to 6 of a device, or page 7, the catch page. */
+function scan(device: ScanDevice, page: number): Story {
+  const Frame = FRAMES[device];
+  return { name: scanStoryName(device, page), render: () => <Frame>{rooms(SCAN_PAGES[device][page - 1])}</Frame> };
+}
+
+/** Not a study page: which page each participant sees, in which position, and what each page holds. */
+export const FacilitatorOrder: Story = { name: "Facilitator order", render: () => <ScanOrder skin="field" /> };
+
+export const Phone1: Story = scan("phone", 1);
+export const Phone2: Story = scan("phone", 2);
+export const Phone3: Story = scan("phone", 3);
+export const Phone4: Story = scan("phone", 4);
+export const Phone5: Story = scan("phone", 5);
+export const Phone6: Story = scan("phone", 6);
+export const Phone7: Story = scan("phone", 7);
+export const Wall1: Story = scan("wall", 1);
+export const Wall2: Story = scan("wall", 2);
+export const Wall3: Story = scan("wall", 3);
+export const Wall4: Story = scan("wall", 4);
+export const Wall5: Story = scan("wall", 5);
+export const Wall6: Story = scan("wall", 6);
+export const Wall7: Story = scan("wall", 7);
