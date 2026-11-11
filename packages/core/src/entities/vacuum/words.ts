@@ -19,6 +19,9 @@ export const VACUUM_WORDS: Record<Exclude<VacuumState, "other">, string> = {
 /** Today's word, lower case, as `todaySummary` takes it: "Cleaning 42m", "Not cleaning today". */
 export const VACUUM_TODAY = "cleaning";
 
+/** What a featured card says where today's cleaning would be, while it was given none to draw. */
+export const NO_CLEANING_HISTORY = "No cleaning history";
+
 /** What it is doing in words: "Cleaning", "Docked"; an integration's own state as it says it ("Mopping"). */
 export function vacuumWord(e: Pick<VacuumEntity, "state" | "stateText">): string {
   if (e.state === "unavailable") return VACUUM_WORDS.unavailable;

@@ -933,6 +933,15 @@ export function SheetBlock({ children }: { children?: ReactNode }) {
   return sheet && Children.toArray(children).length > 0 ? <div className="hd-extra">{children}</div> : null;
 }
 
+/**
+ * What a featured card writes where its featured content would sit while it has none (no QR code, nothing playing):
+ * one quiet line in the card's own words, with no container, since a dashed outline says unavailable and a groove says
+ * set. The card keeps its height and its readout its size (spec/orb.md → A featured card with nothing to feature).
+ */
+export function FeaturedEmpty({ children }: { children: ReactNode }) {
+  return <p className="hd-empty">{children}</p>;
+}
+
 /** The card's Today strip in its frame: while the entity is unavailable, its summary says since when. */
 export function Today({ summary, ...strip }: Parameters<typeof TodayStrip>[0]) {
   const { unavailable, lastSeen } = useContext(FrameContext);

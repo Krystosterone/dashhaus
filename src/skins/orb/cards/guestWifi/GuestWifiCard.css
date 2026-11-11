@@ -15,7 +15,7 @@
 
 /* Featured: the join QR code beside how to join, in the room the Today strip takes on other cards. */
 .gw-join { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 14px; min-width: 0; min-height: 0; }
-.gw-join[data-qr] { grid-template-columns: auto minmax(0, 1fr); }
+.gw-join:is([data-qr], [data-empty]) { grid-template-columns: auto minmax(0, 1fr); }
 .gw-qr { display: block; aspect-ratio: 1; border-radius: 8px; image-rendering: pixelated; -webkit-user-drag: none; }
 .gw-how { margin: 0; min-width: 0; color: var(--ink-2); font-size: var(--type-status); font-weight: 500; line-height: 1.35; }
 .gw-terms { display: block; margin-top: 6px; color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; }
@@ -29,6 +29,9 @@ span.gw-qr { background: var(--fill); }
   /* One that failed: its words, which say so, in place of an empty frame. */
   .hd--featured:not(.hd--sheet) .gw-join[data-failed] { grid-template-columns: minmax(0, 1fr); }
   .hd--featured:not(.hd--sheet) .gw-join[data-failed] .gw-qr { display: none; }
+  /* No QR code at all: how to join, which a guest can still follow, in place of the line saying there is none. */
+  .hd--featured:not(.hd--sheet) .gw-join[data-empty] { grid-template-columns: minmax(0, 1fr); }
+  .hd--featured:not(.hd--sheet) .gw-join[data-empty] .hd-empty { display: none; }
 }
 
 /* The sheet: the QR code large and centred, how to join under it. */

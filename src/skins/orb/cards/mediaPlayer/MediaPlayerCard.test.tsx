@@ -109,6 +109,20 @@ describe("MediaPlayerCard", () => {
     expect(statusLine(container)).toBe("Kitchen · Spotify");
   });
 
+  it("says in one quiet line, featured only, that it names nothing: no title while it plays, nothing playing while idle", () => {
+    const { container, rerender } = render(<MediaPlayerCard entity={playing} footprint="featured" {...press()} />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+    rerender(<MediaPlayerCard entity={{ entityId: "media_player.x", name: "X", state: "playing" }} footprint="featured" {...press()} />);
+    expect(container.querySelector(".hd-empty")?.textContent).toBe("No title");
+    rerender(<MediaPlayerCard entity={{ entityId: "media_player.av", name: "AV receiver", state: "idle" }} footprint="featured" {...press()} />);
+    expect(container.querySelector(".hd-empty")?.textContent).toBe("Nothing playing");
+    rerender(<MediaPlayerCard entity={{ entityId: "media_player.av", name: "AV receiver", state: "idle" }} {...press()} />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+    // Unavailable, the dashed slot says it: no line.
+    rerender(<MediaPlayerCard entity={{ ...playing, state: "unavailable" }} footprint="featured" {...press()} />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+  });
+
   it("draws no progress line and no clock under a quiet dashboard", () => {
     const { container } = render(<MediaPlayerCard entity={playing} footprint="featured" quiet {...press()} />);
     expect(container.querySelector(".mp-title")?.textContent).toBe("Sunday Morning");

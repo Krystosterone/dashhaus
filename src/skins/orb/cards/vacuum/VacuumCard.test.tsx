@@ -26,6 +26,19 @@ describe("VacuumCard", () => {
     expect(screen.getByRole("button", { name: /^Robot vacuum: Cleaning · Pause/ }).getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("says No cleaning history where today's cleaning would be on a featured card given none, and nowhere else", () => {
+    const history = { samples: Array(24).fill(null), currentHour: 12, cleaningMinutes: 0 };
+    const { container, rerender } = render(<VacuumCard entity={cleaning} footprint="featured" {...handlers()} />);
+    expect(container.querySelector(".hd-empty")?.textContent).toBe("No cleaning history");
+    rerender(<VacuumCard entity={cleaning} history={history} footprint="featured" {...handlers()} />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+    rerender(<VacuumCard entity={cleaning} {...handlers()} />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+    // Unavailable, the dashed slot says it: no line.
+    rerender(<VacuumCard entity={{ ...cleaning, state: "unavailable" }} footprint="featured" {...handlers()} />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+  });
+
   it("pauses a vacuum that moves, from the orb and the pill", () => {
     const h = handlers();
     render(<VacuumCard entity={cleaning} {...h} />);

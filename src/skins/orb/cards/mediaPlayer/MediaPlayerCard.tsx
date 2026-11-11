@@ -1,5 +1,5 @@
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, OPEN_IN_HOME_ASSISTANT, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, VOLUME_STEP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, OPEN_IN_HOME_ASSISTANT, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, nothingPlayingWords, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, VOLUME_STEP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
@@ -8,7 +8,7 @@ import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { MediaPlayerIcon } from "./icons";
 import { Progress, SeekGroove } from "./parts";
-import { CardFrame, ChoiceChips, LevelBar, Picture, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
+import { CardFrame, ChoiceChips, FeaturedEmpty, LevelBar, Picture, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./MediaPlayerCard.css";
 
@@ -64,7 +64,8 @@ const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as
  * A media player (one `media_player.*`): what is playing, and the one press that plays, pauses or turns it on, gated
  * on what it supports; the pill says which. Playing (or buffering, or on) is the accent; a state, so it never glows. The status line
  * says what is playing, the title first. Featured, it shows the artwork, the title and artist, and how far in, a line
- * and a clock that run on by themselves with no re-render. The name, or a press and hold, opens the sheet: the same,
+ * and a clock that run on by themselves with no re-render; with nothing it names, one quiet line says so ("Nothing
+ * playing", "No title"). The name, or a press and hold, opens the sheet: the same,
  * with how far in as a groove that seeks where the player can, skip back and on, the volume groove the sound card has
  * (or Down and Up for a player that steps its volume), mute, the source, turning it off, inside Home Assistant a pill
  * to its own player (browsing media, grouping), and today's playing. Its artwork is data, never a signal: no glow,
@@ -158,6 +159,8 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
       control={slot}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : mediaAbilities(e) }}
     >
+      {/* Featured with nothing it names: one quiet line where what is playing would be. Unavailable, the slot says so. */}
+      {featured && !unav && !nowPlaying && <FeaturedEmpty>{nothingPlayingWords(e)}</FeaturedEmpty>}
       {nowPlaying && (
         <div className="mp-now" data-art={e.picture ? "" : undefined}>
           {e.picture && (

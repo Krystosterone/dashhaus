@@ -61,6 +61,12 @@ export function mediaLine(e: Pick<MediaPlayerEntity, "state" | "title" | "artist
   return parts.length ? parts.join(" · ") : e.app;
 }
 
+/**
+ * What a card says where what is playing would be, while the player names nothing: "No title" while something plays,
+ * is paused or buffers without saying what; "Nothing playing" while it is off, asleep, idle or on with nothing loaded.
+ */
+export const nothingPlayingWords = (e: Pick<MediaPlayerEntity, "state">) => (isPlaying(e) || e.state === "paused" ? "No title" : "Nothing playing");
+
 /** Where it plays from, for its details: the app, else the source ("Spotify", "TV"). Nothing while off. */
 export function playingFrom(e: Pick<MediaPlayerEntity, "state" | "app" | "source">): string | undefined {
   if (!loaded(e)) return undefined;
