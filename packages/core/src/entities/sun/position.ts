@@ -69,9 +69,11 @@ export function sunDay(now: number, latitude: number, longitude: number): SunHis
   const peak = Math.max(...path);
   const { up, down } = crossings(path, HORIZON);
 
-  const perHour = SUN_PATH_STEPS / 24;
+  // The steps inside each clock hour, cut where the clock says it starts: a DST day has an hour of none, or one of two.
+  const day = new Date(start);
+  const step = (h: number) => (new Date(day.getFullYear(), day.getMonth(), day.getDate(), h).getTime() - start) * SUN_PATH_STEPS / length;
   const samples: HourSample[] = Array.from({ length: 24 }, (_, h) => {
-    const top = Math.max(...path.slice(h * perHour, (h + 1) * perHour + 1));
+    const top = Math.max(...path.slice(Math.ceil(step(h)), Math.floor(step(h + 1)) + 1));
     return peak > 0 && top > 0 ? Math.min(1, top / peak) : 0;
   });
 
@@ -85,7 +87,7 @@ export function sunDay(now: number, latitude: number, longitude: number): SunHis
   return {
     path,
     samples,
-    currentHour: Math.min(23, Math.floor(nowAt * 24)),
+    currentHour: new Date(now).getHours(),
     nowAt,
     riseAt: up,
     setAt: down,
