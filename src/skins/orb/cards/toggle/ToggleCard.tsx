@@ -3,6 +3,7 @@ import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { toggleKind, toggleWord } from "@dashhaus/core/entities/toggle/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { ToggleIconSvg } from "./icons";
 import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
@@ -20,6 +21,9 @@ export interface ToggleCardProps extends CardProps {
   /** Sheet: ways to turn it on. Omit `onTurnOnFor` to hide them. */
   durations?: DurationOption[];
   onToggle: () => void;
+  /** Sheet, while its state is assumed or unknown (`eitherWay`): turn it on, or off, whatever it shows. */
+  onTurnOn?: () => void;
+  onTurnOff?: () => void;
   /** Sheet: turn on (or keep on) with one of `durations`. */
   onTurnOnFor?: (value: string) => void;
   /** Card only: the name, and press and hold on the orb, open the details sheet. */
@@ -31,7 +35,7 @@ export interface ToggleCardProps extends CardProps {
  * A mode you switch on and off: Do Not Disturb, Quiet, Guest. One input_boolean or switch.
  * It uses the same card anatomy and footprint matrix as every other card.
  */
-export function ToggleCard({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose }: ToggleCardProps) {
+export function ToggleCard({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOn, onTurnOff, onTurnOnFor, onOpenDetails, onClose }: ToggleCardProps) {
   const card = useCard("tw", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
@@ -73,6 +77,10 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
       {!unav && (
         <SheetBlock>
           {e.description && <p className="hd-note">{e.description}</p>}
+          {eitherWay(e) && onTurnOn && onTurnOff && <>
+            <p className="hd-note">{eitherWayHint(e)}</p>
+            <ChoiceChips id={`${uid}-w`} label={EITHER_WAY_LEGEND} options={[...EITHER_WAY]} value={null} onChange={(v) => (v === "on" ? onTurnOn : onTurnOff)()} />
+          </>}
           {onTurnOnFor && durations.length > 0 && (
             <ChoiceChips id={`${uid}-d`} label={on ? "Keep on" : "Turn on for"} options={durations} value={on ? e.duration ?? null : null} onChange={onTurnOnFor} />
           )}

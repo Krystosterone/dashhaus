@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaToggleTile } from "./HaToggleTile";
 import type { HassEntities } from "@dashhaus/core";
@@ -35,5 +35,19 @@ describe("HaToggleTile", () => {
     );
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Guest" })).toBeTruthy());
+  });
+
+  it("sends on and off apart from the sheet while Home Assistant only assumes its state", async () => {
+    const rf: HassEntities = {
+      "switch.fountain": { entity_id: "switch.fountain", state: "on", attributes: { friendly_name: "Fountain", assumed_state: true }, last_changed: "2026-10-19T10:00:00Z", last_updated: "2026-10-19T10:00:00Z" },
+    };
+    const fake = renderConnected(<HaToggleTile entityId="switch.fountain" defaultOpen />, rf);
+    const turn = await screen.findByRole("group", { name: "Turn" });
+    expect(screen.getByText("Home Assistant assumes its state, so both are here.")).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(within(turn).getByRole("button", { name: "On" }));
+      await Promise.resolve();
+    });
+    expect(fake.callService).toHaveBeenCalledWith("switch", "turn_on", { entity_id: "switch.fountain" });
   });
 });

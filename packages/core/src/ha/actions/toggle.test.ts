@@ -63,4 +63,20 @@ describe("createToggleHandlers", () => {
     const handlers = createToggleHandlers({ callService: vi.fn(async () => undefined) }, entity);
     expect("onTurnOnFor" in handlers).toBe(false);
   });
+
+  it("turns on and off apart only an entity whose state is assumed or unknown, since what it shows may be wrong", async () => {
+    const callService = vi.fn(async () => undefined);
+    expect(createToggleHandlers({ callService }, entity).onTurnOn).toBeUndefined();
+    const assumed = createToggleHandlers({ callService }, { ...entity, entityId: "switch.rf_heater", assumedState: true });
+    assumed.onTurnOn?.();
+    assumed.onTurnOff?.();
+    createToggleHandlers({ callService }, { ...entity, state: "unknown" }).onTurnOff?.();
+    await Promise.resolve();
+
+    expect(callService.mock.calls).toEqual([
+      ["switch", "turn_on", { entity_id: "switch.rf_heater" }],
+      ["switch", "turn_off", { entity_id: "switch.rf_heater" }],
+      ["input_boolean", "turn_off", { entity_id: "input_boolean.guest_mode" }],
+    ]);
+  });
 });

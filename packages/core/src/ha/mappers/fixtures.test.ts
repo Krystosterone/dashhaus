@@ -57,7 +57,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "sensor", fixture: sensor, map: sensorFromHass, keepsState: false },
   { domain: "weather", fixture: weather, map: weatherFromHass, keepsState: true },
   { domain: "cover", fixture: cover, map: coverFromHass, keepsState: true, keepsUnknown: true },
-  { domain: "toggle", fixture: toggle, map: toggleFromHass, keepsState: true },
+  { domain: "toggle", fixture: toggle, map: toggleFromHass, keepsState: true, keepsUnknown: true },
   { domain: "alarm_control_panel", fixture: alarm, map: alarmFromHass, keepsState: true },
   { domain: "owlet sleep state", fixture: owlet, map: owletFromHass, keepsState: true },
   { domain: "humidifier", fixture: humidifier, map: humidifierFromHass, keepsState: true },

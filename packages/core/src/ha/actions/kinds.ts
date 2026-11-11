@@ -18,6 +18,9 @@
  *   An action that takes a code but doesn't ask (an alarm's disarm, a lock's lock) runs at once unless the entity
  *   wants a code, and asks for it then. A level that asks has no question yet in any skin, so it is left out where it
  *   asks: set only where it doesn't.
+ * - `either`: a press given only while the entity's state is assumed or unknown (`eitherWay`): its turn-on and turn-off,
+ *   sent whatever it shows. A skin draws the pair in its details; a generator leaves it out, since the card's own
+ *   press already switches it.
  * - `when`: `asks` only for an entity whose field holds one of these values, keyed by the field (a cover's open and
  *   close, `{ deviceClass: ["garage", "door", "gate"] }`); for any other entity it doesn't ask. Several fields must
  *   all match. A reader that ignores `when` asks every time, which fails safe.
@@ -26,7 +29,7 @@
  * reads them all.
  */
 export type ActionKind<F extends string = string> =
-  | { takes: "nothing" | "code" | "value"; asks?: true; when?: AsksWhen<F> }
+  | { takes: "nothing" | "code" | "value"; asks?: true; when?: AsksWhen<F>; either?: true }
   | { takes: "level"; field: F; min?: number | F; max?: number | F; wakes?: true; runs?: true; asks?: true; when?: AsksWhen<F> }
   | { takes: "choice"; field: F; options: F | readonly string[] }
   | { takes: "switch"; field: F };

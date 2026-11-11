@@ -51,6 +51,10 @@ export const On: Story = { name: "Guest mode, on until turned off", args: { togg
 export const Off: Story = { name: "Quiet mode, off", args: { toggle: "quiet" } };
 /** A switch rather than a helper: the same module, its power glyph. */
 export const Switch: Story = { args: { toggle: "soundMachine" } };
+/** A template switch before its first command: blank segments and Unknown, never OFF, and the key turns it on. */
+export const Unknown: Story = { args: { toggle: "unknown" } };
+/** An RF plug Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the panel. */
+export const AssumedState: Story = { name: "Assumed state", args: { toggle: "assumed" } };
 /** Blank segments and when it was last seen; the key lies flat. */
 export const Unavailable: Story = { args: { toggle: "unavailable" } };
 
@@ -118,6 +122,8 @@ export const Details: Story = { args: { defaultOpen: true } };
 /** Off: ways to turn it on, none chosen. */
 export const DetailsOff: Story = { name: "Details, off", args: { toggle: "quiet", defaultOpen: true } };
 
+/** Its state assumed: Turn Off and On keys, either sent whatever it shows, since what it shows may be wrong. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { toggle: "assumed", defaultOpen: true } };
 /** Unavailable: blank screen, every key flat, the hours it was gone dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { toggle: "unavailable", defaultOpen: true } };
 

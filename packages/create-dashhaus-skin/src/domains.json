@@ -1241,6 +1241,7 @@
       "name",
       "area",
       "state",
+      "assumedState",
       "icon",
       "until",
       "duration",

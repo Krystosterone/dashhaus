@@ -22,7 +22,9 @@ export function GlasshouseToggleCard({ entity: e, history, footprint = "standard
   const on = e.state === "on";
   const said = glasshouseWords(e.state);
   const control = onToggle ? <GlasshouseSwitch label={e.name} on={on} unavailable={unavailable} onPress={onToggle} /> : undefined;
-  const line = on && e.until ? `On until ${e.until}` : e.lastChanged ? `${said} since ${e.lastChanged}` : e.description ?? said;
+  // Unknown says its word alone, as unavailable does: the big word beside it is the widest, and since when it hasn't
+  // said is no time to clip.
+  const line = on && e.until ? `On until ${e.until}` : e.lastChanged && e.state !== "unknown" ? `${said} since ${e.lastChanged}` : e.description ?? said;
   const face = (
     <>
       <div className="glasshouse-figure-row">

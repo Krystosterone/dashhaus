@@ -22,7 +22,8 @@ export interface ToggleMapOptions {
 /** Map one raw Home Assistant input_boolean or switch state to the existing presentational model. */
 export function toggleFromHass(raw: HassEntity | undefined, entityId: string, options: ToggleMapOptions = {}): ToggleEntity {
   const attributes = raw?.attributes ?? {};
-  const state = raw?.state === "on" ? "on" : raw?.state === "off" ? "off" : "unavailable";
+  // Unknown can still be switched (an RF or template switch before its first command): it stays apart from off.
+  const state = raw?.state === "on" || raw?.state === "off" || raw?.state === "unknown" ? raw.state : "unavailable";
   const friendlyName = stringValue(attributes.friendly_name);
   const lastSeenRaw = stringValue(attributes.last_seen);
 
@@ -31,6 +32,7 @@ export function toggleFromHass(raw: HassEntity | undefined, entityId: string, op
     name: options.name ?? friendlyName ?? entityId,
     area: options.area,
     state,
+    ...(attributes.assumed_state === true && { assumedState: true }),
     icon: options.icon,
     description: options.description,
     lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),

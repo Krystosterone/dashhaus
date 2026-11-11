@@ -4,6 +4,7 @@ import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { toggleKind, toggleWord } from "@dashhaus/core/entities/toggle/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { Blank, Key, ModuleFrame, Option, Pictogram, Today, useDetails, KeyGroup, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
@@ -15,6 +16,9 @@ export interface ToggleModuleProps {
   /** Today, for the detail panel. Omit to leave the panel without it. */
   history?: ToggleHistory;
   onToggle: () => void;
+  /** While its state is assumed or unknown (`eitherWay`): turn it on, or off, whatever it shows. The panel's Turn keys. */
+  onTurnOn?: () => void;
+  onTurnOff?: () => void;
   /** Turn on (or keep on) with one of `durations`. Omit and the panel has no duration keys. */
   onTurnOnFor?: (value: string) => void;
   /** The panel's ways to turn it on. Default: 30 min, 1 hour, until morning, until off. */
@@ -30,15 +34,18 @@ export interface ToggleModuleProps {
  * wears a parameter's colour, and the entity's own colour isn't drawn. The name, or a press and hold on the key,
  * opens the detail panel: what the mode does, ways to turn it on for a while, and today.
  */
-export function ToggleModule({ entity: e, footprint = "standard", history, onToggle, onTurnOnFor, durations = DEFAULT_DURATIONS, defaultOpen = false }: ToggleModuleProps) {
+export function ToggleModule({ entity: e, footprint = "standard", history, onToggle, onTurnOn, onTurnOff, onTurnOnFor, durations = DEFAULT_DURATIONS, defaultOpen = false }: ToggleModuleProps) {
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
   const on = e.state === "on";
+  // Reachable but not reported yet: it switches like an off one, and its screen has no reading.
+  const unknown = e.state === "unknown";
 
   const pict = <Pictogram param="neutral" lit={on}>{modePict(e.icon)}</Pictogram>;
-  const read: ReactNode = unav ? <Blank label="Unavailable" /> : on ? "ON" : "OFF";
+  const read: ReactNode = unav ? <Blank label="Unavailable" /> : unknown ? <Blank label="Unknown" /> : on ? "ON" : "OFF";
   const since = sinceFact(e.lastChanged);
   const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
+    : unknown ? ["Unknown", since]
     : on && e.until ? [`Until ${e.until}`, since]
     : since ? [since]
     : undefined;
@@ -75,6 +82,15 @@ export function ToggleModule({ entity: e, footprint = "standard", history, onTog
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: toggleKind(e) }}
     >
       {e.description && <p className="fd-hint">{e.description}</p>}
+
+      {eitherWay(e) && onTurnOn && onTurnOff && (
+        <div className="fd-block">
+          <KeyGroup legend={EITHER_WAY_LEGEND} columns={2}>
+            {EITHER_WAY.map((w) => <Key key={w.value} label={`${e.name}, turn ${w.label.toLowerCase()}`} wide caption={w.label} onPress={w.value === "on" ? onTurnOn : onTurnOff}>{null}</Key>)}
+          </KeyGroup>
+          <p className="fd-hint">{eitherWayHint(e)}</p>
+        </div>
+      )}
 
       {onTurnOnFor && durations.length > 0 && (
         <KeyGroup legend={on ? "Keep on" : "Turn on for"} value={chosen?.label} columns={2} className="fd-tw-durations">

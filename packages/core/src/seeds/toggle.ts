@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { eitherWay } from "../entities/assumed";
 import type { HourSample } from "../entities/history";
 import type { ToggleEntity, ToggleHistory } from "../entities/toggle/types";
 
@@ -52,6 +53,17 @@ export const TOGGLE_SEEDS = {
       description: "The sound machine by the crib.", lastChanged: "10:58" },
     past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0.1],
   },
+  /** An RF plug Home Assistant sends to but never hears back from (`assumed_state`): it shows on, and may not be. */
+  assumed: {
+    entity: { entityId: "switch.garden_fountain", name: "Fountain", area: "Garden", state: "on", icon: "waves", assumedState: true,
+      description: "The pond pump, on a 433 MHz plug.", lastChanged: "09:30" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+  },
+  /** A template switch before its first command: reachable, but it hasn't said whether it is on. */
+  unknown: {
+    entity: { entityId: "switch.porch_heater", name: "Porch heater", area: "Porch", state: "unknown", icon: "power", lastChanged: "06:00" },
+    past: [0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable", "unavailable", "unavailable"],
+  },
   unavailable: {
     entity: { entityId: "switch.night_mode", name: "Night mode", area: "Bedroom", state: "unavailable", icon: "moon", lastSeen: "08:20" },
     past: [1, 1, 1, 1, 1, 1, 1, 0, "unavailable", "unavailable", "unavailable"],
@@ -84,7 +96,8 @@ export function useDemoToggle({ entity: seed, past }: ToggleSeed) {
   const [entity, setEntity] = useState<ToggleEntity>(seed);
   const history = useMemo<ToggleHistory>(() => {
     const on = entity.state === "on";
-    const now: HourSample = entity.state === "unavailable" ? "unavailable" : on ? 0.9 : 0;
+    // Home Assistant's history reads an unknown hour as one with no reading.
+    const now: HourSample = entity.state === "unavailable" || entity.state === "unknown" ? "unavailable" : on ? 0.9 : 0;
     // A day shorter than the hours so far (a toggle never on) is dark up to now.
     const samples: HourSample[] = [...past, ...Array(Math.max(0, NOW.hour - past.length)).fill(null), now, ...Array(24 - NOW.hour - 1).fill(null)];
     const pastMin = past.reduce<number>((a, x) => a + (typeof x === "number" ? Math.round(x * 60) : 0), 0);
@@ -97,5 +110,10 @@ export function useDemoToggle({ entity: seed, past }: ToggleSeed) {
     history,
     onToggle: () => set(entity.state === "on" ? { state: "off", until: undefined, duration: undefined } : { state: "on", until: undefined, duration: "manual" }),
     onTurnOnFor: (v: string) => set({ state: "on", duration: v, until: ENDS[v] }),
+    // As the handlers give them: only while its state is assumed or unknown.
+    ...(eitherWay(entity) && {
+      onTurnOn: () => set({ state: "on", until: undefined, duration: "manual" }),
+      onTurnOff: () => set({ state: "off", until: undefined, duration: undefined }),
+    }),
   };
 }

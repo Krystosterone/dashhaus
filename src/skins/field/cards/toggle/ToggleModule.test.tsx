@@ -91,4 +91,14 @@ describe("ToggleModule", () => {
     const panel = screen.getByRole("dialog", { hidden: true });
     expect(within(panel).getAllByRole("button", { hidden: true }).filter((b) => !b.getAttribute("aria-label")?.startsWith("Close")).every((b) => (b as HTMLButtonElement).disabled || b.getAttribute("aria-disabled") === "true")).toBe(true);
   });
+
+  it("says Unknown rather than OFF, and offers on and off apart in the panel while its state is unsure", () => {
+    const onTurnOn = vi.fn();
+    const onTurnOff = vi.fn();
+    const { container } = render(<ToggleModule entity={TOGGLE_SEEDS.unknown.entity} onToggle={vi.fn()} onTurnOn={onTurnOn} onTurnOff={onTurnOff} defaultOpen />);
+    expect(container.querySelector(".fd-read")?.textContent).not.toContain("OFF");
+    fireEvent.click(screen.getByRole("button", { name: "Porch heater, turn off" }));
+    expect(onTurnOff).toHaveBeenCalledOnce();
+    expect(screen.getByText("Its state isn't known yet, so both are here.")).toBeTruthy();
+  });
 });

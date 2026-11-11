@@ -10,7 +10,13 @@ export interface ToggleEntity {
   name: string;
   /** Where it applies: "Whole home", "Bedroom". */
   area?: string;
-  state: "on" | "off" | "unavailable";
+  /**
+   * `unknown` is reachable but not yet reported (an RF or template switch before its first command): it can still be
+   * switched, both ways (`eitherWay`, `entities/assumed.ts`), and is never drawn as off or unavailable.
+   */
+  state: "on" | "off" | "unknown" | "unavailable";
+  /** Home Assistant only assumes it is on or off (`assumed_state`), so both presses are offered (`eitherWay`). */
+  assumedState?: boolean;
   icon?: ToggleIcon;
   /**
    * Local time it switches itself off, when it was turned on for a while ("07:00"). The hook doesn't set it: Home

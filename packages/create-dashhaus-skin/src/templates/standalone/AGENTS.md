@@ -156,6 +156,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | --- | --- |
 | `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo`, `fmtPlayTime` (a player's clock), `inWords` (an integration's own state in words) |
 | `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText`; a blank figure's two phrases, `NO_READING_YET` (declared, not sent yet) and `NOT_REPORTED` (not declared, where a fixed place must hold something) |
+| `@dashhaus/core/entities/assumed` | an entity whose state Home Assistant only assumes or doesn't know yet: whether to offer on and off apart (`eitherWay`; the handlers give their turn-on and turn-off only then), why (`eitherWayHint`), and their words (`EITHER_WAY_LEGEND`, `EITHER_WAY`) |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
 | `@dashhaus/core/entities/picture` | what a card says about its picture (a still, artwork): `PICTURE_WORDS`, `stillFrom`, `pictureTime` |
