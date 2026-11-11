@@ -89,3 +89,20 @@ describe("TODAY_SHORT_PLACES", () => {
     expect(fits([310, -1240, 420])).toBe(false); // "-1240 to 420"
   });
 });
+
+describe("numericToday's rise", () => {
+  it("starts from the reading in effect at midnight where there is one", () => {
+    const history = { ...day([100.5, 108.6]), start: 100 };
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.6 kWh today");
+  });
+
+  it("starts from the day's first reading when midnight's was unavailable", () => {
+    const history = { ...day([100.5, 108.6]), start: "unavailable" as const };
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.1 kWh today");
+  });
+
+  it("starts from the day's first reading when a daily meter reset just after midnight", () => {
+    const history = { ...day([0.2, 1.4, 3.1]), start: 12.3 };
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+2.9 kWh today");
+  });
+});

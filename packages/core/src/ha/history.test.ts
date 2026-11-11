@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { HaHistoryRecord } from "./history";
 import fixture from "./fixtures/history_during_period.json";
+import { numericToday } from "../entities/numeric/readings";
 import {
   alarmHistoryFromHass,
   climateHistoryFromHass,
@@ -539,5 +540,36 @@ describe("today's minutes", () => {
       now(),
     );
     expect(result.activity).toBe("heating");
+  });
+});
+
+describe("a meter's rise today", () => {
+  it("starts from the reading in effect at midnight", () => {
+    const history = readingHistoryFromHass(
+      [record("sensor.energy", "99.2", "2026-10-19T21:00:00"), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))],
+      "sensor.energy",
+      now(),
+    );
+    expect(history.start).toBe(99.2);
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+9.4 kWh today");
+  });
+
+  it("starts from a reading recorded at midnight", () => {
+    const history = readingHistoryFromHass(
+      [record("sensor.energy", "100", iso(0)), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))],
+      "sensor.energy",
+      now(),
+    );
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.6 kWh today");
+  });
+
+  it("starts from the day's first reading when nothing was recorded by midnight", () => {
+    const history = readingHistoryFromHass(
+      [record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))],
+      "sensor.energy",
+      now(),
+    );
+    expect(history.start).toBeUndefined();
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.1 kWh today");
   });
 });

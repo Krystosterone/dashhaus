@@ -92,4 +92,6 @@ export interface NumericHistory {
   /** One reading per hour, carried forward; "unavailable", or null for hours ahead and before the first reading. */
   readings: Reading[];
   currentHour: number;
+  /** The reading in effect at local midnight, where one was recorded: where a meter's rise today starts. */
+  start?: Reading;
 }

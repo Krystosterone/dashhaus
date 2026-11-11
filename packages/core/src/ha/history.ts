@@ -5,6 +5,7 @@ import type { CoverHistory } from "../entities/cover/types";
 import type { ToggleHistory } from "../entities/toggle/types";
 import type { AlarmHistory } from "../entities/alarm/types";
 import type { SensorHistory, Reading } from "../entities/sensor/types";
+import type { NumericHistory } from "../entities/numeric/types";
 import type { WeatherHistory } from "../entities/weather/types";
 import type { OwletHistory, SleepState } from "../entities/owlet/types";
 import { SLEEP_SAMPLE } from "../entities/owlet/sleep";
@@ -312,6 +313,13 @@ function temperatureAttribute(state: string, attributes: Record<string, unknown>
   return finiteNumber(attributes.temperature) ?? "unavailable";
 }
 
+/** The reading in effect at local midnight (the last recorded at or before it), where one was recorded. */
+function midnightReading(records: readonly HaHistoryRecord[], now: Date): Reading | undefined {
+  const start = localMidnight(now).getTime();
+  const before = upTo(records, now).filter((record) => record.changed.getTime() <= start).pop();
+  return before == null ? undefined : numericState(before.state);
+}
+
 function buildReadings(records: readonly HaHistoryRecord[], now: Date, reading: (state: string, attributes: Record<string, unknown>) => Reading): Reading[] {
   const states = hourStates(records, now);
   const currentHour = now.getHours();
@@ -335,10 +343,15 @@ export function sensorHistoryFromHass(
   return { temperature, humidity, currentHour: when.getHours() };
 }
 
-/** Today's numeric readings for any one sensor, carried forward hour by hour. */
-export function readingHistoryFromHass(records: Records, entityId: string, now?: Date): { readings: Reading[]; currentHour: number } {
+/**
+ * Today's numeric readings for any one sensor, carried forward hour by hour, and the reading in effect at midnight
+ * where one was recorded: where a meter's rise today starts.
+ */
+export function readingHistoryFromHass(records: Records, entityId: string, now?: Date): NumericHistory {
   const when = safeNow(now);
-  return { readings: buildReadings(only(records, entityId), when, numericState), currentHour: when.getHours() };
+  const own = only(records, entityId);
+  const start = midnightReading(own, when);
+  return { readings: buildReadings(own, when, numericState), currentHour: when.getHours(), ...(start === undefined ? {} : { start }) };
 }
 
 /** Carry the weather entity's `temperature` attribute forward; its state is a condition, not a reading. */
