@@ -2,7 +2,7 @@ import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import type { HourCycle } from "../../entities/clock";
 import type { ClimateEntity, HvacAction, HvacMode } from "../../entities/climate/types";
-import { finiteNumber, stringValue } from "../util";
+import { distinctStrings, finiteNumber, stringValue, temperatureUnit } from "../util";
 
 export interface ClimateMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
@@ -41,14 +41,8 @@ function percentage(value: number | undefined) {
   return value != null && value >= 0 && value <= 100 ? value : undefined;
 }
 
-function stringList(value: unknown) {
-  if (!Array.isArray(value)) return undefined;
-  const values = [...new Set(value.filter((item): item is string => typeof item === "string" && item.length > 0))];
-  return values.length ? values : undefined;
-}
-
 function modeList(value: unknown): HvacMode[] {
-  const values = stringList(value) ?? [];
+  const values = distinctStrings(value) ?? [];
   return values.filter((mode): mode is HvacMode => HVAC_MODES.has(mode as HvacMode));
 }
 
@@ -58,13 +52,6 @@ function actionValue(value: unknown): HvacAction | undefined {
 
 function modeValue(value: string | undefined): HvacMode | "unavailable" {
   return value && HVAC_MODES.has(value as HvacMode) ? value as HvacMode : "unavailable";
-}
-
-function temperatureUnit(value: unknown): "°C" | "°F" | undefined {
-  if (typeof value !== "string") return undefined;
-  if (/^(?:°?f|fahrenheit)$/i.test(value.trim())) return "°F";
-  if (/^(?:°?c|celsius)$/i.test(value.trim())) return "°C";
-  return undefined;
 }
 
 function validBounds(min: number | undefined, max: number | undefined, unit: "°C" | "°F") {
@@ -146,9 +133,9 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     step,
     unit,
     presetMode: stringValue(attributes.preset_mode),
-    presetModes: stringList(attributes.preset_modes),
+    presetModes: distinctStrings(attributes.preset_modes),
     fanMode: stringValue(attributes.fan_mode),
-    fanModes: stringList(attributes.fan_modes),
+    fanModes: distinctStrings(attributes.fan_modes),
     lastChanged: changed,
     lastSeen,
   };

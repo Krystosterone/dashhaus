@@ -2,7 +2,7 @@ import type { Condition, DailyForecast, HourlyForecast, WeatherEntity } from "..
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import type { HourCycle } from "../../entities/clock";
-import { finiteNumber, stringValue } from "../util";
+import { finiteNumber, stringValue, temperatureUnit } from "../util";
 
 export interface WeatherMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
@@ -29,12 +29,6 @@ const CONDITIONS = new Set<Condition>([
 
 function conditionValue(value: unknown): Condition | undefined {
   return typeof value === "string" && CONDITIONS.has(value as Condition) ? value as Condition : undefined;
-}
-
-function temperatureUnit(value: unknown): WeatherEntity["temperatureUnit"] | undefined {
-  if (value === "°C" || value === "C" || value === "℃") return "°C";
-  if (value === "°F" || value === "F" || value === "℉") return "°F";
-  return undefined;
 }
 
 function windSpeedUnit(value: unknown): WeatherEntity["windSpeedUnit"] | undefined {
