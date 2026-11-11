@@ -123,4 +123,11 @@ describe("LightModule", () => {
     fireEvent.click(within(group).getByRole("button", { name: "Blue", hidden: true }));
     expect(onColorChange).toHaveBeenCalledWith([220, 100]);
   });
+
+  it("offers on and off apart in the panel while its state is assumed", () => {
+    const onTurnOn = vi.fn();
+    render(<LightModule entity={LIGHT_SEEDS.assumed.entity} onToggle={vi.fn()} onBrightnessChange={vi.fn()} onTurnOn={onTurnOn} onTurnOff={vi.fn()} defaultOpen />);
+    fireEvent.click(screen.getByRole("button", { name: "Porch lantern, turn on" }));
+    expect(onTurnOn).toHaveBeenCalledOnce();
+  });
 });

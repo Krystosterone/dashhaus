@@ -2,6 +2,7 @@ import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/ty
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { lampColorOf } from "./color";
 import type { Hs } from "./color";
 import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -20,6 +21,9 @@ export interface LightCardProps extends CardProps {
    */
   showControl?: boolean;
   onToggle: () => void;
+  /** Sheet, while its state is assumed or unknown (`eitherWay`): turn it on, or off, whatever it shows. */
+  onTurnOn?: () => void;
+  onTurnOff?: () => void;
   onBrightnessChange: (percent: number) => void;
   onKelvinChange?: (kelvin: number) => void;
   /** Sheet: set the colour, as HA `hs_color`. Omit to hide the colour chips. */
@@ -33,7 +37,7 @@ export interface LightCardProps extends CardProps {
 /**
  * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
-export function LightCard({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose }: LightCardProps) {
+export function LightCard({ entity: e, history, variant, footprint, showControl, onToggle, onTurnOn, onTurnOff, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose }: LightCardProps) {
   const card = useCard("lw", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
@@ -87,6 +91,10 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
     >
       {!unav && (
         <SheetBlock>
+          {eitherWay(e) && onTurnOn && onTurnOff && <>
+            <p className="hd-note">{eitherWayHint(e)}</p>
+            <ChoiceChips id={`${uid}-w`} label={EITHER_WAY_LEGEND} options={[...EITHER_WAY]} value={null} onChange={(v) => (v === "on" ? onTurnOn : onTurnOff)()} />
+          </>}
           {dims && (
             <ChoiceChips id={`${uid}-lv`} label="Quick levels" options={QUICK_LEVELS} value={on ? pct : null} onChange={onBrightnessChange} />
           )}

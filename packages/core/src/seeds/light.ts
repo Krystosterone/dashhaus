@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { eitherWay } from "../entities/assumed";
 import type { LightEntity, LightHistory, HourSample } from "../entities/light/types";
 
 /** Example data for stories. Times are fixed so screenshots stay stable. */
@@ -67,6 +68,11 @@ export const LIGHT_SEEDS = {
   unknown: {
     entity: { entityId: "light.garden_string", name: "String lights", area: "Garden", state: "unknown", supportsBrightness: true, lastChanged: "06:00" },
     past: [0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable", "unavailable", "unavailable"],
+  },
+  /** An RF lamp Home Assistant sends to but never hears back from (`assumed_state`): it shows off, and may not be. */
+  assumed: {
+    entity: { entityId: "light.porch_lantern", name: "Porch lantern", area: "Porch", state: "off", assumedState: true, supportsBrightness: false, lastChanged: "07:10" },
+    past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
   },
 } satisfies Record<string, LightSeed>;
 
@@ -147,5 +153,7 @@ export function useDemoLight(seed: LightSeed, overrides?: Partial<LightEntity>) 
     // As Home Assistant reports it: a lamp shows a colour temperature or a colour, never both.
     onKelvinChange: (k: number) => update({ kelvin: k, hs: undefined }),
     onColorChange: (hs: [number, number]) => update({ ...lit(entity), hs, kelvin: undefined }),
+    // As the handlers give them: only while its state is assumed or unknown.
+    ...(eitherWay(entity) && { onTurnOn: () => update(lit(entity)), onTurnOff: () => update({ state: "off" }) }),
   };
 }

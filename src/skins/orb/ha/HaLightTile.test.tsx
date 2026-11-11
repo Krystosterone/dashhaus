@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaLightTile } from "./HaLightTile";
 import type { HassEntities } from "@dashhaus/core";
@@ -71,5 +71,18 @@ describe("HaLightTile", () => {
       "light.living_room": { ...raw["light.living_room"], state: "unavailable" },
     }));
     await waitFor(() => expect(screen.getByText("Unavailable")).toBeTruthy());
+  });
+
+  it("sends on and off apart from the sheet while Home Assistant only assumes its state", async () => {
+    const rf: HassEntities = {
+      "light.lantern": { entity_id: "light.lantern", state: "off", attributes: { friendly_name: "Lantern", supported_color_modes: ["onoff"], assumed_state: true }, last_changed: "2026-10-19T10:00:00Z", last_updated: "2026-10-19T10:00:00Z" },
+    };
+    const fake = renderConnected(<HaLightTile entityId="light.lantern" defaultOpen />, rf);
+    const turn = await screen.findByRole("group", { name: "Turn" });
+    await act(async () => {
+      fireEvent.click(within(turn).getByRole("button", { name: "Off" }));
+      await Promise.resolve();
+    });
+    expect(fake.callService).toHaveBeenCalledWith("light", "turn_off", { entity_id: "light.lantern" });
   });
 });

@@ -7,6 +7,7 @@ import { QUICK_LEVELS, lightAbilities, lightWord } from "@dashhaus/core/entities
 import type { Hs } from "@dashhaus/core/entities/light/color";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { ModuleFrame, Key, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
@@ -18,6 +19,9 @@ export interface LightModuleProps {
   /** Today, for the detail panel. Omit to leave the panel without it. */
   history?: LightHistory;
   onToggle: () => void;
+  /** While its state is assumed or unknown (`eitherWay`): turn it on, or off, whatever it shows. The panel's Turn keys. */
+  onTurnOn?: () => void;
+  onTurnOff?: () => void;
   onBrightnessChange: (percent: number) => void;
   /** Omit, or a light without colour temperature, and the panel has no warmth fader. */
   onKelvinChange?: (kelvin: number) => void;
@@ -34,7 +38,7 @@ export interface LightModuleProps {
  * The name, or a press and hold on the key, opens the detail panel: quick levels, warmth in its own colour, a
  * colour lamp's colours, today.
  */
-export function LightModule({ entity: e, footprint = "standard", history, onToggle, onBrightnessChange, onKelvinChange, onColorChange, defaultOpen = false }: LightModuleProps) {
+export function LightModule({ entity: e, footprint = "standard", history, onToggle, onTurnOn, onTurnOff, onBrightnessChange, onKelvinChange, onColorChange, defaultOpen = false }: LightModuleProps) {
   const uid = useId();
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
@@ -124,6 +128,15 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
       aside={aside}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: lightAbilities(e) }}
     >
+
+      {eitherWay(e) && onTurnOn && onTurnOff && (
+        <div className="fd-block">
+          <KeyGroup legend={EITHER_WAY_LEGEND} columns={2}>
+            {EITHER_WAY.map((w) => <Key key={w.value} label={`${e.name}, turn ${w.label.toLowerCase()}`} wide caption={w.label} onPress={w.value === "on" ? onTurnOn : onTurnOff}>{null}</Key>)}
+          </KeyGroup>
+          <p className="fd-hint">{eitherWayHint(e)}</p>
+        </div>
+      )}
 
       {e.supportsBrightness && (
         <KeyGroup legend="Quick levels" columns={4}>

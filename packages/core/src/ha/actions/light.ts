@@ -1,5 +1,6 @@
 import type { LightEntity } from "../../entities/light/types";
 import type { HaActionError, HaStore } from "../types";
+import { eitherWayHandlers } from "./either";
 import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
@@ -20,6 +21,13 @@ export interface LightHandlers {
   onKelvinChange?: (kelvin: number) => void;
   /** Only for a colour light. Calls `light.turn_on` with `hs_color`: hue 0 to 360, saturation 0 to 100. */
   onColorChange?: (hs: [number, number]) => void;
+  /**
+   * Only while its state is assumed or unknown (`eitherWay`): calls `light.turn_on`, whatever it shows, since what it
+   * shows may be wrong.
+   */
+  onTurnOn?: () => void;
+  /** As `onTurnOn`, with `light.turn_off`. */
+  onTurnOff?: () => void;
 }
 
 /** What each handler is, for a card drawing light without knowing it (`ActionKind`). */
@@ -28,6 +36,8 @@ export const LIGHT_ACTIONS = {
   onBrightnessChange: { takes: "level", field: "brightness", min: 1, wakes: true },
   onKelvinChange: { takes: "value" }, // a warmth, drawn on its own scale
   onColorChange: { takes: "value" },
+  onTurnOn: { takes: "nothing", either: true },
+  onTurnOff: { takes: "nothing", either: true },
 } as const satisfies ActionKinds<LightHandlers, LightEntity>;
 
 export interface LightHandlerOptions {
@@ -44,6 +54,7 @@ export function createLightHandlers(caller: LightServiceCaller, entity: LightEnt
     onToggle: () => {
       if (actionable()) run("toggle");
     },
+    ...eitherWayHandlers(entity, run, actionable),
     onBrightnessChange: (percent) => {
       if (!actionable()) return;
       if (!entity.supportsBrightness) {

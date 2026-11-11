@@ -16,6 +16,11 @@ export interface LightEntity {
   /** Area name, shown under the light's name. */
   area?: string;
   state: LightState;
+  /**
+   * Home Assistant only assumes it is on or off (`assumed_state`: an RF or IR lamp, an optimistic MQTT or template light),
+   * so both presses are offered (`eitherWay`, `entities/assumed.ts`).
+   */
+  assumedState?: boolean;
   /** True when the light supports brightness (HA color mode other than `onoff`). */
   supportsBrightness: boolean;
   /** Brightness in percent, 1-100 (HA `brightness` / 2.55). Absent when HA has not reported a reading. */
