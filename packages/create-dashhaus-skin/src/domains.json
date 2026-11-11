@@ -345,6 +345,11 @@
       "supportsPosition",
       "supportsStop",
       "supportsTilt",
+      "supportsOpen",
+      "supportsClose",
+      "supportsTiltOpen",
+      "supportsTiltClose",
+      "supportsTiltStop",
       "lastChanged",
       "lastSeen"
     ],

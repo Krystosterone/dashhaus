@@ -6,11 +6,18 @@ import type { ActionKinds } from "./kinds";
 type CoverServiceCaller = Pick<HaStore, "callService">;
 
 export interface CoverHandlers {
-  /** Calls `cover.open_cover`. */
+  /**
+   * Opens it the way it declares: `cover.open_cover` (`OPEN`), else its position to 100 (`set_cover_position`), else its
+   * slats (`open_cover_tilt`, then `set_cover_tilt_position` to 100), so a cover that only tilts opens them. A cover with
+   * none of these reports `unsupported`.
+   */
   onOpenCover: () => void;
-  /** Calls `cover.close_cover`. */
+  /** Closes it as `onOpenCover` opens it: `cover.close_cover`, else its position or its slats to 0. */
   onCloseCover: () => void;
-  /** Calls `cover.stop_cover`. A cover that can't stop reports `unsupported`. */
+  /**
+   * Calls `cover.stop_cover`, or `cover.stop_cover_tilt` for a cover that only tilts. A cover that can't stop reports
+   * `unsupported`.
+   */
   onStopCover: () => void;
   /**
    * Only for a cover that reports a position. Calls `cover.set_cover_position`, held between 0 (closed) and 100
@@ -45,20 +52,28 @@ export function createCoverHandlers(caller: CoverServiceCaller, entity: CoverEnt
 
   const clampPercent = (value: number) => Math.min(100, Math.max(0, value));
 
+  // Each end, by the first way the cover declares: its own service, its position, its slats' service, its slats.
+  const toEnd = (end: "open" | "close") => {
+    if (!actionable()) return;
+    const at = end === "open" ? 100 : 0;
+    if ((end === "open" ? entity.supportsOpen : entity.supportsClose) !== false) run(`${end}_cover`);
+    else if (entity.supportsPosition) run("set_cover_position", { position: at });
+    else if (end === "open" ? entity.supportsTiltOpen : entity.supportsTiltClose) run(`${end}_cover_tilt`);
+    else if (entity.supportsTilt) run("set_cover_tilt_position", { tilt_position: at });
+    else unsupported(`${entity.entityId} does not support ${end === "open" ? "opening" : "closing"}`);
+  };
+  const onlyTilts = entity.supportsOpen === false && entity.supportsClose === false && !entity.supportsPosition;
+
   return {
-    onOpenCover: () => {
-      if (actionable()) run("open_cover");
-    },
-    onCloseCover: () => {
-      if (actionable()) run("close_cover");
-    },
+    onOpenCover: () => toEnd("open"),
+    onCloseCover: () => toEnd("close"),
     onStopCover: () => {
       if (!actionable()) return;
       if (!entity.supportsStop) {
         unsupported(`${entity.entityId} does not support stopping`);
         return;
       }
-      run("stop_cover");
+      run(onlyTilts && entity.supportsTiltStop ? "stop_cover_tilt" : "stop_cover");
     },
     onSetPosition: entity.supportsPosition
       ? (position) => {

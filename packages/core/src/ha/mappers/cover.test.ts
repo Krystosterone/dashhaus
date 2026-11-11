@@ -10,7 +10,7 @@ const raw: HassEntity = {
     device_class: "blind",
     current_position: 100,
     current_tilt_position: 50,
-    supported_features: 4 | 8 | 128,
+    supported_features: 1 | 2 | 4 | 8 | 128,
   },
   last_changed: "2026-10-19T10:00:00Z",
   last_updated: "2026-10-19T10:00:00Z",
@@ -29,8 +29,18 @@ describe("coverFromHass", () => {
       supportsPosition: true,
       supportsStop: true,
       supportsTilt: true,
+      supportsOpen: true,
+      supportsClose: true,
+      supportsTiltOpen: false,
     });
     expect(coverFromHass(raw, raw.entity_id).lastChanged).toBeDefined();
+  });
+
+  it("reads a cover that only tilts, which stops its slats", () => {
+    const slats = coverFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: 16 | 32 | 64 | 128 } }, raw.entity_id);
+    expect(slats).toMatchObject({ supportsOpen: false, supportsClose: false, supportsPosition: false, supportsStop: true, supportsTilt: true, supportsTiltOpen: true, supportsTiltClose: true, supportsTiltStop: true });
+    // A cover that lifts stops by `stop_cover` alone, never by its slats'.
+    expect(coverFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: 1 | 2 | 64 } }, raw.entity_id).supportsStop).toBe(false);
   });
 
   it("maps open, opening, closed, and closing states through", () => {

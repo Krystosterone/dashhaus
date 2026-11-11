@@ -29,8 +29,22 @@ export interface CoverEntity {
   /** current_tilt_position, 0-100, for blinds with slats. */
   tilt?: number;
   supportsPosition: boolean;
+  /**
+   * Whether it stops: `stop_cover` (`STOP`), or a cover that only tilts, `stop_cover_tilt` (`STOP_TILT`).
+   */
   supportsStop: boolean;
+  /** Its slats take a tilt position (`SET_TILT_POSITION`). */
   supportsTilt?: boolean;
+  /**
+   * Whether it declares `open_cover` (`OPEN`) and `close_cover` (`CLOSE`). `false` where it doesn't, so opening and
+   * closing go to the end of its position, else its slats' (`onOpenCover`); omitted, it does.
+   */
+  supportsOpen?: boolean;
+  supportsClose?: boolean;
+  /** Whether its slats open, close and stop on their own services (`OPEN_TILT`, `CLOSE_TILT`, `STOP_TILT`). */
+  supportsTiltOpen?: boolean;
+  supportsTiltClose?: boolean;
+  supportsTiltStop?: boolean;
   lastChanged?: string;
   /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
