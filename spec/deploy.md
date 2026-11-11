@@ -453,12 +453,14 @@ stacks a column and draws it in its own idiom.
   the compact rows trading their control for their value line; on a phone the anchors release and the row reads area
   by area.
 - **Field** stacks a column's whole modules first, then its 64 px rows, each in band order (spec/field.md →
-  Dashboards), three areas across: a stack that holds a 64 px row keeps the row's 300 px track, so its names stay whole
-  across the room, and four would be 293 px on Field's 1240 px page. A row that mixes footprints stacks them by column
+  Dashboards), as many areas across as fit: a wall's page takes the panel's whole width, past the 1240 px every other
+  Field page stops at, measures itself and lays the wall out again for as many 340 px columns as it holds far (300 px
+  near), so a row's name a step up stays whole across the room (spec/field.md → Far): three at a 1280 px panel, four
+  from about 1430 px, two on an 800 px portrait one, the house's column last in the first row at each. A row that mixes footprints stacks them by column
   (`stacks`, as the reader marks a row it reads: the automatic path skips the reader, so `areaColumns` sets it); a row
   of one footprint, as when the YAML sets `footprint` for every module, is a grid anchored column by column with
-  `flow: dense`. With fewer tracks than columns the stacks wrap in area order, each still whole: an 800 px portrait
-  panel takes two across.
+  `flow: dense`. With fewer tracks than columns, as in a row written by hand, the stacks wrap in area order, each
+  still whole.
 - **A column names its area.** Where an untitled row anchors every card to a column, a column whose cards all share
   one area (their `area`, or Home Assistant's) is headed with it: Orb draws a section heading over the column, Field
   its legend and rule. The cards under it leave their area off, as a titled bundle's members do, and keep it in their
@@ -655,7 +657,7 @@ Under the title, the card draws an alert line whenever a module has something ur
 
 Each module's entity id picks its card. Where two field cards draw one domain, the domain's own card is the default and `card:` picks the other (a `switch` is a toggle unless `card: sound`; a `sensor.*_sleep_state` is an owlet, and `card: owlet` picks it for a sock named otherwise; a `sensor.*_voucher` is a guest Wi-Fi code, and `card: guestWifi` picks it for one named otherwise, or for a password in an `input_text` or `text`; a `sensor.*` listed on its own is the numeric module when it isn't a room reading, as on the main card); the error lists the cards that can draw it.
 
-Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, fan, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data; its Rows and nav, Nav and pages, Wall panel, far, and Composition stories show those keys, and its Automatic layout, wall panel stories (worst case and portrait too) show `layout: wall` on a house of several rooms.
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, fan, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data; its Rows and nav, Nav and pages, Wall panel, far, and Composition stories show those keys, and its Automatic layout, wall panel stories (worst case, wide and portrait too) show `layout: wall` on a house of several rooms.
 
 ## Measuring a deployed dashboard
 

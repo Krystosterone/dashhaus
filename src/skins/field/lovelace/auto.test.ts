@@ -275,6 +275,12 @@ describe("areaColumns: the wall", () => {
     expect(modules.some((module) => module.entity === "climate.living_room_hot_cool")).toBe(false);
   });
 
+  it("puts as many areas side by side as the page says, the house's own still last in the first row", () => {
+    const rows = areaColumns(MODULES, [], { outside: "Outside", across: 4 });
+    expect(rows.map((row) => row.columns)).toEqual([4, 4]);
+    expect(rows[0].cards.filter((entry) => !entry.item.area).map((entry) => entry.column)).toEqual([4, 4, 4]);
+  });
+
   it("puts a column per area by area name, three across, the house's own last in the first row, each column whole modules first", () => {
     expect(layout(areaColumns(MODULES, [], { outside: "Outside" }))).toEqual([
       {

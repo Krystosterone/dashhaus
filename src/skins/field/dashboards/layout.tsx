@@ -14,6 +14,11 @@ export interface FieldPageProps extends HeaderProps {
   quiet?: boolean;
   /** "far": a wall panel read from across the room; its modules' print and screens are set a step up. */
   viewing?: "near" | "far";
+  /**
+   * A wall panel's page, its areas side by side as many as fit (`layout: wall`): it takes the whole width, past the
+   * 1240 px every other page stops at.
+   */
+  wall?: boolean;
   /** What docks at the bottom of the screen as the page scrolls: a `NavBar`, and anything that rides above it. */
   nav?: ReactNode;
   /** The page's root element, for a nav that follows its areas. */
@@ -26,11 +31,11 @@ export interface FieldPageProps extends HeaderProps {
  * and a nav docked at the bottom. Modules anywhere under it report to that line, and say their times on the header's
  * hour cycle (`HourCycleProvider`). With no title, subtitle or time, there is no header.
  */
-export function FieldPage({ title, quiet, viewing, nav, pageRef, children, ...header }: FieldPageProps) {
+export function FieldPage({ title, quiet, viewing, wall, nav, pageRef, children, ...header }: FieldPageProps) {
   return (
     <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
       <AlertsProvider>
-        <div ref={pageRef} className="fd-dash" data-quiet={quiet || undefined} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
+        <div ref={pageRef} className="fd-dash" data-quiet={quiet || undefined} data-viewing={viewing === "far" ? "far" : undefined} data-wall={wall ? "" : undefined} data-nav={nav ? "" : undefined}>
           {(title || header.subtitle || header.showTime) && <Header title={title} {...header} />}
           <AlertLine />
           {children}

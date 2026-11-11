@@ -6,6 +6,7 @@ import { parseFieldConfig } from "./config";
 import type { FieldConfig, FieldRow, ModuleConfig, PageConfig } from "./config";
 import { areaColumns, areaName, areaRows, autoModules, energyModules } from "./auto";
 import { FieldDashboard } from "./FieldDashboard";
+import type { WallRows } from "./FieldDashboard";
 import { FIELD_FONT_HREF } from "../shared/surface";
 import type { FieldFootprint } from "../shared/ui";
 
@@ -34,7 +35,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
     protected readonly styles = styles;
     protected readonly mountClass = "fd-surface";
     protected readonly fontHref = FIELD_FONT_HREF;
-    #layout?: { key: unknown[]; rows: FieldRow[]; pages?: PageConfig[] };
+    #layout?: { key: unknown[]; rows: FieldRow[] | WallRows; pages?: PageConfig[] };
     /** The `footprint` the YAML sets, which a wall keeps for every module in place of its own mix. */
     #footprint?: FieldFootprint;
 
@@ -114,7 +115,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
         const modules = config.rows ? [] : autoModules(input);
         const energy = config.rows ? [] : energyModules(input, modules).map(withArea);
         const rows = config.rows ? mapRowItems(config.rows, withArea)
-          : config.layout === "wall" ? areaColumns(modules.map(withArea), energy, { outside: outsideArea(input), footprint: this.#footprint, order: areaOrder(input) })
+          : config.layout === "wall" ? wall(modules.map(withArea), energy, { outside: outsideArea(input), footprint: this.#footprint, order: areaOrder(input) })
           : areaRows(modules.map(withArea), energy);
         const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, withArea) }));
         this.#layout = { key: this.#key(hass), rows, pages };
@@ -123,6 +124,9 @@ export function createFieldCard(css: string): CustomElementConstructor {
     }
   };
 }
+
+/** The wall for any number of areas across: the page picks how many fit its width. */
+const wall = (...[modules, energy, options]: Parameters<typeof areaColumns>): WallRows => (across) => areaColumns(modules, energy, { ...options, across });
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineFieldCard(css: string) {

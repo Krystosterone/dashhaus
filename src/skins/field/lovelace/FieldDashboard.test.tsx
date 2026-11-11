@@ -99,3 +99,50 @@ describe("FieldDashboard column stacks", () => {
     await waitFor(() => expect(document.querySelector(".fd-dash-grid")?.getAttribute("data-tracks")).toBe("4"));
   });
 });
+
+describe("FieldDashboard wall", () => {
+  const wall = vi.fn((across: number) => [{
+    columns: across, flow: "normal" as const, align: "top" as const, stacks: true,
+    cards: Array.from({ length: across }, (_, c) => c + 1).flatMap((column) => [
+      { item: { kind: "mediaPlayer" as const, entity: "media_player.kitchen", footprint: "standard" as const }, width: 1, column },
+      { item: { kind: "mediaPlayer" as const, entity: "media_player.kitchen", footprint: "compact" as const }, width: 1, column },
+    ]),
+  }]);
+  const at = (width: number, viewing: "near" | "far" = "near") => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width } as DOMRect);
+    renderConnected(<FieldDashboard rows={wall} viewing={viewing} footprint="standard" nav={false} />, speaker);
+  };
+  beforeEach(() => {
+    wall.mockClear();
+    return () => vi.restoreAllMocks();
+  });
+
+  it("takes the whole width, past the 1240 px every other page stops at", () => {
+    at(1236);
+    expect(document.querySelector(".fd-dash")?.hasAttribute("data-wall")).toBe(true);
+  });
+
+  it("puts as many areas across as a row's 300 px track fits: four where four fit whole, three a pixel short", async () => {
+    at(1236);
+    await waitFor(() => expect(document.querySelector(".fd-dash-grid")?.getAttribute("data-tracks")).toBe("4"));
+    expect(wall).toHaveBeenLastCalledWith(4);
+    vi.restoreAllMocks();
+    document.body.innerHTML = "";
+    at(1235);
+    await waitFor(() => expect(wall).toHaveBeenLastCalledWith(3));
+  });
+
+  it("gives each area 340 px read from across the room, where a row's name a step up needs it: three at a 1280 px panel", async () => {
+    at(1248, "far");
+    await waitFor(() => expect(wall).toHaveBeenLastCalledWith(3));
+    vi.restoreAllMocks();
+    document.body.innerHTML = "";
+    at(1396, "far");
+    await waitFor(() => expect(wall).toHaveBeenLastCalledWith(4));
+  });
+
+  it("draws three across until it is measured", () => {
+    at(0);
+    expect(wall).toHaveBeenLastCalledWith(3);
+  });
+});

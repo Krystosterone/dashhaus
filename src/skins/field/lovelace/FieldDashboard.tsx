@@ -1,12 +1,12 @@
-import { createContext, useMemo, useRef } from "react";
-import type { ReactNode } from "react";
+import { createContext, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
 import { useActionStatus } from "@dashhaus/core/lovelace/skin";
 import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout, useSensorCard } from "@dashhaus/core/lovelace";
 import type { NavEntry, PanelInfo } from "@dashhaus/core/lovelace";
 import { useDashboardNav } from "@dashhaus/core/lovelace";
 import { renderCard, rowItems } from "@dashhaus/core/lovelace/schema";
 import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
-import { columnAreas } from "@dashhaus/core/lovelace/layout";
+import { columnAreas, trackCount } from "@dashhaus/core/lovelace/layout";
 import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { HaFanModule } from "../ha/HaFanModule";
 import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
@@ -35,6 +35,7 @@ import { Area, FieldPage, Place, Stack } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
 import type { FieldFootprint } from "../shared/ui";
 import type { FieldKind, FieldRow, ModuleConfig, PageConfig } from "./config";
+import { WALL_COLUMNS } from "./auto";
 import "./dashboard.css";
 
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
@@ -140,6 +141,38 @@ export const FIELD_TRACKS: Record<FieldFootprint, TrackPolicy> = {
  */
 const STACKED_ROWS: TrackPolicy = { ...FIELD_TRACKS.compact, gap: FIELD_TRACKS.standard.gap };
 
+/** A wall's page (`layout: wall`), laid out for `across` areas side by side (`areaColumns`). */
+export type WallRows = (across: number) => FieldRow[];
+
+/**
+ * A wall's areas: a column per track its page fits, with no most, so a wider panel takes more. Near, a row's 300 px
+ * keeps its name whole; far, its name a step up needs 340 px: at 303 px its name box is 96 px, and cuts `Thermostat`.
+ */
+const WALL_TRACKS: Record<"near" | "far", TrackPolicy> = {
+  near: { ...STACKED_ROWS, max: Infinity },
+  far: { ...STACKED_ROWS, min: 340, preferred: 340, max: Infinity },
+};
+
+/**
+ * How many areas a wall's page puts side by side: as many of its tracks as its content box fits (three far at
+ * 1280 px, four from about 1430 px), measured before it paints and again as it resizes; `WALL_COLUMNS` until then.
+ */
+function useWallAcross(page: RefObject<HTMLDivElement | null>, wall: boolean, viewing: "near" | "far"): number {
+  const [across, setAcross] = useState(WALL_COLUMNS);
+  useLayoutEffect(() => {
+    const element = page.current;
+    if (!wall || !element) return;
+    const measure = (width: number) => { if (width > 0) setAcross(trackCount(width, undefined, WALL_TRACKS[viewing])); };
+    const style = getComputedStyle(element);
+    measure(element.getBoundingClientRect().width - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0));
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => measure(entry.contentRect.width));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [page, wall, viewing]);
+  return across;
+}
+
 interface RowProps { row: FieldRow; id?: string; legend: boolean; label: string | null; footprint: FieldFootprint }
 
 /**
@@ -192,9 +225,10 @@ export interface FieldDashboardProps {
   viewing?: "near" | "far";
   /**
    * The main page: the YAML's rows (its `cards` are one), or the automatic layout's row per area. Each module has its
-   * area from the YAML or, failing that, Home Assistant's registries.
+   * area from the YAML or, failing that, Home Assistant's registries. A wall (`layout: wall`) passes its layout for any
+   * number of areas across, and the page, taking the whole width, picks how many fit.
    */
-  rows: FieldRow[];
+  rows: FieldRow[] | WallRows;
   /** The card's other pages, opened from the nav. */
   pages?: PageConfig[];
   /** The nav's destinations; absent: the pages, or else the main page's sections; false: none. */
@@ -228,7 +262,10 @@ const NO_PAGES: PageConfig[] = [];
 export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, rows, pages = NO_PAGES, nav: navConfig, footprint, quiet, stills = true, panels, now, navigate }: FieldDashboardProps) {
   const root = useRef<HTMLDivElement>(null);
   const pageIds = useMemo(() => pages.map((p) => p.id), [pages]);
-  const main = useMemo(() => anchorsOf(rows), [rows]);
+  const wall = typeof rows === "function";
+  const across = useWallAcross(root, wall, viewing === "far" ? "far" : "near");
+  const mainRows = useMemo(() => (typeof rows === "function" ? rows(across) : rows), [rows, across]);
+  const main = useMemo(() => anchorsOf(mainRows), [mainRows]);
   const items = useMemo(() => (navConfig === false ? [] : resolveNav({
     entries: navConfig,
     mainTitle: title ?? "Home",
@@ -239,7 +276,7 @@ export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, 
   const nav = useDashboardNav({ items, pages: pageIds, rootRef: root, navigate });
   const page = nav.page === MAIN_PAGE ? undefined : pages.find((p) => p.id === nav.page);
   const showNav = nav.buttons.length > 1 && (viewing !== "far" || Array.isArray(navConfig));
-  const shown = page?.rows ?? rows;
+  const shown = page?.rows ?? mainRows;
   const ids = page ? anchorsOf(page.rows).ids : main.ids;
   const legend = shown.length > 1;
   const pictures = useMemo(() => ({ stills, quiet: quiet === true }), [stills, quiet]);
@@ -253,6 +290,7 @@ export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, 
         showTime={showTime}
         hourCycle={hourCycle}
         viewing={viewing}
+        wall={wall}
         quiet={quiet}
         now={now}
         nav={showNav ? <><ActionNotice /><NavBar items={nav.buttons} /></> : undefined}
