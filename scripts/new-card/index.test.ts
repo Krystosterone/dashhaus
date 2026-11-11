@@ -4,7 +4,8 @@
  * checks that what it writes still typechecks and passes the conformance and Storybook shape tests, in orb and, with
  * `--skin field`, over both generated and hand-built domains in field.
  */
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { copyRepo, linkNodeModules, root, run, typecheckCopy } from "../repo-copy";
@@ -102,28 +103,46 @@ describe("new-card", () => {
       expect(valueOnly.output).toMatch(/no action a press can give[\s\S]*--kind reading/);
     });
 
-    it("draws an action that asks first through the panel's question, never one press, even when it takes no code", async () => {
+    it("draws an action or a level that asks first through the question, never one press, even when it takes no code", async () => {
+      // Orb as it was, to draw the card again from the domain's description once its actions ask first.
+      const orbFiles = ["src/skins/orb", "AGENTS.md", "spec/deploy.md"];
+      const saved = mkdtempSync(join(tmpdir(), "new-card-orb-"));
+      for (const path of orbFiles) cpSync(join(copy, path), join(saved, path), { recursive: true });
       const orb = await run(copy, "node", [script, "probeLatch", "--code", "zl", "--domain", "probe_latch"]);
       expect(orb.status, orb.output).toBe(0);
       const actions = join(copy, "packages/core/src/ha/actions/probeLatch.ts");
       writeFileSync(actions, readFileSync(actions, "utf8")
         .replace("  onToggle: () => void;\n}", "  onToggle: () => void;\n  onUnlatch: (code?: string) => void;\n  onPurge: () => void;\n  onVent: () => void;\n  onLevel?: (level: number) => void;\n}")
-        .replace('  onToggle: { takes: "nothing" },\n', '  onToggle: { takes: "nothing" },\n  onUnlatch: { takes: "code", asks: true },\n  onPurge: { takes: "nothing", asks: true },\n  onVent: { takes: "nothing", asks: true, when: { state: ["on"] } },\n  onLevel: { takes: "value" },\n')
+        .replace('  onToggle: { takes: "nothing" },\n', '  onToggle: { takes: "nothing" },\n  onUnlatch: { takes: "code", asks: true },\n  onPurge: { takes: "nothing", asks: true },\n  onVent: { takes: "nothing", asks: true, when: { state: ["on"] } },\n  onLevel: { takes: "level", field: "level", asks: true, when: { state: ["on"] } },\n')
         .replace('      if (actionable()) run("toggle");\n    },\n', '      if (actionable()) run("toggle");\n    },\n    onUnlatch: (code) => {\n      if (actionable()) run("unlatch", code ? { code } : {});\n    },\n    onPurge: () => {\n      if (actionable()) run("purge");\n    },\n    onVent: () => {\n      if (actionable()) run("vent");\n    },\n'));
       const types = join(copy, "packages/core/src/entities/probeLatch/types.ts");
-      writeFileSync(types, readFileSync(types, "utf8").replace("  lastChanged?: string;", '  lastChanged?: string;\n  codeFormat?: "number" | "text" | null;'));
+      writeFileSync(types, readFileSync(types, "utf8").replace("  lastChanged?: string;", '  lastChanged?: string;\n  codeFormat?: "number" | "text" | null;\n  level?: number;'));
+      for (const path of orbFiles) {
+        rmSync(join(copy, path), { recursive: true, force: true });
+        cpSync(join(saved, path), join(copy, path), { recursive: true });
+      }
+      rmSync(saved, { recursive: true, force: true });
+      const described = await run(copy, "node", [script, "probeLatch", "--code", "zl"]);
+      expect(described.status, described.output).toBe(0);
+      const orbCard = readFileSync(join(copy, "src/skins/orb/cards/probeLatch/ProbeLatchCard.tsx"), "utf8");
+      // A level that asks where its `when` says: set on its groove, then asked in the sheet; set at once elsewhere.
+      expect(orbCard).toContain('onCommit={levels.level.asks ? (v) => askLevel("level", v) : undefined}');
+      expect(orbCard).toContain('export type ProbeLatchAction = "unlatch" | "purge" | "vent" | { level: "level"; value: number };');
       const field = await run(copy, "node", [script, "probeLatch", "--skin", "field"]);
       expect(field.status, field.output).toBe(0);
       expect(field.output).toMatch(/onUnlatch \(asks first\), onPurge \(asks first\), onVent \(asks first\)/);
-      expect(field.output).toMatch(/Left out: onLevel takes a value a press can't give/);
+      expect(field.output).not.toMatch(/Left out/);
       const module = readFileSync(join(copy, "src/skins/field/cards/probeLatch/ProbeLatchModule.tsx"), "utf8");
       expect(module).toContain('onPress={() => ask("purge")}');
       expect(module).not.toMatch(/onPress=\{\(\) => onPurge/);
       // One that asks only where its `when` says, a press for every other entity.
       expect(module).toContain('onPress={() => (["on"].includes(e.state) ? ask("vent") : void guard.attempt("vent"))}');
+      // A level that asks where its `when` says: set on its fader, then asked in the panel; set at once elsewhere.
+      expect(module).toContain('onCommit={levels.level.asks ? (v) => askLevel("level", v) : undefined}');
+      expect(module).toContain("levelQuestion(e.name, levels[a.level].words, levels[a.level].text(a.value))");
       const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field/cards/probeLatch", "src/skins/field/ha/HaProbeLatchModule.test.tsx", "verify/field-conformance.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field/cards/probeLatch", "src/skins/field/ha/HaProbeLatchModule.test.tsx", "src/skins/orb/cards/probeLatch", "src/skins/orb/ha/HaProbeLatchTile.test.tsx", "verify/field-conformance.test.ts", "verify/orb-conformance.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
     }, 240_000);
 

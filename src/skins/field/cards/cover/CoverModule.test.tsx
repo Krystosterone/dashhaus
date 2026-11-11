@@ -25,6 +25,20 @@ afterEach(() => { vi.useRealTimers(); });
 const longDoor = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!.entity;
 const stuckGate = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.gate")!.entity;
 
+/** A pointer on a fader's hit layer, laid out so x - 9 (the thumb's half) is the position it picks. */
+const onFader = (fader: HTMLElement) => {
+  Object.defineProperty(fader, "getBoundingClientRect", { value: () => ({ left: 0, width: 118 }) });
+  Object.defineProperty(Element.prototype, "setPointerCapture", { value: vi.fn(), configurable: true });
+  const hit = fader.querySelector(".fd-hit")!;
+  const ptr = (type: string, v: number) => {
+    const event = new MouseEvent(type, { bubbles: true, clientX: v + 9, button: 0 });
+    Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
+    return event;
+  };
+  return (type: string, v: number) => fireEvent(hit, ptr(type, v));
+};
+const slider = (name: string) => screen.getAllByRole("slider", { name, hidden: true })[0] as HTMLInputElement;
+
 describe("CoverModule", () => {
   it("presses each of its keys once, says what a press does, and lights their LEDs while it's open", () => {
     const { container, keys, onCloseCover } = draw("curtains");
@@ -163,13 +177,47 @@ describe("CoverModule", () => {
     expect(screen.getByRole("group", { name: "Move", hidden: true })).toBeTruthy();
   });
 
-  it("shows a door's position and never sets it: no fader and no quick positions, on the module or in the panel", () => {
-    const { container, onSetPosition } = draw(longDoor, undefined, { defaultOpen: true });
-    expect(container.querySelector(".fd-read")?.textContent).toBe("100%");
-    expect(screen.queryAllByRole("slider", { hidden: true })).toHaveLength(0);
-    expect(screen.queryByRole("group", { name: "Quick positions", hidden: true })).toBeNull();
-    expect(screen.getByRole("group", { name: "Move", hidden: true })).toBeTruthy();
+  it("asks before a gate's fader moves it: a press at once, a slide once let go, never setting it on the way", () => {
+    const { container, onSetPosition, onOpenCover } = draw("frontGate");
+    const at = onFader(container.querySelector<HTMLElement>(".fd-fader")!);
+    at("pointerdown", 20);
+    at("pointermove", 35);
+    at("pointermove", 40);
+    expect(slider("Front gate position: asks first").value).toBe("40");
+    expect(screen.queryByText("Move Front gate to 40%?")).toBeNull();
+    at("pointerup", 40);
+    expect(screen.getByRole("dialog", { name: "Front gate details" })).toBeTruthy();
+    expect(screen.getByText("Move Front gate to 40%?")).toBeTruthy();
+    expect(screen.getByText("It opens now, and anyone outside can come in.")).toBeTruthy();
+    // While it stands, the module's fader shows where it would go and takes no press, so a second press can't ask again.
+    expect([slider("Front gate position: asks first").value, slider("Front gate position: asks first").disabled]).toEqual(["40", true]);
     expect(onSetPosition).not.toHaveBeenCalled();
+    expect(onOpenCover).not.toHaveBeenCalled();
+  });
+
+  it("moves a gate to where its fader asked once the yes settles", async () => {
+    vi.useFakeTimers();
+    const { onSetPosition } = draw("frontGate", "standard", { defaultAction: { position: 40 } });
+    const yes = screen.getByRole("button", { name: "Move to 40%, Front gate", hidden: true });
+    fireEvent.click(yes);
+    expect(onSetPosition).not.toHaveBeenCalled();
+    act(() => { vi.advanceTimersByTime(SETTLE_MS); });
+    await act(async () => { fireEvent.click(yes); });
+    expect(onSetPosition.mock.calls).toEqual([[40]]);
+  });
+
+  it("puts a gate's fader back on Cancel, and offers only its ends as quick positions, each asking first", () => {
+    const { onSetPosition, onOpenCover } = draw("frontGate", "standard", { defaultAction: { position: 40 } });
+    expect(slider("Front gate position: asks first").value).toBe("40");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel", hidden: true }));
+    expect(slider("Front gate position: asks first").value).toBe("0");
+    expect(screen.getByText("Opening and closing ask first.")).toBeTruthy();
+    const quick = screen.getByRole("group", { name: "Quick positions", hidden: true });
+    expect([...quick.querySelectorAll("button")].map((b) => b.getAttribute("aria-label"))).toEqual(["Closed: asks first", "Open: asks first"]);
+    fireEvent.click(quick.querySelectorAll("button")[1]);
+    expect(screen.getByText("Open Front gate?")).toBeTruthy();
+    expect(onSetPosition).not.toHaveBeenCalled();
+    expect(onOpenCover).not.toHaveBeenCalled();
   });
 
   it("stops a garage door or gate on one press, and lays its key flat on the way where it can't be stopped", () => {

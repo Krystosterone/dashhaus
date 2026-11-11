@@ -9,6 +9,12 @@ export type CoverClass = "curtain" | "blind" | "shade" | "shutter" | "awning" | 
  */
 export type CoverAction = "open" | "close";
 
+/**
+ * Everything a garage door, door or gate asks first for: opening or closing it, or moving it to a position between its
+ * ends (a gate's opening for people on foot). A position at an end asks to open or close it (`coverAskTo`).
+ */
+export type CoverAsk = CoverAction | { position: number };
+
 /** Mirrors the parts of a Home Assistant `cover.*` entity the card needs. Position: 0 closed, 100 open. */
 export interface CoverEntity {
   /** The Home Assistant entity id. */

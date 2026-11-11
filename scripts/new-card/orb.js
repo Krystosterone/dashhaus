@@ -8,7 +8,8 @@
  * the card in the card frame, its tile, stories on the domain's seeds, its connected tile and its Lovelace card. A
  * control's taps go on the orb and the pill (`onToggle`), or on pills of their own; what asks first or takes a code is
  * a pill too, answered in the sheet on `Confirm` or `Keypad` (`useGuardedAction`, as the lock's card), never one press
- * (one that asks only where its `when` says asks for those entities, and a level that asks there is left out there);
+ * (one that asks only where its `when` says asks for those entities); a level that asks first is set on its groove,
+ * then asked in the sheet (`levelQuestion`);
  * a reading is a bare icon and its state in words. An action that takes a value it has no part for is left out,
  * saying so. Nothing is written unless every file and every registration can be made.
  */
@@ -41,8 +42,13 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   const values = kind === "control" ? { levels, choices, switches } : { levels: [], choices: [], switches: [] };
   // What asks first, or takes a code: a pill that asks (or tries, and asks for the code where the entity wants one).
   const asked = kind === "control" ? guarded : [];
+  // A level that asks first (`asks`, for the entities its `when` says): set on its groove, then asked in the sheet,
+  // as a garage door's position is. With one, the guard holds it too, beside what a press asks.
+  const askLevels = values.levels.filter(({ asks: a }) => a);
+  const guards = asked.length > 0 || askLevels.length > 0;
   // The keypad's verb phrase is the domain's core word (spec/cards.md → What every card says); the frame stays orb's.
-  const codeWord = asked.length ? keypadWord(domain) : undefined;
+  const keypad = asked.length ? keypadWord(domain) : undefined;
+  const codeWord = keypad && askLevels.length ? { ...keypad, expression: keypad.expression.replace("asked[guard.pending].label", "said(guard.pending).yes") } : keypad;
 
   // ---------- The domain's seeds and its demo, in core ----------
   const seedPath = packageFile("core", `src/seeds/${name}.ts`);
@@ -91,18 +97,21 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   // A value's words, from its field: "presetMode" → "Preset mode".
   const fieldWords = (field) => card.labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
   const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
+  const isPercent = ({ min, max }) => typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
   /**
    * A level on orb's level groove: the first in the slot, named by the card; the others in the sheet, under a heading.
-   * One that asks first for some entities (its `when`: a garage door's position) is left out for those, since no orb
-   * part asks before a level: shown, never set.
+   * One that asks first (for the entities its `when` says: a garage door's position) draws where it is slid and asks
+   * in the sheet once let go, its name marked with the ellipsis every orb action that asks carries.
    */
-  const levelBar = ({ action, field, min, max, wakes, when }, slot) => {
-    const bar = levelGroove({ action, field, min, max, wakes }, slot);
-    return when && !slot ? `{!(${card.whenExpr(when)}) && ${bar}}` : bar;
-  };
-  const levelGroove = ({ action, field, min, max, wakes }, slot) => {
-    const percent = typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
-    return `<LevelBar id={\`\${card.uid}-${field}\`} ${slot ? `label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`}` : `heading="${fieldWords(field)}"`} value={e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} on={on}${wakes ? " wakes" : ""} text={(v) => ${percent ? "`${v}%`" : "String(v)"}} valueText={(v) => ${percent ? "`${v} percent`" : "String(v)"}} onChange={(v) => ${action}?.(v)} />`;
+  const levelBar = ({ action, field, min, max, wakes, asks: levelAsks }, slot) => {
+    const percent = isPercent({ min, max });
+    const mark = levelAsks ? `\${levels.${field}.asks ? "…" : ""}` : "";
+    const named = slot ? `label={\`\${e.name} ${fieldWords(field).toLowerCase()}${mark}\`}` : `heading="${fieldWords(field)}"${levelAsks ? ` label={\`\${e.name} ${fieldWords(field).toLowerCase()}${mark}\`}` : ""}`;
+    const value = levelAsks ? `shown("${field}", e.${field} ?? ${bound(min)})` : `e.${field} ?? ${bound(min)}`;
+    const set = levelAsks
+      ? `disabled={levels.${field}.asks && guard.pending != null} onChange={(v) => (levels.${field}.asks ? setDraft({ level: "${field}", value: v }) : ${action}?.(v))} onCommit={levels.${field}.asks ? (v) => askLevel("${field}", v) : undefined}`
+      : `onChange={(v) => ${action}?.(v)}`;
+    return `<LevelBar id={\`\${card.uid}-${field}\`} ${named} value={${value}} min={${bound(min)}} max={${bound(max)}} on={on}${wakes ? " wakes" : ""} text={(v) => ${percent ? "`${v}%`" : "String(v)"}} valueText={(v) => ${percent ? "`${v} percent`" : "String(v)"}} ${set} />`;
   };
   /** A choice as chips: the entity's own list, or a fixed one. */
   const choiceChips = ({ action, field, options }) => {
@@ -113,12 +122,8 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   /** A switch as two chips, On and Off. */
   const switchChips = ({ action, field }) => `<ChoiceChips id={\`\${card.uid}-${field}\`} label="${fieldWords(field)}" options={[{ value: "on", label: "On" }, { value: "off", label: "Off" }]} value={e.${field} == null ? null : e.${field} ? "on" : "off"} onChange={(v) => ${action}?.(v === "on")} />`;
   const [slotLevel, ...sheetLevels] = values.levels;
-  // Where the slot's level is left out (its `when`), the slot holds what it would without one.
-  const unlevelled = toggle ? "<TogglePill label={`${e.name}: ${word}`} on={on} onToggle={() => onToggle?.()}>{word}</TogglePill>"
-    : asked.length ? guardPill(asked[0]) : slotTap ? pill(slotTap) : "undefined";
   const control = kind === "reading"
     ? "<Readout label={`${e.name}: ${word}`} onOpen={card.sheet ? undefined : onOpenDetails}>{word}</Readout>"
-    : slotLevel?.when ? `${card.whenExpr(slotLevel.when)} ? ${unlevelled} : ${levelBar(slotLevel, true)}`
     : slotLevel ? levelBar(slotLevel, true)
     : toggle ? "<TogglePill label={`${e.name}: ${word}`} on={on} onToggle={() => onToggle?.()}>{word}</TogglePill>"
     : slotTap ? pill(slotTap)
@@ -136,10 +141,10 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   const partsImport = [
     values.choices.length + values.switches.length && "ChoiceChips",
     values.levels.length && "LevelBar",
-    asked.length && "Confirm",
+    guards && "Confirm",
     codeWord && "Keypad",
     kind === "reading" && "Readout",
-    (sheet.length || asked.length) && "SheetBlock",
+    (sheet.length || guards) && "SheetBlock",
     today && "Today",
     kind === "control" && (!slotLevel || otherTaps.length || asked.length) && "TogglePill",
   ].filter(Boolean).map((part) => `${part}, `).join("");
@@ -159,27 +164,58 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   };
   /** What a drawn action answers: a guarded one, whether it was done (the guard's result); any other, nothing. */
   const answers = (action) => (asked.some((g) => g.action === action) ? "GuardedResult" : "void");
-  const actionKeys = asked.map(({ action }) => `"${keyOf(action)}"`).join(" | ");
+  const pressKeys = asked.map(({ action }) => `"${keyOf(action)}"`).join(" | ");
+  // What the guard holds: a press's key, or a level that asks with the value it would be set to.
+  const levelAsk = askLevels.length ? `{ level: ${askLevels.map(({ field }) => `"${field}"`).join(" | ")}; value: number }` : "";
+  const actionKeys = [pressKeys, levelAsk].filter(Boolean).join(" | ");
   const codeKeys = asked.filter(({ code: takesCode }) => takesCode).map(({ action }) => `"${keyOf(action)}"`);
   const asks = asked.filter(({ asks: a }) => a);
-  const guardBlock = asked.length ? [
+  /** Where a level asks, as an expression over `e`: always, or for the entities its `when` says. */
+  const askIf = ({ when }) => (when ? card.whenExpr(when) : "true");
+  const isPress = askLevels.length ? "typeof a === \"string\" && " : "";
+  const needsCode = !domain.code || !codeKeys.length ? "() => false"
+    : codeKeys.length === asked.length ? `(${isPress ? "a" : ""}) => ${isPress}!!e.codeFormat`
+    : `(a) => ${isPress}([${codeKeys.join(", ")}] as string[]).includes(a) && !!e.codeFormat`;
+  const run = !askLevels.length ? "(a, code) => asked[a].run?.(code)"
+    : asked.length ? "(a, code) => (typeof a === \"string\" ? asked[a].run?.(code) : levels[a.level].run?.(a.value))"
+    : "(a) => levels[a.level].run?.(a.value)";
+  const guardBlock = guards ? [
     "  // What asks first, or takes a code, is answered in the sheet: its question, or its keypad where the entity wants one.",
     "  // On the dashboard a pill hands the action to the sheet, which opens on it; a stray press never does it.",
-    `  const asked: Record<${Name}Action, { label: string; run?: (code?: string) => GuardedResult }> = {`,
-    ...asked.map(({ action }) => `    ${/^[a-z]\w*$/.test(keyOf(action)) ? keyOf(action) : `"${keyOf(action)}"`}: { label: "${card.labelOf(action)}", run: ${action} },`),
-    "  };",
+    ...(asked.length ? [
+      `  const asked: Record<${pressKeys}, { label: string; run?: (code?: string) => GuardedResult }> = {`,
+      ...asked.map(({ action }) => `    ${/^[a-z]\w*$/.test(keyOf(action)) ? keyOf(action) : `"${keyOf(action)}"`}: { label: "${card.labelOf(action)}", run: ${action} },`),
+      "  };",
+    ] : []),
+    ...(askLevels.length ? [
+      "  // A level that asks first is set, then asked where `asks` says: its words, a value in words, and what sets it.",
+      "  const levels = {",
+      ...askLevels.map((level) => `    ${level.field}: { words: "${fieldWords(level.field)}", text: (v: number) => ${isPercent(level) ? "`${v}%`" : "String(v)"}, asks: ${askIf(level)}, run: ${level.action} },`),
+      "  };",
+    ] : []),
     `  const guard = useGuardedAction<${Name}Action>({`,
-    "    run: (a, code) => asked[a].run?.(code),",
-    `    needsCode: ${!domain.code || !codeKeys.length ? "() => false" : codeKeys.length === asked.length ? "() => !!e.codeFormat" : `(a) => ([${codeKeys.join(", ")}] as string[]).includes(a) && !!e.codeFormat`},`,
-    "    settled: () => unav,",
+    `    run: ${run},`,
+    `    needsCode: ${needsCode},`,
+    `    settled: ${askLevels.length ? `(a) => unav || (${asked.length ? "typeof a !== \"string\" && " : ""}e[a.level] === a.value)` : "() => unav"},`,
     "    initial: action,",
     "    askElsewhere: card.sheet ? undefined : (a) => onOpenDetails?.(a),",
     "  });",
-    ...(asks.length ? [`  const hint = asksFirst([${asks.map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${card.labelOf(action)}"`).join(", ")}]);`] : []),
+    ...(askLevels.length ? [
+      `  const said = (a: ${Name}Action) => (${asked.length ? "typeof a === \"string\" ? { question: `${asked[a].label} ${e.name}?`, yes: asked[a].label } : " : ""}{ question: levelQuestion(e.name, levels[a.level].words, levels[a.level].text(a.value)), yes: levelAction(levels[a.level].text(a.value)) });`,
+      "  // Its groove draws where it is slid and asks once let go, a tap at once; while the question stands it shows where it",
+      "  // would go and takes no press, so the second tap of a double tap can't ask again, and on Cancel it is back where it is.",
+      "  const [draft, setDraft] = useState<{ level: keyof typeof levels; value: number } | null>(null);",
+      `  const asking = ${asked.length ? "guard.pending != null && typeof guard.pending !== \"string\" ? guard.pending : null" : "guard.pending"};`,
+      "  const shown = (level: keyof typeof levels, at: number) => (draft?.level === level ? draft.value : asking?.level === level ? asking.value : at);",
+      "  const askLevel = (level: keyof typeof levels, v: number) => { setDraft(null); if (v !== e[level]) guard.ask({ level, value: v }); };",
+    ] : []),
+    ...(asks.length || askLevels.length ? [`  const hint = asksFirst([${[...asks.map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${card.labelOf(action)}"`), ...askLevels.map((level) => `${level.when ? `${card.whenExpr(level.when)} && ` : ""}"Setting ${fieldWords(level.field).toLowerCase()}"`)].join(", ")}]);`] : []),
   ].join("\n") : "";
   // The sheet: while an action waits on its answer, its question or keypad in the other blocks' place. A domain with no
   // code action only asks, so its question stands alone.
-  const confirm = `<Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`;
+  const question = askLevels.length ? "said(guard.pending).question" : "`${asked[guard.pending].label} ${e.name}?`";
+  const yes = askLevels.length ? "said(guard.pending).yes" : "asked[guard.pending].label";
+  const confirm = `<Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} question={${question}} detail={ASKS_DETAIL} action={${yes}} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`;
   const answer = codeWord ? [
     "guard.code",
     `  ? <Keypad key={guard.pendingKey} prompt={\`Enter the code to \${${codeWord.expression}}\`} text={${domain.code ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
@@ -187,16 +223,17 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   ] : [confirm];
   const at = (indent, lines) => lines.map((line) => indent + line).join("\n");
   // What asks first, said once in the sheet while no question stands, in core's words (spec/cards.md → What every card says).
-  const hint = asks.length ? "{hint && <p className=\"hd-note\">{hint}</p>}" : null;
+  const hint = asks.length || askLevels.length ? "{hint && <p className=\"hd-note\">{hint}</p>}" : null;
   const answered = hint ? [...sheet, hint] : sheet;
-  const sheetBlocks = asked.length
+  const sheetBlocks = guards
     ? `      {!unav && (\n        <SheetBlock>\n${answered.length
       ? `          {guard.pending ? (\n${at("            ", answer)}\n          ) : (\n            <>\n${answered.map((block) => `              ${block}`).join("\n")}\n            </>\n          )}`
       : `          {guard.pending && (\n${at("            ", answer)}\n          )}`}\n        </SheetBlock>\n      )}`
     : sheet.length ? `      {!unav && (\n        <SheetBlock>\n${sheet.map((block) => `          ${block}`).join("\n")}\n        </SheetBlock>\n      )}` : "";
   const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
-  const guardedWords = asked.length
-    ? ` ${[asks.length && `${andList(asks.map(({ action }) => card.labelOf(action)))} ${asks.length > 1 ? "ask" : "asks"} first, on the sheet's question or keypad`, asked.length > asks.length && `${andList(asked.filter((g) => !g.asks).map(({ action }) => card.labelOf(action)))} ${asked.length - asks.length > 1 ? "take" : "takes"} a code where the ${words} wants one`].filter(Boolean).join(", and ")}: never one press.`
+  const askWords = [...asks.map(({ action }) => card.labelOf(action)), ...askLevels.map(({ field }) => `setting ${fieldWords(field).toLowerCase()}`)];
+  const guardedWords = guards
+    ? ` ${[askWords.length && `${andList(askWords)} ${askWords.length > 1 ? "ask" : "asks"} first, on the sheet's question or keypad`, asked.length > asks.length && `${andList(asked.filter((g) => !g.asks).map(({ action }) => card.labelOf(action)))} ${asked.length - asks.length > 1 ? "take" : "takes"} a code where the ${words} wants one`].filter(Boolean).join(", and ")}: never one press.`
     : "";
   const fixture = JSON.parse(read(packageFile("core", `src/ha/fixtures/${name}.json`)));
   // What the card test asks first for: an action that always asks on the first seed, else one that asks only for some
@@ -214,11 +251,17 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __historyProp__: domain.history ? "  /** Shown in the featured footprint and in the sheet. */\n  history?: " + `${Name}History;` : "",
     __historyArg__: today ? ", history" : "",
     __actionProps__: drawn.map((action) => `  ${action}?: (${answers(action) === "GuardedResult" ? "code?: string" : handed(action)}) => ${answers(action)};`).join("\n"),
-    __actionArgs__: drawn.map((action) => `, ${action}`).join("") + (asked.length ? ", action" : ""),
-    __guardImports__: asked.length ? `\nimport { ACTION_FAILED, ASKS_DETAIL${asks.length ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";${codeWord ? `\n${codeWord.import}` : ""}` : "",
-    __propsBase__: asked.length ? `ActionCardProps<${Name}Action>` : "CardProps",
-    __propsBaseImport__: asked.length ? "ActionCardProps" : "CardProps",
-    __actionType__: asked.length ? `\n/** What asks first, or takes a code: the sheet opens on its question or keypad. */\nexport type ${Name}Action = ${actionKeys};\n` : "",
+    __actionArgs__: drawn.map((action) => `, ${action}`).join("") + (guards ? ", action" : ""),
+    __guardImports__: guards ? [
+      askLevels.length && 'import { useState } from "react";',
+      `import { ACTION_FAILED, ASKS_DETAIL${asks.length || askLevels.length ? ", asksFirst" : ""}${askLevels.length ? ", levelAction, levelQuestion" : ""} } from "${packageSpecifier("core", "entities/guard")}";`,
+      `import { useGuardedAction } from "${packageSpecifier("core", "primitives")}";`,
+      asked.length && `import type { GuardedResult } from "${packageSpecifier("core", "primitives")}";`,
+      codeWord?.import,
+    ].filter(Boolean).map((line) => `\n${line}`).join("") : "",
+    __propsBase__: guards ? `ActionCardProps<${Name}Action>` : "CardProps",
+    __propsBaseImport__: guards ? "ActionCardProps" : "CardProps",
+    __actionType__: guards ? `\n/** What asks first, or takes a code: the sheet opens on its question or keypad${askLevels.length ? ", a level on the value it would be set to" : ""}. */\nexport type ${Name}Action = ${actionKeys};\n` : "",
     __guardBlock__: guardBlock,
     __testImports__: tested ? "fireEvent, render, screen" : "render",
     __viImport__: tested ? ", vi" : "",
@@ -233,8 +276,8 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
       `    expect(screen.getByText(\`${card.labelOf(tested.action)} \${entity.name}?\`)).toBeTruthy();`,
       "  });",
     ].join("\n") : "",
-    __onOpen__: asked.length ? "onOpenDetails && (() => onOpenDetails())" : "onOpenDetails",
-    __closeFocus__: asked.length ? "\n      closeFocus={!guard.pending}" : "",
+    __onOpen__: guards ? "onOpenDetails && (() => onOpenDetails())" : "onOpenDetails",
+    __closeFocus__: guards ? "\n      closeFocus={!guard.pending}" : "",
     __factsImport__: facts.join(", "),
     __todaySummaryImport__: today && domain.minutes ? `\nimport { todaySummary } from "${packageSpecifier("core", "entities/today")}";` : "",
     __partsImport__: partsImport,

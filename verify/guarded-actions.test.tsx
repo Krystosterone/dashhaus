@@ -10,7 +10,8 @@
  * with a spy for every handler; every button there is pressed on a fresh drawing (where nothing may be one press for
  * the seed, only those that carry the mark):
  *
- * - a press never calls an action that asks for this entity, nor sends a code the entity wants (no press carries one);
+ * - a press never calls an action that asks for this entity, nor sends a code the entity wants (no press carries one),
+ *   nor sets a declared level that asks for it (a gate's position: a press on a quick position asks);
  * - a press that opens the question, or a keypad whose code ends in an action that asks, is a control whose name ends
  *   in the skin's mark; a marked control that does nothing at all is an in-progress word (Orb's `Locking…`), not a
  *   control's name, and any other marked control fails;
@@ -39,7 +40,7 @@ import * as fieldSkin from "@dashhaus/field";
 
 interface Guarded { action: string; asks: boolean; code?: boolean; when?: Record<string, string[]> }
 type Entity = Record<string, unknown> & { name: string; state: string };
-const domains = JSON.parse(readFileSync(join(process.cwd(), skinTemplates.package, "src/domains.json"), "utf8")) as Record<string, { guarded: Guarded[] }>;
+const domains = JSON.parse(readFileSync(join(process.cwd(), skinTemplates.package, "src/domains.json"), "utf8")) as Record<string, { guarded: Guarded[]; levels?: (Guarded & { field: string })[] }>;
 
 /** Each domain's seeds, every handler its cards take (the card's prop name for the domain's handler), and its seeds' read-only flag. */
 const DOMAINS: Record<string, { seeds: { entity: Entity; readOnly?: boolean }[]; handlers: Record<string, string> }> = {
@@ -64,7 +65,8 @@ const SKINS: Record<string, Skin> = {
   field: { mark: /: asks first$/, question: ".fd-cf", keypad: ".fd-pad", footprints: ["compact", "standard"], cards: drawn(fieldSkin, "Module") },
 };
 
-const guardedOf = (domain: string) => domains[domain]?.guarded ?? [];
+/** What asks first: a guarded press, and a declared level that asks (set, then asked). */
+const guardedOf = (domain: string): Guarded[] => [...(domains[domain]?.guarded ?? []), ...(domains[domain]?.levels ?? []).filter((level) => level.asks)];
 const asksFor = (g: Guarded, e: Entity) => g.asks && Object.entries(g.when ?? {}).every(([field, values]) => values.includes(String(e[field])));
 /** What a press may never do for this entity: an action that asks for it, or one that takes a code it wants. */
 const neverOnePress = (domain: string, e: Entity) => guardedOf(domain).filter((g) => asksFor(g, e) || (g.code && !!e.codeFormat));
@@ -91,7 +93,7 @@ afterEach(cleanup);
 
 describe("an action that asks first", () => {
   it("is held for every domain that declares one, and those are drawn in both skins", () => {
-    const declared = Object.entries(domains).filter(([, d]) => d.guarded.length).map(([name]) => name);
+    const declared = Object.keys(domains).filter((name) => guardedOf(name).length);
     expect(declared.filter((name) => !(name in DOMAINS)), "add the domain's seeds and handlers here").toEqual([]);
     for (const [name, skin] of Object.entries(SKINS)) for (const [domain, draw] of Object.entries(skin.cards)) {
       expect(() => render(<>{draw(DOMAINS[domain].seeds[0].entity, {}, "standard")}</>), `${name} ${domain}`).not.toThrow();

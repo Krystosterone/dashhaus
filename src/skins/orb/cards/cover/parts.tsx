@@ -10,9 +10,12 @@ const STUB = 14;
  * Curtains: two panels close in from both ends, and dragging away from the middle pulls them apart.
  * Blinds and shades: one panel covers from the right; drag right to open.
  * Tap jumps (animated); drags follow the finger; the ends are magnetic; while the cover moves, the fabric glides linearly.
+ * A garage door, door or gate's bar draws where it is dragged and asks once it is let go (`onCommit`).
  */
-export function PositionBar({ id, label, kind, position, moving, text, onChange }: {
-  id: string; label: string; kind: "curtain" | "shade"; position: number; moving: boolean; text: string; onChange: (v: number) => void;
+export function PositionBar({ id, label, kind, position, moving, disabled, text, onChange, onCommit }: {
+  id: string; label: string; kind: "curtain" | "shade"; position: number; moving: boolean; disabled?: boolean; text: string; onChange: (v: number) => void;
+  /** Called once a tap or a drag lets go, with where it ended: a position that asks first asks then. */
+  onCommit?: (v: number) => void;
 }) {
   // The track's fill is the daylight, and carries its own copy of the label, so the text flips where daylight passes.
   return (
@@ -28,9 +31,12 @@ export function PositionBar({ id, label, kind, position, moving, text, onChange 
         along: kind === "curtain" ? (x, r) => Math.min(1, Math.abs(x - (r.left + r.width / 2)) / Math.max(1, r.width / 2 - STUB)) : undefined,
         snap: (raw) => snapEnds(Math.round(raw)),
         valueText: positionText,
+        disabled,
         onChange,
+        onCommit,
       }}
       className="cv-bar"
+      disabled={disabled}
       text={() => text}
       precision={3}
       data-kind={kind}
@@ -43,8 +49,7 @@ const IconUp = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 8
 const IconDown = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 5.5 7 9l3.5-3.5" /></svg>;
 
 /**
- * For covers without a position (most garage doors), and for a garage door, door or gate whatever it reports: close at
- * one end, open at the other, state or Stop in the middle. The end that can't act lies flat; `either`, where the cover
+ * For covers without a position (most garage doors, and every cover whose position isn't set here): close at one end, open at the other, state or Stop in the middle. The end that can't act lies flat; `either`, where the cover
  * is isn't known, so both ends act. `asks`: its ends ask first, which their names say with an ellipsis ("Close Garage
  * door…"), as every orb action that asks does. `flat`: both ends lie flat, while a question already stands or while it
  * moves where it can't be stopped.

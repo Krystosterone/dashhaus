@@ -6,7 +6,7 @@ import { COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 const LONG_DOOR = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!;
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const COVERS = ["curtains", "blind", "venetian", "slats", "shade", "moving", "garage", "gate", "unknown", "assumed", "unavailable"] as const;
+const COVERS = ["curtains", "blind", "venetian", "slats", "shade", "moving", "garage", "gate", "frontGate", "unknown", "assumed", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Cover",
@@ -20,7 +20,7 @@ const meta = {
           "the groove is the fabric, the accent is the daylight let through. Curtains close in from both ends; drag away from the middle to pull them apart. " +
           "Blinds and shades cover from one side. Covers without a position get Close and Open buttons at the ends of a groove. " +
           "The orb opens or closes, and becomes Stop while the cover moves. A garage door, door or gate never moves on one tap: the orb or either end of its groove " +
-          "opens the sheet on the question, Stop is one tap, and its position is shown, not set. A garage door left open shows as a warning. Same sizes and heights as every card.",
+          "opens the sheet on the question, Stop is one tap, and its bar asks once let go. A garage door left open shows as a warning. Same sizes and heights as every card.",
       },
     },
   },
@@ -49,6 +49,11 @@ export const ShadeClosed: Story = { name: "Shade, closed", args: { cover: "shade
 export const Moving: Story = { name: "Moving", args: { cover: "moving" } };
 /** A garage door left open: the warning leads the status line, and the orb and either end of the groove ask first. */
 export const GarageDoor: Story = { name: "Garage door", args: { cover: "garage" } };
+/**
+ * A gate with a position: its bar sets it, and asks once a tap or a drag lets go ("Move Front gate to 40%?"); on Cancel
+ * the bar is back where the gate is. Its quick positions are its ends alone, each asking.
+ */
+export const FrontGate: Story = { name: "Front gate", args: { cover: "frontGate" } };
 /**
  * Unknown: an RF blind Home Assistant drives on an assumed state, so it never says where it is. Not unavailable, so
  * nothing is dashed: it says Unknown, both Close and Open act, and the orb opens it, as Home Assistant's own toggle does.
@@ -120,10 +125,14 @@ export const DetailsVenetian: Story = { name: "Details, venetian blind", args: {
 export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { cover: "garage", defaultOpen: true } };
 /**
  * A tap on a garage door, door or gate opens the sheet on its question: the worst case's longest name, its yes naming
- * what it moves. While it stands the groove lies flat, so one Close shows. A door with a position has no bar and no
- * quick positions: its position is shown, not set.
+ * what it moves. While it stands the bar takes no press and its quick positions make way, so one yes shows.
  */
 export const DetailsClose: Story = { name: "Details, close", args: { cover: LONG_DOOR, defaultOpen: true, defaultAction: "close" } };
+/**
+ * A gate's bar let go between its ends: the sheet asks to move it there, the bar showing where it would go and taking no
+ * press, so the second tap of a double tap can't ask again. The yes says where it goes.
+ */
+export const DetailsMove: Story = { name: "Details, move", args: { cover: "frontGate", defaultOpen: true, defaultAction: { position: 40 } } };
 /** An unknown cover's sheet: Unknown in the readout and the slot, and Close and Open both act. */
 export const DetailsUnknown: Story = { name: "Details, unknown", args: { cover: "unknown", defaultOpen: true } };
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */

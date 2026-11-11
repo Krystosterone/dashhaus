@@ -30,6 +30,16 @@ export const CHECKING_CODE = "Checking";
  */
 export const codeFor = (label: string) => label.toLowerCase();
 
+/**
+ * The question a declared level that asks first asks once it is set, where the domain has no question of its own (a
+ * generated card): `levelQuestion("Front gate", "Position", "40%")` is "Set Front gate position to 40%?". A domain with
+ * a word of its own says it there (`coverQuestion`: "Move Front gate to 40%?").
+ */
+export const levelQuestion = (name: string, level: string, value: string) => `Set ${name} ${level.toLowerCase()} to ${value}?`;
+
+/** That question's yes, saying what happens: "Set to 40%". */
+export const levelAction = (value: string) => `Set to ${value}`;
+
 /** What a question says it means when its card has nothing more to say: a generated card's, until its words are written. */
 export const ASKS_DETAIL = "It asks first, so a stray press never does it.";
 

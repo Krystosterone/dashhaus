@@ -105,10 +105,11 @@ export function describeDomain(name) {
   const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks, when }) => ({ action, asks, code: takes === "code", ...(when && { when }) }));
   // A level, a choice or a switch: drawn on a skin's own parts where it has them (orb's and field's), else left out.
   // A level that runs on by itself (a track's position) is left out: a part that holds a level still would show where
-  // it was, and set it on every move; a skin draws it on its own running clock. A level that asks first has no
-  // question in any skin yet: one that asks for every entity is left out, and one that asks only for some (`when`) is
-  // drawn for the rest, its `when` saying where it is left out.
-  const valued = (takes) => declared.filter((kind) => kind.takes === takes && !kind.runs && !(kind.asks && !kind.when)).map(({ action, field, min, max, wakes, options, when }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }), ...(when && { asks: true, when }) }));
+  // it was, and set it on every move; a skin draws it on its own running clock. A level that asks first is drawn
+  // too, set and then asked (`asks`, and `when` where it asks only for some entities). A choice or a switch that asks
+  // has no question in any skin yet: one that asks for every entity is left out, and one that asks only for some
+  // (`when`) is drawn for the rest, its `when` saying where it is left out.
+  const valued = (takes) => declared.filter((kind) => kind.takes === takes && !kind.runs && (takes === "level" || !(kind.asks && !kind.when))).map(({ action, field, min, max, wakes, options, asks, when }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }), ...(asks && { asks: true }), ...(when && { when }) }));
   const levels = valued("level");
   const runs = declared.filter((kind) => kind.takes === "level" && kind.runs).map(({ action }) => action);
   const choices = valued("choice");

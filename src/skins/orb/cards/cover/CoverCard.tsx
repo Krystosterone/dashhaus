@@ -1,5 +1,6 @@
-import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isAccess, isMoving, openness, slatsBy } from "@dashhaus/core/entities/cover/position";
+import { useState } from "react";
+import type { CoverAction, CoverAsk, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
+import { CLASS_LABEL, QUICK_ENDS, QUICK_POSITIONS, coverAskPosition, coverAskSettled, coverAskTo, coverAsksFirst, hasPosition, isAccess, isMoving, openness, slatsBy } from "@dashhaus/core/entities/cover/position";
 import { COVER_ASKS_HINT, SLAT_ENDS, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
@@ -11,9 +12,9 @@ import { AlertStatus, CardFrame, ChoiceChips, Confirm, SheetBlock, Today, detail
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
 
-export type { CoverAction };
+export type { CoverAction, CoverAsk };
 
-export interface CoverCardProps extends ActionCardProps<CoverAction> {
+export interface CoverCardProps extends ActionCardProps<CoverAsk> {
   entity: CoverEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: CoverHistory;
@@ -28,7 +29,7 @@ export interface CoverCardProps extends ActionCardProps<CoverAction> {
   onCloseCover: () => void;
   /** Always one tap. */
   onStopCover: () => void;
-  /** Never drawn for a garage door, door or gate: its position is shown, not set. */
+  /** A drag or a tap sets it, except on a garage door, door or gate, which asks first in the sheet once it is let go. */
   onSetPosition?: (position: number) => void;
   onSetTilt?: (tilt: number) => void;
 }
@@ -37,7 +38,7 @@ export interface CoverCardProps extends ActionCardProps<CoverAction> {
  * One cover: curtains, blinds, shades, garage doors. Position follows Home Assistant: 0 closed, 100 open.
  * It shares the modular footprint matrix with every dashboard card. A garage door, door or gate never moves on one
  * tap (`coverAsksFirst`): a tap on the orb or either end of its groove opens the sheet on the question, as a lock's
- * unlock does, and stopping it is one tap; its position is shown, never set.
+ * unlock does, and stopping it is one tap; its bar asks once a tap or a drag lets go (`Move Front gate to 40%?`).
  */
 export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, action }: CoverCardProps) {
   const card = useCard("cv", { variant, footprint, showControl, area: e.area });
@@ -68,10 +69,10 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // A garage door, door or gate asks first: on the card a tap opens the sheet on the question, which the sheet holds.
   // Stopping is never asked. On its way where it can't be stopped, it lies flat and says so, as a lock does on its way.
   const asks = coverAsksFirst(e) && !unav;
-  const guard = useGuardedAction<CoverAction>({
-    run: (a) => (a === "open" ? onOpenCover : onCloseCover)(),
+  const guard = useGuardedAction<CoverAsk>({
+    run: (a) => (typeof a !== "string" ? onSetPosition?.(a.position) : a === "open" ? onOpenCover() : onCloseCover()),
     needsCode: () => false,
-    settled: (a) => unav || (a === "open" ? e.state === "open" || e.state === "opening" : e.state === "closed" || e.state === "closing"),
+    settled: (a) => coverAskSettled(a, e),
     initial: action,
     disabled: !asks,
     askElsewhere: sheet ? undefined : (a) => onOpenDetails?.(a),
@@ -92,11 +93,21 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // binary sensor says it in (spec/orb.md → the warn colour); otherwise the room, and in the sheet what it is.
   const areaText = sheet && area && !(access && open) ? `${area} · ${CLASS_LABEL[e.deviceClass]}` : identity;
 
-  // Its position is set on the window's bar, except a garage door, door or gate's, which is shown in the readout and
-  // never set: the bar's tap would jump it, so it gets the groove that asks.
-  const settable = withPos && onSetPosition && !asks;
+  // Its position is set on the window's bar. A garage door, door or gate's bar draws where it is dragged and asks once
+  // let go, a tap at once; while the question stands it shows where it would go and takes no press, so the second tap
+  // of a double tap can't ask again, and on Cancel it is back where the cover is.
+  const settable = withPos && onSetPosition != null;
+  const [draft, setDraft] = useState<number | null>(null);
+  const askTo = (v: number) => { setDraft(null); if (v !== pos) guard.ask(coverAskTo(v)); };
+  const shown = draft ?? (pending != null ? coverAskPosition(pending) : pos);
+  const shownText = shown === pos ? text : shown === 0 ? "Closed" : shown === 100 ? "Open" : `Open · ${shown}%`;
   let slot;
-  if (settable) {
+  if (settable && asks) {
+    slot = (
+      <PositionBar id={`${uid}-p`} label={`${e.name} position…`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={shown} moving={moving && draft == null} text={shownText}
+        disabled={adrift || pending != null} onChange={setDraft} onCommit={askTo} />
+    );
+  } else if (settable) {
     slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
   } else {
     slot = (
@@ -130,12 +141,16 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       {!unav && (
         <SheetBlock>
           {pending && (
-            <Confirm key={pending} busy={guard.busy} waiting={coverAskWaiting(e)} error={guard.failed ? ACTION_FAILED : null}
+            <Confirm key={guard.pendingKey} busy={guard.busy} waiting={coverAskWaiting(e)} error={guard.failed ? ACTION_FAILED : null}
               question={coverQuestion(pending, e.name)} detail={coverAskDetail(pending, e)} action={coverAskAction(pending, e)}
               onConfirm={() => void guard.confirm()} onCancel={guard.close} />
           )}
           {asks && !pending && <p className="hd-note">{COVER_ASKS_HINT}</p>}
-          {settable && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
+          {settable && !asks && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
+          {/* A garage door, door or gate's quick positions are its ends alone, each asking first. */}
+          {settable && asks && !pending && !adrift && (
+            <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_ENDS.map((q) => ({ ...q, label: `${q.label}…` }))} value={moving ? null : pos} onChange={askTo} />
+          )}
           {/* Slats set to an angle, or only opened and closed; none chosen while their tilt isn't known (unknown). */}
           {slats && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={slats === "ends" ? SLAT_ENDS : SLAT_POSITIONS} value={e.tilt ?? null} onChange={onSetTilt} />}
         </SheetBlock>

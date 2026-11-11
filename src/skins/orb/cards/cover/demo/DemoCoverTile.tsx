@@ -1,7 +1,7 @@
 import { CoverTile } from "../CoverTile";
 import { COVER_SEEDS, useDemoCover } from "@dashhaus/core/seeds/cover";
 import type { CoverSeedName, CoverSeed } from "@dashhaus/core/seeds/cover";
-import type { CoverAction } from "@dashhaus/core/entities/cover/types";
+import type { CoverAsk } from "@dashhaus/core/entities/cover/types";
 
 export interface DemoCoverTileProps {
   /** Which example cover to show. */
@@ -13,7 +13,7 @@ export interface DemoCoverTileProps {
   showControl?: boolean;
   defaultOpen?: boolean;
   /** With defaultOpen: the sheet opens on this action's question (a garage door, door or gate). */
-  defaultAction?: CoverAction;
+  defaultAction?: CoverAsk;
 }
 
 /** A CoverTile wired to local demo state, travel included. */

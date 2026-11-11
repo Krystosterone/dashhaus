@@ -8,11 +8,26 @@ import type { CoverEntity } from "@dashhaus/core/entities/cover/types";
 
 /*
  * A garage door, door or gate never moves on one tap (spec/cards.md → Using the cover card): the orb and the groove's
- * ends ask, the sheet answers, Stop is one tap, and its position is shown, never set. Everything else moves at once.
+ * ends ask, the sheet answers, Stop is one tap, and its bar asks once let go. Everything else moves at once.
  */
 const garage = COVER_SEEDS.garage.entity;
 const longDoor = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!.entity;
 const stuckGate = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.gate")!.entity;
+const frontGate = COVER_SEEDS.frontGate.entity;
+
+/** A pointer on a bar's hit layer, 100 px wide, so x is the position it picks. */
+const onBar = (container: HTMLElement) => {
+  const bar = container.querySelector<HTMLElement>(".cv-bar")!;
+  Object.defineProperty(bar, "getBoundingClientRect", { value: () => ({ left: 0, width: 100 }) });
+  Object.defineProperty(Element.prototype, "setPointerCapture", { value: vi.fn(), configurable: true });
+  const hit = bar.querySelector(".hd-track-hit")!;
+  const ptr = (type: string, x: number) => {
+    const event = new MouseEvent(type, { bubbles: true, clientX: x, button: 0 });
+    Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
+    return event;
+  };
+  return { bar, at: (type: string, x: number) => fireEvent(hit, ptr(type, x)) };
+};
 
 const draw = (entity: CoverEntity, props: Partial<CoverCardProps> = {}) => {
   const handlers = { onOpenCover: vi.fn(), onCloseCover: vi.fn(), onStopCover: vi.fn(), onSetPosition: vi.fn(), onOpenDetails: vi.fn() };
@@ -61,9 +76,12 @@ describe("CoverCard", () => {
     expect(screen.getByText("It closes now. Check nothing is in its way.")).toBeTruthy();
     expect(button("Cancel").hasAttribute("data-autofocus")).toBe(true);
     expect(button("Close door").hasAttribute("data-autofocus")).toBe(false);
-    // One Close answers: the groove's own ends lie flat while the question stands, and the hint waits for it to go.
-    const ends = screen.getByRole("group", { name: longDoor.name });
-    expect([...ends.querySelectorAll<HTMLButtonElement>(".cv-oc-b")].every((end) => end.disabled)).toBe(true);
+    // One yes answers: the bar takes no press while the question stands, showing where it would go, and the quick
+    // positions and the hint wait for it to go.
+    const slider = screen.getByRole("slider", { name: `${longDoor.name} position…` }) as HTMLInputElement;
+    expect(slider.disabled).toBe(true);
+    expect(slider.value).toBe("0");
+    expect(screen.queryByText("Quick positions")).toBeNull();
     expect(screen.queryByText("Opening and closing ask first.")).toBeNull();
     fireEvent.click(button("Close door"));
     expect(onCloseCover).not.toHaveBeenCalled();
@@ -130,15 +148,70 @@ describe("CoverCard", () => {
     expect(button("Close gate")).toBeTruthy();
   });
 
-  it("shows a door's position and never sets it: no bar and no quick positions, on the card or in the sheet", () => {
-    const card = draw(longDoor);
-    expect(card.onSetPosition).not.toHaveBeenCalled();
-    expect(screen.queryByRole("slider")).toBeNull();
-    expect(screen.getByRole("group", { name: longDoor.name })).toBeTruthy();
-    card.unmount();
-    draw(longDoor, { variant: "sheet" });
-    expect(screen.queryByRole("slider")).toBeNull();
-    expect(screen.queryByText("Quick positions")).toBeNull();
+  it("asks before a gate's bar moves it: a tap at once, a drag once let go, never setting it on the way", () => {
+    const tap = draw(frontGate);
+    const tile = onBar(tap.container);
+    tile.at("pointerdown", 40);
+    expect(tap.onOpenDetails).not.toHaveBeenCalled();
+    tile.at("pointerup", 40);
+    expect(tap.onOpenDetails.mock.calls).toEqual([[{ position: 40 }]]);
+    // Handed to the sheet, the card's own bar is back where the gate is.
+    expect((screen.getByRole("slider", { name: "Front gate position…" }) as HTMLInputElement).value).toBe("0");
+    tap.unmount();
+
+    const drag = draw(frontGate);
+    const bar = onBar(drag.container);
+    bar.at("pointerdown", 20);
+    bar.at("pointermove", 30);
+    bar.at("pointermove", 60);
+    // It follows the finger, and moves nothing.
+    expect((screen.getByRole("slider", { name: "Front gate position…" }) as HTMLInputElement).value).toBe("60");
+    expect(drag.onOpenDetails).not.toHaveBeenCalled();
+    bar.at("pointerup", 60);
+    expect(drag.onOpenDetails.mock.calls).toEqual([[{ position: 60 }]]);
+    // At an end it asks to open or close, as the groove's ends did.
+    bar.at("pointerdown", 99);
+    bar.at("pointerup", 99);
+    expect(drag.onOpenDetails.mock.calls.at(-1)).toEqual(["open"]);
+    expect(drag.onSetPosition).not.toHaveBeenCalled();
+    expect(drag.onOpenCover).not.toHaveBeenCalled();
+  });
+
+  it("asks in the sheet where the bar went, says where the yes moves it, and on Cancel puts the bar back", async () => {
+    vi.useFakeTimers();
+    const onSetPosition = vi.fn();
+    const { container } = render(<CoverCard entity={frontGate} variant="sheet" onOpenCover={() => {}} onCloseCover={() => {}} onStopCover={() => {}} onSetPosition={onSetPosition} />);
+    expect(screen.getByText("Opening and closing ask first.")).toBeTruthy();
+    const bar = onBar(container);
+    bar.at("pointerdown", 40);
+    bar.at("pointerup", 40);
+    expect(screen.getByText("Move Front gate to 40%?")).toBeTruthy();
+    expect(screen.getByText("It opens now, and anyone outside can come in.")).toBeTruthy();
+    const slider = screen.getByRole("slider", { name: "Front gate position…" }) as HTMLInputElement;
+    expect([slider.value, slider.disabled]).toEqual(["40", true]);
+    // The second tap of a double tap lands on a bar that takes no press, and on a yes not yet settled.
+    bar.at("pointerdown", 70);
+    bar.at("pointerup", 70);
+    fireEvent.click(button("Move to 40%"));
+    expect(screen.getByText("Move Front gate to 40%?")).toBeTruthy();
+    expect(onSetPosition).not.toHaveBeenCalled();
+    fireEvent.click(button("Cancel"));
+    expect((screen.getByRole("slider", { name: "Front gate position…" }) as HTMLInputElement).value).toBe("0");
+    bar.at("pointerdown", 40);
+    bar.at("pointerup", 40);
+    act(() => { vi.advanceTimersByTime(SETTLE_MS); });
+    await act(async () => { fireEvent.click(button("Move to 40%")); });
+    expect(onSetPosition.mock.calls).toEqual([[40]]);
+  });
+
+  it("offers a gate only its ends as quick positions, each asking first", () => {
+    const { onOpenCover, onSetPosition } = draw(frontGate, { variant: "sheet" });
+    const quick = screen.getByRole("group", { name: "Quick positions" });
+    expect([...quick.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Closed…", "Open…"]);
+    fireEvent.click(quick.querySelectorAll("button")[1]);
+    expect(screen.getByText("Open Front gate?")).toBeTruthy();
+    expect(onOpenCover).not.toHaveBeenCalled();
+    expect(onSetPosition).not.toHaveBeenCalled();
   });
 
   it("asks before either end moves a garage door whose place isn't known", () => {
