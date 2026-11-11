@@ -124,7 +124,7 @@ describe("vacuumHistoryFromHass", () => {
     expect(result.samples[9]).toBe(1);
     expect(result.samples[10]).toBe(0);
     expect(result.samples[13]).toBeNull();
-    expect(result.cleaningMinutes).toBe(60 + 34);
+    expect(result.cleaningMinutes).toBe(60 + 30); // 9:00 to 10:00, then 12:04 to now
   });
 
   it("marks hours it was unreachable", () => {
@@ -478,5 +478,66 @@ describe("mediaPlayerHistoryFromHass", () => {
     );
     expect(result.samples.slice(0, 13)).toEqual([0, 0, 0, 0, 0, 0, 0, 1, 1, 0, "unavailable", 1, 1]);
     expect(result.playingMinutes).toBe(3 * 60 + 34);
+  });
+});
+
+/** Run `test` with the clock in Toronto, whose DST days are 23 and 25 hours long. */
+const inToronto = <T>(test: () => T): T => {
+  const previous = process.env.TZ;
+  process.env.TZ = "America/Toronto";
+  try {
+    return test();
+  } finally {
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  }
+};
+
+describe("today's minutes", () => {
+  it("counts from the change, not from the top of its hour", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", iso(12, 30))], "switch.x", now());
+    expect(result.onMinutes).toBe(4);
+  });
+
+  it("counts the minutes before an hour's first change", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", iso(11, 59))], "switch.x", now());
+    expect(result.onMinutes).toBe(35);
+  });
+
+  it("counts an hour that ended off up to the change", () => {
+    const result = toggleHistoryFromHass(
+      [record("switch.x", "on", "2026-10-19T20:00:00"), record("switch.x", "off", iso(12, 33))],
+      "switch.x",
+      now(),
+    );
+    expect(result.onMinutes).toBe(12 * 60 + 33);
+  });
+
+  it("counts the real hours of a 23-hour day", () => {
+    const minutes = inToronto(() =>
+      toggleHistoryFromHass([record("switch.x", "on", "2026-03-08T00:00:00")], "switch.x", new Date(2026, 2, 8, 12, 0)).onMinutes,
+    );
+    expect(minutes).toBe(11 * 60);
+  });
+
+  it("counts the real hours of a 25-hour day", () => {
+    const minutes = inToronto(() =>
+      toggleHistoryFromHass([record("switch.x", "on", "2026-11-01T00:00:00")], "switch.x", new Date(2026, 10, 1, 12, 0)).onMinutes,
+    );
+    expect(minutes).toBe(13 * 60);
+  });
+
+  it("weighs the climate's activity by how long each lasted, not by its rows", () => {
+    const result = climateHistoryFromHass(
+      [
+        record("climate.home", "heat", "2026-10-19T22:00:00", { hvac_action: "heating" }),
+        record("climate.home", "cool", iso(11), { hvac_action: "cooling" }),
+        record("climate.home", "cool", iso(11, 10), { hvac_action: "cooling" }),
+        record("climate.home", "cool", iso(11, 20), { hvac_action: "cooling" }),
+      ],
+      "climate.home",
+      now(),
+    );
+    expect(result.activity).toBe("heating");
   });
 });

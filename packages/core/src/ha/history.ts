@@ -69,21 +69,18 @@ const only = (records: Records, entityId: string): HaHistoryRecord[] =>
 
 const localMidnight = (now: Date) => new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-/** Records between local midnight and `now`. */
-const today = (records: readonly HaHistoryRecord[], now: Date) => {
-  const start = localMidnight(now).getTime();
-  return records.filter((record) => record.changed.getTime() >= start && record.changed <= now);
-};
+/** The records up to `now`, oldest first. */
+const upTo = (records: readonly HaHistoryRecord[], now: Date) =>
+  records.filter((record) => record.changed <= now).sort((a, b) => a.changed.getTime() - b.changed.getTime());
 
 /**
  * For each local hour 0..23, the record in effect (last change at or before that hour). The latest
  * record from before local midnight is the state carried into hour 0; records after `now` are ignored.
+ * What the hourly strip draws; how long each state lasted is `stretches`.
  */
 function hourStates(records: readonly HaHistoryRecord[], now: Date): Array<HaHistoryRecord | undefined> {
   const start = localMidnight(now).getTime();
-  const sorted = records
-    .filter((record) => record.changed <= now)
-    .sort((a, b) => a.changed.getTime() - b.changed.getTime());
+  const sorted = upTo(records, now);
   const states = new Array<HaHistoryRecord | undefined>(24).fill(undefined);
   let idx = 0;
   let current: HaHistoryRecord | undefined;
@@ -93,6 +90,23 @@ function hourStates(records: readonly HaHistoryRecord[], now: Date): Array<HaHis
     states[hour] = current;
   }
   return states;
+}
+
+/**
+ * How long each record was in effect today, in ms: from its change (local midnight for the one carried in from
+ * before) to the next change or `now`. Real time, so a DST day is 23 or 25 hours long; records that never held
+ * today are left out.
+ */
+function stretches(records: readonly HaHistoryRecord[], now: Date): Array<{ record: HaHistoryRecord; ms: number }> {
+  const start = localMidnight(now).getTime();
+  const sorted = upTo(records, now);
+  const out: Array<{ record: HaHistoryRecord; ms: number }> = [];
+  sorted.forEach((record, i) => {
+    const from = Math.max(record.changed.getTime(), start);
+    const to = i + 1 < sorted.length ? sorted[i + 1].changed.getTime() : now.getTime();
+    if (to > from) out.push({ record, ms: to - from });
+  });
+  return out;
 }
 
 interface BuildOptions {
@@ -111,16 +125,11 @@ function build(records: readonly HaHistoryRecord[], now: Date, options: BuildOpt
     const record = states[hour];
     samples[hour] = record == null ? (options.noData ?? "unavailable") : options.value(record.state, record.attributes);
   }
-  let minutes = 0;
+  let ms = 0;
   if (options.on) {
-    for (let hour = 0; hour < currentHour; hour++) {
-      const record = states[hour];
-      if (record != null && options.on(record.state, record.attributes)) minutes += 60;
-    }
-    const current = states[currentHour];
-    if (current != null && options.on(current.state, current.attributes)) minutes += now.getMinutes();
+    for (const { record, ms: lasted } of stretches(records, now)) if (options.on(record.state, record.attributes)) ms += lasted;
   }
-  return { samples, currentHour, minutes };
+  return { samples, currentHour, minutes: Math.round(ms / 60_000) };
 }
 
 /* ------------------------------------------------------------------ *
@@ -260,12 +269,13 @@ function climateSample(state: string): HourSample {
   return 1;
 }
 
-function climateActivity(records: readonly HaHistoryRecord[]): ClimateHistory["activity"] {
+/** The `hvac_action` that held longest today; heating or cooling wins a tie, else it was running. */
+function climateActivity(records: readonly HaHistoryRecord[], now: Date): ClimateHistory["activity"] {
   const counts = new Map<string, number>();
-  for (const record of records) {
+  for (const { record, ms } of stretches(records, now)) {
     const action = record.attributes.hvac_action;
     if (typeof action !== "string" || action === "") continue;
-    counts.set(action, (counts.get(action) ?? 0) + 1);
+    counts.set(action, (counts.get(action) ?? 0) + ms);
   }
   if (counts.size === 0) return "running";
   let max = 0;
@@ -284,7 +294,7 @@ export function climateHistoryFromHass(records: Records, entityId: string, now?:
     value: climateSample,
     on: (state) => state !== "off" && state !== "unavailable" && state !== "unknown",
   });
-  return { samples, currentHour, activeMinutes: minutes, activity: climateActivity(today(own, when)) };
+  return { samples, currentHour, activeMinutes: minutes, activity: climateActivity(own, when) };
 }
 
 /* ------------------------------------------------------------------ *
