@@ -25,6 +25,8 @@ const DEFAULT_MAX_TEMP = 35;
 const DEFAULT_FAHRENHEIT_MIN_TEMP = 44.6;
 const DEFAULT_FAHRENHEIT_MAX_TEMP = 95;
 const DEFAULT_STEP = 0.5;
+/** Home Assistant `ClimateEntityFeature` bit values the card reads. */
+export const CLIMATE_FEATURES = { TURN_OFF: 128, TURN_ON: 256 } as const;
 
 
 function firstNumber(...values: unknown[]) {
@@ -122,6 +124,7 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle)
     : undefined;
   const readable = state !== "unavailable";
+  const features = finiteNumber(attributes.supported_features) ?? 0;
 
   return {
     entityId,
@@ -129,6 +132,8 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     area: options.area,
     state,
     hvacModes: modeList(attributes.hvac_modes),
+    supportsTurnOn: (features & CLIMATE_FEATURES.TURN_ON) !== 0,
+    supportsTurnOff: (features & CLIMATE_FEATURES.TURN_OFF) !== 0,
     hvacAction: readable ? actionValue(stringValue(attributes.hvac_action)) : undefined,
     currentTemperature: readable ? firstNumber(attributes.current_temperature, attributes.native_current_temperature) : undefined,
     ...(readable && !reportsCurrentTemperature(attributes) && { reportsCurrentTemperature: false }),

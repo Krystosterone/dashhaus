@@ -11,6 +11,7 @@ const raw: HassEntities = {
     attributes: {
       friendly_name: "Thermostat",
       hvac_modes: ["off", "heat", "cool"],
+      supported_features: 1 | 128 | 256,
       hvac_action: "idle",
       current_temperature: 20.4,
       temperature: 21,

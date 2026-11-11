@@ -231,6 +231,8 @@
       "area",
       "state",
       "hvacModes",
+      "supportsTurnOn",
+      "supportsTurnOff",
       "hvacAction",
       "currentTemperature",
       "reportsCurrentTemperature",

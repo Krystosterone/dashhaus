@@ -57,6 +57,16 @@ export const CLIMATE_SEEDS = {
     past: [0.5, 0.6, 0.6, 0.5, 0.5, 0.7, 0.8, 0.4, 0, 0, 0],
     activity: "heating",
   },
+  heatOnly: {
+    // A boiler's thermostat with one mode and no off (`hvac_modes: ["heat"]`, no TURN_OFF): it can't be switched, only set.
+    entity: {
+      entityId: "climate.hallway_radiators", name: "Radiators", area: "Hallway", state: "heat", hvacAction: "idle",
+      hvacModes: ["heat"], supportsTurnOn: false, supportsTurnOff: false, currentTemperature: 19.6, targetTemperature: 20,
+      minTemp: 5, maxTemp: 30, step: 0.5, unit: "°C", lastChanged: "05:30",
+    },
+    past: [0.4, 0.4, 0.3, 0.3, 0.4, 0.6, 0.7, 0.5, 0.2, 0.1, 0.2],
+    activity: "heating",
+  },
   secondFloor: {
     entity: {
       entityId: "climate.second_floor", name: "2nd floor", area: "Upstairs", state: "heat", hvacAction: "heating",

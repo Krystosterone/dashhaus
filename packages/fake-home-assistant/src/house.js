@@ -28,7 +28,7 @@ const HOUSE = [
   entity("light.living_room_shelf", "off", { friendly_name: "Shelf lights", supported_color_modes: ["onoff"], color_mode: null }, "living_room"),
   entity("sensor.living_room_temperature", "20.6", { friendly_name: "Living room temperature", device_class: "temperature", unit_of_measurement: "°C", state_class: "measurement" }, "living_room"),
   entity("lock.front_door", "locked", { friendly_name: "Front door", supported_features: 0 }, "living_room"),
-  entity("climate.living_room", "heat", { friendly_name: "Thermostat", hvac_modes: ["off", "heat"], hvac_action: "heating", current_temperature: 20.6, temperature: 21.5, min_temp: 7, max_temp: 30, target_temp_step: 0.5 }, "living_room"),
+  entity("climate.living_room", "heat", { friendly_name: "Thermostat", hvac_modes: ["off", "heat"], hvac_action: "heating", current_temperature: 20.6, temperature: 21.5, min_temp: 7, max_temp: 30, target_temp_step: 0.5, supported_features: 1 | 128 | 256 }, "living_room"),
   entity("light.bedroom_bedside", "off", { friendly_name: "Bedside", supported_color_modes: ["brightness"], color_mode: null, brightness: null }, "bedroom"),
   entity("sensor.bedroom_temperature", "19.2", { friendly_name: "Bedroom temperature", device_class: "temperature", unit_of_measurement: "°C", state_class: "measurement" }, "bedroom"),
   entity("sensor.bedroom_humidity", "52", { friendly_name: "Bedroom humidity", device_class: "humidity", unit_of_measurement: "%", state_class: "measurement" }, "bedroom"),

@@ -179,6 +179,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/sun/drawing` | `sunPathDrawing`: today's path as pieces of line (the day so far, the day to come, the night), the horizon and the sun, as fractions of a drawing |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/climate/words` | what a target does (`TARGET_WORD`), what a missing room temperature says (`roomTemperatureBlank`), and its small print (`climateFacts`) |
+| `@dashhaus/core/entities/climate/power` | whether a press can switch it from where it is (`canSwitch`; a heat-only thermostat can't), and the mode it turns on in (`onMode`) |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
 | `@dashhaus/core/entities/cover/words` | a cover's state in words (`coverWord`), `positionText`, a door left open (`leftOpenText`) |
 | `@dashhaus/core/entities/cover/severity` | `coverSeverity` |
