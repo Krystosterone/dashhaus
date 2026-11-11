@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TODAY_SHORT_PLACES, fmtNumeric, isNumericStateClass, numericFigure, numericToday, withUnit } from "./readings";
+import { TODAY_SHORT_PLACES, fmtNumeric, isNumericStateClass, meterRise, numericFigure, numericToday, withUnit } from "./readings";
 import { NO_READINGS_TODAY } from "../today";
 import type { NumericHistory } from "./types";
 
@@ -64,8 +64,8 @@ describe("numericToday", () => {
       .toMatchObject({ short: "+3.2", long: "+3.2 kWh today" });
   });
 
-  it("falls back to the low and high when a meter reset today", () => {
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, day([12, 14, 0.5])).long).toBe("Low 0.5 kWh · High 14 kWh");
+  it("counts a meter's reset today as a restart from 0, as Home Assistant does", () => {
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, day([12, 14, 0.5])).long).toBe("+2.5 kWh today");
   });
 
   it("has no reading yet before the first, and keeps gone hours", () => {
@@ -90,19 +90,31 @@ describe("TODAY_SHORT_PLACES", () => {
   });
 });
 
+describe("meterRise", () => {
+  it("adds up a meter's rises", () => {
+    expect(meterRise([100, 100.5, 108.6])).toBeCloseTo(8.6);
+  });
+
+  it("reads a drop of more than a tenth as a restart from 0, and nets a smaller dip", () => {
+    expect(meterRise([12.3, 0, 0.4, 3.1])).toBeCloseTo(3.1);
+    expect(meterRise([100, 99.95, 101])).toBeCloseTo(1);
+  });
+
+  it("has no rise without a reading", () => {
+    expect(meterRise([])).toBeUndefined();
+  });
+});
+
 describe("numericToday's rise", () => {
-  it("starts from the reading in effect at midnight where there is one", () => {
-    const history = { ...day([100.5, 108.6]), start: 100 };
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.6 kWh today");
+  it("says the rise the history read", () => {
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, { ...day([100.5, 108.6]), rise: 8.6 }).long).toBe("+8.6 kWh today");
   });
 
-  it("starts from the day's first reading when midnight's was unavailable", () => {
-    const history = { ...day([100.5, 108.6]), start: "unavailable" as const };
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.1 kWh today");
+  it("reads a reset from 0 in the hourly readings when the history has no rise", () => {
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, day([12.3, 0.2, 1.4, 3.1])).long).toBe("+3.1 kWh today");
   });
 
-  it("starts from the day's first reading when a daily meter reset just after midnight", () => {
-    const history = { ...day([0.2, 1.4, 3.1]), start: 12.3 };
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+2.9 kWh today");
+  it("falls back to the low and high when the meter only dipped", () => {
+    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, day([100, 99])).long).toBe("Low 99 kWh · High 100 kWh");
   });
 });

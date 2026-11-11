@@ -570,32 +570,42 @@ describe("today's minutes", () => {
 });
 
 describe("a meter's rise today", () => {
-  it("starts from the reading in effect at midnight", () => {
-    const history = readingHistoryFromHass(
-      [record("sensor.energy", "99.2", "2026-10-19T21:00:00"), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))],
-      "sensor.energy",
-      now(),
-    );
-    expect(history.start).toBe(99.2);
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+9.4 kWh today");
+  const rise = (records: HaHistoryRecord[]) => readingHistoryFromHass(records, "sensor.energy", now());
+  const say = (records: HaHistoryRecord[]) => numericToday({ unit: "kWh", stateClass: "total_increasing" }, rise(records)).long;
+
+  it("rises from the reading in effect at midnight", () => {
+    const records = [record("sensor.energy", "99.2", "2026-10-19T21:00:00"), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))];
+    expect(rise(records).rise).toBeCloseTo(9.4);
+    expect(say(records)).toBe("+9.4 kWh today");
   });
 
-  it("starts from a reading recorded at midnight", () => {
-    const history = readingHistoryFromHass(
-      [record("sensor.energy", "100", iso(0)), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))],
-      "sensor.energy",
-      now(),
-    );
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.6 kWh today");
+  it("rises from a reading recorded at midnight", () => {
+    expect(say([record("sensor.energy", "100", iso(0)), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))])).toBe("+8.6 kWh today");
   });
 
-  it("starts from the day's first reading when nothing was recorded by midnight", () => {
-    const history = readingHistoryFromHass(
-      [record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))],
-      "sensor.energy",
-      now(),
-    );
-    expect(history.start).toBeUndefined();
-    expect(numericToday({ unit: "kWh", stateClass: "total_increasing" }, history).long).toBe("+8.1 kWh today");
+  it("rises from the day's first reading when nothing was recorded by midnight", () => {
+    expect(say([record("sensor.energy", "100", iso(0, 5)), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))])).toBe("+8.6 kWh today");
+  });
+
+  it("counts a daily meter's reset after midnight as a restart from 0, as Home Assistant does", () => {
+    const records = [
+      record("sensor.energy", "12.3", iso(0)),
+      record("sensor.energy", "0", "2026-10-20T00:00:00.300"),
+      record("sensor.energy", "0.4", iso(0, 59)),
+      record("sensor.energy", "3.1", iso(12)),
+    ];
+    expect(say(records)).toBe("+3.1 kWh today");
+  });
+
+  it("counts a reset during the day from 0 too", () => {
+    expect(say([record("sensor.energy", "12", iso(0)), record("sensor.energy", "14", iso(6)), record("sensor.energy", "0.5", iso(9))])).toBe("+2.5 kWh today");
+  });
+
+  it("skips the hours it was unavailable", () => {
+    expect(say([record("sensor.energy", "unavailable", iso(0)), record("sensor.energy", "100", iso(1)), record("sensor.energy", "unknown", iso(2)), record("sensor.energy", "101", iso(3))])).toBe("+1 kWh today");
+  });
+
+  it("says nothing of a rise before a reading", () => {
+    expect(rise([record("sensor.energy", "unavailable", iso(0))]).rise).toBeUndefined();
   });
 });
