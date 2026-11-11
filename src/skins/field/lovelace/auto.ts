@@ -70,14 +70,14 @@ export function areaRows(modules: readonly ModuleConfig[], energy: readonly Modu
 }
 
 /**
- * The most areas side by side on Field's wall: four, as many modules as fit its 1240 px page (`MAX_ACROSS`), each
- * plate still naming what it is from its 260 px track.
+ * The most areas side by side on Field's wall: three, as many of a row's 300 px tracks as fit its 1240 px page, so a
+ * column's rows keep their names whole across the room (four would be 293 px). A narrower page takes fewer.
  */
-export const WALL_COLUMNS = 4;
+export const WALL_COLUMNS = 3;
 
 /**
  * The automatic layout one column per area, for a panel on a wall (`layout: wall`, spec/deploy.md → The wall layout):
- * the shared bands and areas (`wallAreas`), four areas across (`WALL_COLUMNS`), wrapping in `order` (Home
+ * the shared bands and areas (`wallAreas`), three areas across (`WALL_COLUMNS`), wrapping in `order` (Home
  * Assistant's, `areaOrder`) into further rows, and the modules with no area, the house's own, the last column of the first. Each column leads with
  * its whole modules and takes its 64 px rows under them, each kind in its band's order: what is read whole (a door,
  * a camera, a sock, the weather, a room's air), what is pressed a row (`wallFootprint`). A `footprint` the YAML sets

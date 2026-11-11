@@ -229,9 +229,9 @@ a card.
 
 1. **Tracks.** A row measures itself (`useRowLayout`), so a row narrowed by its surroundings yields like a phone. An
    explicit `columns` holds while each track stays at least the skin's minimum (orb 156 px, so two columns hold from
-   320 px of row; field 260 px, a compact row's 300 px); with less room, it takes as many as fit, down to one. `auto`
-   takes as many as fit at the skin's preferred width (orb 300 px; field 260 px), at most the skin's most. In field
-   and a generated skin, `columns` is only ever a most.
+   320 px of row; field 260 px, a compact row's 300 px, as is a column stack that holds one); with less room, it
+   takes as many as fit, down to one. `auto` takes as many as fit at the skin's preferred width (orb 300 px; field
+   260 px), at most the skin's most. In field and a generated skin, `columns` is only ever a most.
 2. **Widths** clamp to the tracks the row has: a card never makes a track of its own. `full` is every track.
 3. **Anchors** (`column`) hold only while the row has the tracks it was written for: its `columns`, or, with `auto`,
    the last column an anchor reaches. With fewer, every anchor is released and the whole row flows in YAML order, so a
@@ -452,10 +452,12 @@ stacks a column and draws it in its own idiom.
   the compact rows trading their control for their value line; on a phone the anchors release and the row reads area
   by area.
 - **Field** stacks a column's whole modules first, then its 64 px rows, each in band order (spec/field.md →
-  Dashboards), four areas across. A row that mixes footprints stacks them by column (`stacks`, as the reader marks a
-  row it reads: the automatic path skips the reader, so `areaColumns` sets it); a row of one footprint, as when the
-  YAML sets `footprint` for every module, is a grid anchored column by column with `flow: dense`. With fewer tracks
-  than columns the stacks wrap in area order, each still whole: an 800 px portrait panel takes two across.
+  Dashboards), three areas across: a stack that holds a 64 px row keeps the row's 300 px track, so its names stay whole
+  across the room, and four would be 293 px on Field's 1240 px page. A row that mixes footprints stacks them by column
+  (`stacks`, as the reader marks a row it reads: the automatic path skips the reader, so `areaColumns` sets it); a row
+  of one footprint, as when the YAML sets `footprint` for every module, is a grid anchored column by column with
+  `flow: dense`. With fewer tracks than columns the stacks wrap in area order, each still whole: an 800 px portrait
+  panel takes two across.
 - **A column names its area.** Where an untitled row anchors every card to a column, a column whose cards all share
   one area (their `area`, or Home Assistant's) is headed with it: Orb draws a section heading over the column, Field
   its legend and rule. The cards under it leave their area off, as a titled bundle's members do, and keep it in their
