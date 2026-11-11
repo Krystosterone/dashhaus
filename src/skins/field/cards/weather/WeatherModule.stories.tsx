@@ -84,13 +84,21 @@ export const TwelveHourClock: Story = {
 /** Blank segments on the screen and when it was last seen; the meter dashes the hours it was gone. */
 export const Unavailable: Story = { args: { weather: "unavailable" } };
 
-/** Fahrenheit and mph past their limits, three warnings, a long place name, no forecast; a fog with no temperature. */
+/**
+ * Fahrenheit and mph past their limits, three warnings, a long place name, no forecast; a fog with no temperature.
+ * Drawn at the chosen width and footprint, then again as 260 px rows, where the hottest day's `104.3°F` has the
+ * least room inside the row screen's inset.
+ */
 export const WorstCase: Story = {
   name: "Worst case",
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {WEATHER_WORST_CASE.map((seed) => <DemoWeather key={seed.entity.entityId} seed={seed} width={width} footprint={footprint} />)}
+    <div style={{ display: "grid", gap: 24 }}>
+      {([[width, footprint], [260, "compact"]] as const).map(([at, print], row) => (
+        <div key={row} style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+          {WEATHER_WORST_CASE.map((seed) => <DemoWeather key={seed.entity.entityId} seed={seed} width={at} footprint={print} />)}
+        </div>
+      ))}
     </div>
   ),
 };
