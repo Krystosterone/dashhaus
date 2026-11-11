@@ -138,7 +138,8 @@ function Wall({ house }: { house: DemoWallHouse }) {
     const input = demoWallInput(states, house);
     const withArea = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
     const modules = autoModules(input);
-    return areaColumns(modules.map(withArea), energyModules(input, modules).map(withArea), { outside: outsideArea(input), order: areaOrder(input) });
+    const energy = energyModules(input, modules).map(withArea);
+    return (across: number) => areaColumns(modules.map(withArea), energy, { outside: outsideArea(input), order: areaOrder(input), across });
   }, [states, house]);
   return <FieldDashboard title="Home" showTime viewing="far" rows={rows} footprint="standard" now={NOW} />;
 }
@@ -352,7 +353,8 @@ export const Composition: Story = { name: "Composition", render: () => <Yaml yam
  */
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <AutomaticHouse /> };
 /**
- * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, in Home Assistant's order (here by name), three across, each under its
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, in Home Assistant's order (here by name), three across, as
+ * many as fit at the 340 px a row's name needs a step up, each under its
  * legend, so its plates leave their own area out; each column leads with what is read whole and takes its rows under
  * it; the house's own alarm, modes, guest Wi-Fi and calendars end the first row, and the nursery and Outside wrap under
  * it, its rows' names whole at a step up.
@@ -371,7 +373,13 @@ export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall pan
  */
 export const AutomaticWallOrdered: Story = { name: "Automatic layout, wall panel, in Home Assistant's order", render: () => <WallHouse house={DEMO_WALL_HOUSE_ORDERED} label="Wall panel, in Home Assistant's order" /> };
 /**
- * The same wall on an 800 × 1280 portrait panel: two of a row's 300 px tracks fit, so the columns wrap two by two in
- * area order, each still one area under its legend.
+ * The same wall on a 1440 × 900 panel: the page takes the panel's whole width, past the 1240 px a phone's or a
+ * tablet's stops at, so four of a far row's 340 px tracks fit and four areas go across, the house's own the fourth,
+ * every row's name still whole; the header and the alert line span the panel.
+ */
+export const AutomaticWallWide: Story = { name: "Automatic layout, wall panel, wide", render: () => <WallHouse label="Wall panel, wide" width={1440} height={900} /> };
+/**
+ * The same wall on an 800 × 1280 portrait panel: two of a far row's 340 px tracks fit, so two areas go across, the house's
+ * own beside the first, and the rest follow two by two in area order, each still one area under its legend.
  */
 export const AutomaticWallPortrait: Story = { name: "Automatic layout, wall panel, portrait", render: () => <WallHouse label="Wall panel, portrait" width={800} height={1280} /> };

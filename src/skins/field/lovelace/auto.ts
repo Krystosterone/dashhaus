@@ -70,14 +70,15 @@ export function areaRows(modules: readonly ModuleConfig[], energy: readonly Modu
 }
 
 /**
- * The most areas side by side on Field's wall: three, as many of a row's 300 px tracks as fit its 1240 px page, so a
- * column's rows keep their names whole across the room (four would be 293 px). A narrower page takes fewer.
+ * The areas side by side on Field's wall before its page is measured: three, as at a 1280 px panel. Drawn, the page
+ * sets the count from its own width (`FieldDashboard`), a column per 340 px far (300 px near), so a column's rows
+ * keep their names whole across the room: fewer on a narrower panel, more on a wider one.
  */
 export const WALL_COLUMNS = 3;
 
 /**
  * The automatic layout one column per area, for a panel on a wall (`layout: wall`, spec/deploy.md → The wall layout):
- * the shared bands and areas (`wallAreas`), three areas across (`WALL_COLUMNS`), wrapping in `order` (Home
+ * the shared bands and areas (`wallAreas`), `across` areas side by side (`WALL_COLUMNS` unless the page says), wrapping in `order` (Home
  * Assistant's, `areaOrder`) into further rows, and the modules with no area, the house's own, the last column of the first. Each column leads with
  * its whole modules and takes its 64 px rows under them, each kind in its band's order: what is read whole (a door,
  * a camera, a sock, the weather, a room's air), what is pressed a row (`wallFootprint`). A `footprint` the YAML sets
@@ -87,7 +88,7 @@ export const WALL_COLUMNS = 3;
  * the sun join the area named `outside`, saying so. Fewer than two areas: the whole modules, then the rows, each a
  * row of its own.
  */
-export function areaColumns(modules: readonly ModuleConfig[], energy: readonly ModuleConfig[] = [], { outside, footprint, order }: { outside?: string; footprint?: FieldFootprint; order?: readonly string[] } = {}): FieldRow[] {
+export function areaColumns(modules: readonly ModuleConfig[], energy: readonly ModuleConfig[] = [], { outside, footprint, order, across = WALL_COLUMNS }: { outside?: string; footprint?: FieldFootprint; order?: readonly string[]; across?: number } = {}): FieldRow[] {
   const sized = (item: ModuleConfig): ModuleConfig => (footprint ? item : { ...item, footprint: wallFootprint(item.kind) });
   const own = (item: ModuleConfig) => item.footprint ?? footprint ?? "standard";
   // Whole modules first, then the rows, each in band order: a stable sort keeps it.
@@ -98,7 +99,7 @@ export function areaColumns(modules: readonly ModuleConfig[], energy: readonly M
     return { ...(columns && { columns }), flow: mixed || !columns ? "normal" : "dense", align: "top", cards, ...(mixed && { stacks: true }) };
   };
   const rows: FieldRow[] = areas.length
-    ? placeColumns(areas.map((area) => stack(area.items).map((item) => (item.area ? item : { ...item, area: area.area }))), WALL_COLUMNS, stack(house))
+    ? placeColumns(areas.map((area) => stack(area.items).map((item) => (item.area ? item : { ...item, area: area.area }))), across, stack(house))
       .map((columnRow) => row(columnRow.cards.map(({ card, column }) => ({ item: card, width: 1, column })), columnRow.columns))
     : (["standard", "compact"] as const).flatMap((size) => {
       const cards = stack(house).filter((item) => own(item) === size).map((item) => ({ item, width: 1 as const }));

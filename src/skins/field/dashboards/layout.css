@@ -12,6 +12,8 @@
   font-stretch: var(--fd-wide);
   color: var(--fd-ink);
 }
+/* A wall panel's page takes the whole width, so its areas go across as many 300 px tracks as fit (`layout: wall`). */
+.fd-dash[data-wall] { max-width: none; }
 .fd-dash-area { container: fd-area / inline-size; display: grid; align-content: start; gap: 10px; min-width: 0; }
 /* Tracks of at least a module's width (260 px, a row's 300 px), as many as fit. */
 .fd-dash-grid {
