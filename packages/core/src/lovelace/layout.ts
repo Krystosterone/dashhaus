@@ -543,8 +543,8 @@ export function placeRow(entries: readonly PlaceEntry[], { tracks, columns, flow
   return { tracks: across, cells, rows, anchored };
 }
 
-/** The energy sources an automatic layout reads: the house's electricity, in the order its power comes. */
-const ELECTRICITY = ["grid", "solar", "battery"] as const;
+/** The sources whose power now an automatic layout reads, in the order it comes: the whole house's, then its electricity's. */
+const POWER = ["home", "grid", "solar", "battery"] as const;
 
 /** The objects in a list of the preferences, or none. */
 const records = (value: unknown): Record<string, unknown>[] =>
@@ -552,13 +552,15 @@ const records = (value: unknown): Record<string, unknown>[] =>
 
 /**
  * The house's power and energy meters for an automatic layout, from Home Assistant's energy preferences (`energy`,
- * `energy/get_prefs`'s answer). Power now first, each source's `stat_rate`: the grid's, then solar's, then the
- * batteries', each in the order the preferences list them. Then the meters: grid consumption, grid return, solar
- * production, battery out, battery in. Only electricity: gas, water and the devices under device consumption are left
- * out. A grid's meters and power are read flat, as Home Assistant keeps them now, or from the `flow_from`, `flow_to` and
- * `power` lists it kept before. An id is kept only when it is a `sensor.*` in `states` (an external statistic,
- * `opower:…`, has none) that isn't hidden, config or diagnostic, and only once. Nothing without preferences, and
- * nothing with none of these.
+ * `energy/get_prefs`'s answer). Power now first, each source's `stat_rate`: the home's (its whole consumption), then
+ * the grid's, solar's and the batteries', each in the order the preferences list them. Then the meters: the home's
+ * consumption, grid consumption, grid return, solar production, battery out, battery in, then gas and water, a house
+ * total each. Gas's and water's flow rates and the devices under device consumption are left out: the row is the
+ * house's totals, never a list of every plug. A grid's meters and power are read flat, as Home Assistant keeps them
+ * now, or from the `flow_from`, `flow_to` and `power` lists it kept before. A source's `power_config` is never read:
+ * Home Assistant writes the sensor it gives into the source's `stat_rate`, its own or one it makes from two. An id is
+ * kept only when it is a `sensor.*` in `states` (an external statistic, `opower:…`, has none) that isn't hidden, config
+ * or diagnostic, and only once. Nothing without preferences, and nothing with none of these.
  */
 export function energySensors({ states, entities = {}, energy }: RoomSensorInput): string[] {
   const sources = records((energy as { energy_sources?: unknown } | undefined)?.energy_sources);
@@ -566,13 +568,16 @@ export function energySensors({ states, entities = {}, energy }: RoomSensorInput
   /** Each source's `key`, then its lists' (`nested`), source by source. */
   const ids = (list: Record<string, unknown>[], key: string, nested: readonly string[] = []) =>
     list.flatMap((source) => [source[key], ...nested.flatMap((field) => records(source[field]).map((item) => item[key]))]);
-  const power = ELECTRICITY.flatMap((type) => ids(of(type), "stat_rate", ["power", "flow_from", "flow_to"]));
+  const power = POWER.flatMap((type) => ids(of(type), "stat_rate", ["power", "flow_from", "flow_to"]));
   const meters = [
+    ...ids(of("home"), "stat_energy_to"),
     ...ids(of("grid"), "stat_energy_from", ["flow_from"]),
     ...ids(of("grid"), "stat_energy_to", ["flow_to"]),
     ...ids(of("solar"), "stat_energy_from"),
     ...ids(of("battery"), "stat_energy_from"),
     ...ids(of("battery"), "stat_energy_to"),
+    ...ids(of("gas"), "stat_energy_from"),
+    ...ids(of("water"), "stat_energy_from"),
   ];
   const shown = (id: unknown): id is string =>
     typeof id === "string" && id.startsWith("sensor.") && id in states && !entities[id]?.hidden && !entities[id]?.entity_category;
