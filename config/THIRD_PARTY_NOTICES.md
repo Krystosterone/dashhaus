@@ -1,7 +1,7 @@
 # Third-party notices
 
-This file includes React and ReactDOM, both Copyright (c) Facebook, Inc. and its
-affiliates, under the MIT License:
+This file includes React and ReactDOM, both Copyright (c) Meta Platforms, Inc.
+and affiliates, under the MIT License:
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

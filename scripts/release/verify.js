@@ -170,7 +170,7 @@ for (const [skin, file, card, strategy, token] of [["orb", "orb-dashboard.js", "
   assert.ok(code.includes(token), \`\${file} carries its stylesheet\`);
   const other = skin === "orb" ? "dashhaus-field" : "dashhaus-orb";
   assert.ok(!code.includes(\`"\${other}"\`), \`\${file} carries no other skin\`);
-  assert.match(code, /Copyright \\(c\\) Facebook, Inc\\. and its affiliates\\./, \`\${file} carries React's copyright notice\`);
+  assert.match(code, /Copyright \\(c\\) Meta Platforms, Inc\\. and affiliates\\./, \`\${file} carries React's copyright notice\`);
   assert.match(code, /Permission is hereby granted, free of charge/, \`\${file} carries React's MIT permission text\`);
 }
 
