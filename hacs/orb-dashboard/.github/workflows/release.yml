@@ -45,12 +45,20 @@ jobs:
           ASKED: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          version=${ASKED:-$(node .github/mirror.js latest)}
+          latest=$(node .github/mirror.js latest)
+          version=${ASKED:-$latest}
           if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "::error::\"$version\" is not a version"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          # Only npm's latest is Latest here and brings its README: an older version mirrored late, or a prerelease (npm's
+          # next), is released without either.
+          if [ "$version" = "$latest" ]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+          fi
           if gh release view "v$version" >/dev/null 2>&1; then
             echo "v$version is released; nothing to mirror"
             echo "release=false" >> "$GITHUB_OUTPUT"
@@ -70,9 +78,10 @@ jobs:
           npm init -y >/dev/null
           npm install --ignore-scripts --no-audit --no-fund "@dashhaus/orb@$VERSION"
           npm audit signatures
-      # The page HACS shows is this repository's README, so it follows the release: the one from the commit that built it.
+      # The page HACS shows is this repository's README, so it follows the latest release: the one from the commit that
+      # built it. An older version mirrored late, or a prerelease, leaves the latest's README in place.
       - name: Bring the README and hacs.json from the commit that built the file
-        if: steps.plan.outputs.release == 'true'
+        if: steps.plan.outputs.release == 'true' && steps.plan.outputs.latest == 'true'
         run: |
           set -euo pipefail
           cp mirror/README.md README.md
@@ -87,8 +96,12 @@ jobs:
         if: steps.plan.outputs.release == 'true'
         env:
           VERSION: ${{ steps.plan.outputs.version }}
+          LATEST: ${{ steps.plan.outputs.latest }}
         run: |
           set -euo pipefail
           flags=()
-          case "$VERSION" in *-*) flags+=(--prerelease) ;; *) flags+=(--latest) ;; esac
+          case "$VERSION" in
+            *-*) flags+=(--prerelease) ;;
+            *) if [ "$LATEST" = true ]; then flags+=(--latest); else flags+=(--latest=false); fi ;;
+          esac
           gh release create "v$VERSION" "mirror/orb-dashboard.js" --target "$(git rev-parse HEAD)" --title "Orb $VERSION" --notes-file mirror/notes.md "${flags[@]}"

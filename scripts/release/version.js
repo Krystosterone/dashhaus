@@ -1,5 +1,5 @@
 /**
- * Apply the fixed version across the seven public packages: `npm run release:version -- 0.2.0`.
+ * Apply the fixed version across the five public packages: `npm run release:version -- 0.2.0`.
  *
  * The policy is one version for the public packages; every internal `@dashhaus` dependency moves with it, including
  * the scaffolder's template, which is what a new skin's `package.json` installs after scaffolding. The workspace

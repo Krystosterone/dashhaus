@@ -1,5 +1,5 @@
 /**
- * Fetch the seven public packages back from npm and check them: `npm run release:registry -- <x.y.z> [--out registry]
+ * Fetch the five public packages back from npm and check them: `npm run release:registry -- <x.y.z> [--out registry]
  * [--compare release]`.
  *
  * Each `<name>@<version>` is downloaded from the registry into `--out` (default `registry/`), and its SHA-1 and SHA-512
