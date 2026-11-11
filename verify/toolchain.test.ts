@@ -138,7 +138,7 @@ describe("the pinned npm", () => {
     const jobs = Object.fromEntries(
       docs.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
-    expect(Object.keys(jobs)).toEqual(["preview", "site", "deploy"]);
+    expect(Object.keys(jobs)).toEqual(["preview", "upload", "site", "deploy"]);
     expect(jobs.site, "only a dispatch, the Release workflow's or by hand, builds the public site").toMatch(/^ {4}if: github\.event_name == 'workflow_dispatch'/m);
     expect(jobs.site, "from a published release's tag").toContain("ref: refs/tags/${{ steps.tag.outputs.tag }}");
     expect(jobs.site, "never a draft or a prerelease").toContain('if [ "$state" != published ]');
@@ -146,16 +146,18 @@ describe("the pinned npm", () => {
     expect(jobs.preview, "pull requests and main go to the preview").toMatch(/^ {4}if: github\.event_name != 'workflow_dispatch'$/m);
     for (const [name, job] of Object.entries(jobs)) {
       expect(job.includes("pages: write"), `${name} ${name === "deploy" ? "deploys" : "never deploys"} to Pages`).toBe(name === "deploy");
-      expect(/secrets\.CLOUDFLARE_/.test(job), `${name} ${name === "preview" ? "holds" : "never holds"} the preview's secrets`).toBe(name === "preview");
+      expect(/secrets\.CLOUDFLARE_/.test(job), `${name} ${name === "upload" ? "holds" : "never holds"} the preview's secrets`).toBe(name === "upload");
     }
-    expect(jobs.preview, "a fork's pull request, or no secrets yet, still builds the site").toContain("HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}");
-    // Like the Release workflow's, the secrets reach only the step that uses them: never the install's lifecycle scripts.
-    const [head, ...steps] = jobs.preview.split(/^(?= {6}- )/m);
-    expect(head.split("\n").filter((line) => line.includes("secrets.")), "the job's env says only whether they are set").toEqual([expect.stringMatching(/^ {6}HAS_CF: /)]);
-    const holding = steps.filter((step) => step.includes("secrets.CLOUDFLARE_"));
-    expect(holding.map((step) => /name: (.+)/.exec(step)?.[1]), "only the upload holds the preview's secrets").toEqual(["Upload the preview"]);
-    expect(holding[0], "and runs only when they are set").toContain("if: env.HAS_CF == 'true'");
-    expect(jobs.preview, "wrangler is pinned").toMatch(/WRANGLER: wrangler@\d+\.\d+\.\d+$/m);
+    // A runner holds every secret its job references from the start, whichever step names it, so the secrets live in a
+    // job that runs no code from the pull request or a dependency's install, as the Release workflow's `listings` does.
+    expect(jobs.preview, "the build has no write permission").toMatch(/^ {4}permissions:\n {6}contents: read\n {4}\S/m);
+    expect(jobs.preview, "the build hands the site on").toMatch(/uses: actions\/upload-artifact@\w+ # v[\d.]+\n {8}with:\n {10}name: docs-preview\n/);
+    expect(jobs.upload, "the upload takes only what the build laid out").toMatch(/^ {4}needs: preview$/m);
+    expect(jobs.upload, "the upload runs no checkout or install").not.toMatch(/actions\/checkout@|\.\/\.github\/actions\/setup|npm (?:ci|install|run)\b/);
+    expect(jobs.upload, "the upload writes only its comment").toMatch(/^ {4}permissions:\n {6}pull-requests: write\n {4}\S/m);
+    expect(jobs.upload, "and downloads the build's site").toMatch(/uses: actions\/download-artifact@\w+ # v[\d.]+\n(?: {8}.*\n)*? {10}name: docs-preview\n/);
+    expect(jobs.upload, "a fork's pull request, or no secrets yet, still builds the site and skips the upload").toContain("if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''");
+    expect(jobs.upload, "wrangler is pinned").toMatch(/WRANGLER: wrangler@\d+\.\d+\.\d+$/m);
   });
 });
 

@@ -120,6 +120,12 @@ describe("the skin repositories", () => {
       expect(release, "no schedule").not.toMatch(/^\s*schedule:/m);
       expect(release).toMatch(/^on:\n {2}workflow_dispatch:\n {4}inputs:\n {6}version:/m);
       expect(release).toContain(`"mirror/${assetName(entry)}"`);
+      // Only npm's latest takes Latest and the README: a rerun for an older version must not demote the newer one.
+      expect(release, "the plan compares the version with npm's latest").toMatch(/if \[ "\$version" = "\$latest" \]; then\n\s+echo "latest=true"/);
+      const readme = release.split(/^(?= {6}- )/m).find((step) => step.includes("cp mirror/README.md README.md"));
+      expect(readme, "only the latest brings its README and hacs.json").toMatch(/^ {8}if: steps\.plan\.outputs\.release == 'true' && steps\.plan\.outputs\.latest == 'true'$/m);
+      expect(release, "and only the latest is marked Latest").toMatch(/if \[ "\$LATEST" = true \]; then flags\+=\(--latest\); else flags\+=\(--latest=false\); fi/);
+      expect(release).toContain("LATEST: ${{ steps.plan.outputs.latest }}");
     }
   });
 });

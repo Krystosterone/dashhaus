@@ -52,7 +52,8 @@ jobs:
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          # Only npm's latest is Latest here and brings its README: a rerun for an older version releases it beside.
+          # Only npm's latest is Latest here and brings its README: an older version mirrored late, or a prerelease (npm's
+          # next), is released without either.
           if [ "$version" = "$latest" ]; then
             echo "latest=true" >> "$GITHUB_OUTPUT"
           else
@@ -78,7 +79,7 @@ jobs:
           npm install --ignore-scripts --no-audit --no-fund "@dashhaus/orb@$VERSION"
           npm audit signatures
       # The page HACS shows is this repository's README, so it follows the latest release: the one from the commit that
-      # built it. An older version, mirrored late, leaves the newer README in place.
+      # built it. An older version mirrored late, or a prerelease, leaves the latest's README in place.
       - name: Bring the README and hacs.json from the commit that built the file
         if: steps.plan.outputs.release == 'true' && steps.plan.outputs.latest == 'true'
         run: |

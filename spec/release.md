@@ -338,7 +338,8 @@ the mirror's checks on a real version's attestations.
   then does it take `package/dist/<repository>.js` out, bring its README and `hacs.json` from the commit the
   provenance names (committing them when they changed), and publish `v<version>`, titled with the skin's name, the
   file its one asset, as latest (a prerelease stays one). Only npm's `latest` is: a rerun for an older version,
-  after a failed listing, releases it without marking it latest and leaves the newer README and `hacs.json` in place. It needs no secret of its own: npm and this repository are
+  after a failed listing, and a prerelease, which npm serves under `next`, are released without being marked latest
+  and leave the latest's README and `hacs.json` in place, so the page HACS shows follows the version it installs. It needs no secret of its own: npm and this repository are
   public, and its own token writes its own repository. The skin's version is the packages'.
 - **What stays here.** Code, issues, the spec and the site. A skin repository is its release and its README, nothing
   to develop in: its README sends issues and source here. Its workflows and script change here and are copied by

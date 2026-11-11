@@ -30,7 +30,9 @@ permissions:
   contents: read
 
 jobs:
-  # A pull request's or main's site, built and uploaded to Cloudflare Pages.
+  # A pull request's or main's site, built with no secret and no write permission: the install runs every dependency's
+  # lifecycle scripts and the build runs the pull request's code, so neither may reach the Cloudflare token or the
+  # comment's write access. It hands the laid-out site to `upload` as an artifact.
   preview:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -40,15 +42,8 @@ jobs:
       cancel-in-progress: true
     permissions:
       contents: read
-      pull-requests: write
-    env:
-      # Whether the upload can run; the secrets themselves reach only the upload step, never the install's lifecycle
-      # scripts or the build.
-      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
-      # The Cloudflare Pages project; created on the first upload, with main as its production branch.
-      PROJECT: dashhaus
-      # Pinned, like every action here; npx fetches it only for the upload.
-      WRANGLER: wrangler@4.151.2
+    outputs:
+      base: ${{ steps.layout.outputs.base }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -58,6 +53,7 @@ jobs:
       # The site is built for its public path (astro.config's `base`, which its pages also link by), so the preview
       # serves it under the same path, and the preview's root redirects there.
       - name: Lay the site out at its public path
+        id: layout
         run: |
           set -euo pipefail
           base=$(sed -n 's|^  base: "/\([^"/]*\)/\{0,1\}",$|\1|p' docs/astro.config.js)
@@ -65,13 +61,43 @@ jobs:
           mkdir -p "preview/$base"
           cp -R docs/dist/. "preview/$base/"
           printf '/ /%s/ 302\n' "$base" > preview/_redirects
-          echo "BASE=$base" >> "$GITHUB_ENV"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docs-preview
+          path: preview
+          retention-days: 1
+
+  # The preview's upload and its link on the pull request. Like the Release workflow's `listings`, it holds the secrets
+  # by job and runs no checkout or install, so no code from the pull request or a dependency runs beside them: a
+  # runner holds every secret its job references from the start, whichever step names it.
+  upload:
+    needs: preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: docs-upload-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      pull-requests: write
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The Cloudflare Pages project; created on the first upload, with main as its production branch.
+      PROJECT: dashhaus
+      # Pinned, like every action here; npx fetches it only for the upload.
+      WRANGLER: wrangler@4.151.2
+      BASE: ${{ needs.preview.outputs.base }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        with:
+          name: docs-preview
+          path: preview
       - name: Upload the preview
         id: upload
-        if: env.HAS_CF == 'true'
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
           COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler.jsonl
