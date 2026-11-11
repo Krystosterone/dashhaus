@@ -21,9 +21,9 @@ export interface __Skin__CardRegistration extends CardKindSpec {
 }
 
 /** A Card's companion entities as YAML keys (`humidity: sensor.bedroom_humidity`), read into `item.companions`. */
-export const __skinVar__Companions = (keys: readonly string[]): Pick<CardKindSpec, "keys" | "options"> => ({
+export const __skinVar__Companions = (keys: readonly string[]): Pick<CardKindSpec, "keys" | "readOptions"> => ({
   keys,
-  options: (read, raw, at) => {
+  readOptions: (read, raw, at) => {
     const companions = Object.fromEntries(keys.flatMap((key) => {
       const id = raw[key] == null ? undefined : read.entityId(raw[key], `${at}.${key}`);
       return id ? [[key, id]] : [];

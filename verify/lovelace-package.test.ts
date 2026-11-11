@@ -239,21 +239,56 @@ describe("@dashhaus/core/lovelace", () => {
   });
 
   // One contract name, one meaning (spec/contract.md): a skin's card holds the card its YAML read (`./schema`'s
-  // `CardShape`, from `readCard`) and the frame's flags (`./card`'s `cardShape`, `useCardFrame`) side by side, so a
+  // `ReadCard`, from `readCard`) and the frame's flags (`./card`'s `cardShape`, `useCardFrame`) side by side, so a
   // field of the one never takes a name the other already gives a meaning (`bare`, the compact row with no control).
   it("never gives a read card's field a name the card frame already uses", () => {
     const CARD = `${SOURCE}/card.tsx`;
     const SCHEMA = `${SOURCE}/schema.ts`;
     expect(Object.keys(cardShape()).sort(), "cardShape returns what its interface declares").toEqual(members(CARD, "CardShape").sort());
     const frame = new Set([...members(CARD, "CardProps"), ...members(CARD, "CardFrame")]);
-    const card = members(SCHEMA, "CardShape");
+    const card = members(SCHEMA, "ReadCard");
     const reader = new schema.Reader();
     const kinds = { own: { domains: ["switch"] }, other: { domains: ["switch"] } };
     const read = schema.readCard(reader, { noun: "card", common: ["entity"], kinds, base: () => ({}) }, "switch.a", "cards[0]");
     expect(reader.problems).toEqual([]);
-    expect(read, "readCard sets what CardShape declares and nothing else of its own").toEqual({ entity: "switch.a", kind: "own", defaulted: true });
+    expect(read, "readCard sets what ReadCard declares and nothing else of its own").toEqual({ entity: "switch.a", kind: "own", defaulted: true });
     expect(Object.keys(read!).filter((key) => !card.includes(key))).toEqual([]);
     expect(card.filter((key) => frame.has(key)), "a read card's fields and the frame's flags share no name").toEqual([]);
+  });
+
+  // One contract name, one meaning (spec/contract.md), across the three frozen subpaths: an export is named once, so an
+  // author importing two of them never aliases one (`./card`'s `CardShape` is the frame's flags, `./schema`'s
+  // `ReadCard` a read card); and a member a skin fills with a function that reads (it takes the `Reader`) is named
+  // `read…`, while a member that holds a value keeps its noun, so no name is a reader in one interface and a value in
+  // another (`SkinStrategy.options` holds keys, `CardKindSpec.readOptions` reads them; `RowEntry.item` holds an item,
+  // `LayoutSchema.readItem` reads one).
+  it("gives each name in the frozen contract one meaning", () => {
+    const FROZEN = ["./skin", "./card", "./schema"];
+    const files = FROZEN.map((subpath) => join(root, PACKAGE, sourceTarget(subpath)));
+    const program = ts.createProgram(files, { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, target: ts.ScriptTarget.ES2022, noEmit: true });
+    const checker = program.getTypeChecker();
+    const exported = files.map((file, index) => {
+      const symbols = checker.getExportsOfModule(checker.getSymbolAtLocation(program.getSourceFile(file)!)!);
+      return { subpath: FROZEN[index], symbols: symbols.map((symbol) => ({ name: symbol.name, target: symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol })) };
+    });
+
+    const subpathsOf = new Map<string, string[]>();
+    for (const { subpath, symbols } of exported) for (const { name } of symbols) subpathsOf.set(name, [...(subpathsOf.get(name) ?? []), subpath]);
+    expect(subpathsOf.size, "the frozen subpaths export something").toBeGreaterThan(50);
+    expect([...subpathsOf].filter(([, where]) => where.length > 1).map(([name, where]) => `${name}: ${where.join(", ")}`), "an export is named once across the frozen subpaths").toEqual([]);
+
+    const interfaces = exported.flatMap(({ symbols }) => symbols).flatMap(({ name, target }) => (target.declarations ?? []).filter(ts.isInterfaceDeclaration).map((declaration) => ({ name, declaration })));
+    const roles = interfaces.flatMap(({ name, declaration }) => declaration.members.flatMap((member) => {
+      if (!member.name || !ts.isIdentifier(member.name)) return [];
+      const signature = ts.isMethodSignature(member) ? member : ts.isPropertySignature(member) && member.type && ts.isFunctionTypeNode(member.type) ? member.type : undefined;
+      const reads = signature?.parameters[0]?.type?.getText() === "Reader";
+      return [{ owner: name, member: member.name.text, role: signature ? (reads ? "reader" : "function") : "value" }];
+    }));
+    const readers = roles.filter(({ role }) => role === "reader");
+    expect(readers.map(({ owner, member }) => `${owner}.${member}`), "the contract's readers are found").toEqual(expect.arrayContaining(["CardKindSpec.readOptions", "LayoutSchema.readItem"]));
+    const values = new Set(roles.filter(({ role }) => role === "value").map(({ member }) => member));
+    expect(readers.filter(({ member }) => values.has(member)).map(({ owner, member }) => `${owner}.${member}`), "no name is a reader in one interface and a value in another").toEqual([]);
+    expect(roles.filter(({ role, member }) => role === "value" && /^read[A-Z]/.test(member)).map(({ owner, member }) => `${owner}.${member}`), "a value keeps its noun, never a read… verb").toEqual([]);
   });
 
   it("keeps the schema and layout pure, so a Node config can import them", () => {

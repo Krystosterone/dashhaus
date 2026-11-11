@@ -29,10 +29,10 @@ const schema: CardReadSchema<Kind, TestCard> = {
   common: ["entity", "card", "name"],
   order: cardKindOrder(domainKind, { sound: {}, owlet: {} }),
   kinds: {
-    light: { domains: ["light"], keys: ["color"], options: (read, raw, at) => ({ color: readColor(read, raw, at, ["red"] as const) }) },
-    switch: { domains: ["switch"], keys: ["color"], options: (read, raw, at) => ({ color: readColor(read, raw, at, ["red"] as const) }) },
-    sound: { domains: ["switch"], keys: ["volume"], options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }) },
-    owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/, keys: ["alerts"], options: (read, raw, at) => ({ alerts: readOwletOptions(read, raw, at, ["low_oxygen"]).alerts as Record<string, string> }) },
+    light: { domains: ["light"], keys: ["color"], readOptions: (read, raw, at) => ({ color: readColor(read, raw, at, ["red"] as const) }) },
+    switch: { domains: ["switch"], keys: ["color"], readOptions: (read, raw, at) => ({ color: readColor(read, raw, at, ["red"] as const) }) },
+    sound: { domains: ["switch"], keys: ["volume"], readOptions: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }) },
+    owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/, keys: ["alerts"], readOptions: (read, raw, at) => ({ alerts: readOwletOptions(read, raw, at, ["low_oxygen"]).alerts as Record<string, string> }) },
   },
   base: (read, raw, at) => ({ name: read.string(raw, "name", at) }),
   noKind: (entity, domain) => `${entity}: ${domain}.* entities have no card yet`,
@@ -211,7 +211,7 @@ interface Tile { entity: string; footprint?: string }
 const layout = (mix: FootprintMix = "lattice", maxColumns = 12): LayoutSchema<Tile> => ({
   noun: mix === "stacks" ? "module" : "card",
   maxColumns,
-  item: (read, value, path) => {
+  readItem: (read, value, path) => {
     const card = readCard(read, { ...schema, common: ["entity", "card", "name", "footprint", "width", "column"], base: (r, raw, at) => ({ name: r.string(raw, "name", at), footprint: r.string(raw, "footprint", at) }) } as CardReadSchema<Kind, TestCard & Tile>, value, path);
     return card && { entity: card.entity, footprint: card.footprint };
   },

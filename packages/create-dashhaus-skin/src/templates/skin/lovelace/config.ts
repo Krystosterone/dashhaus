@@ -53,7 +53,7 @@ export function parse__Skin__Config(value: unknown): __Skin__Config {
   const layout: LayoutSchema<CardConfig> = {
     noun: "Card",
     maxColumns: MAX_ACROSS,
-    item: (read, item, path) => readCard(read, CARD_SCHEMA, item, path),
+    readItem: (read, item, path) => readCard(read, CARD_SCHEMA, item, path),
     footprints: { mix: "uniform", of: (card) => card.footprint ?? footprint },
   };
   const rows = readBody(reader, layout, raw);

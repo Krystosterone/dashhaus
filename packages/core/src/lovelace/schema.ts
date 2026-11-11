@@ -257,7 +257,7 @@ export interface LayoutSchema<I> {
   /** The most columns a row may have. */
   readonly maxColumns: number;
   /** Read one entry of a `cards` list (a card, or a skin's bundle); its `width` and `column` are read here. */
-  item(read: Reader, value: unknown, path: string): I | undefined;
+  readItem(read: Reader, value: unknown, path: string): I | undefined;
   /** How footprints may share a row, and an item's footprint as drawn. Left out: any mix. */
   readonly footprints?: { readonly mix: FootprintMix; of(item: I): string };
 }
@@ -345,7 +345,7 @@ function readEntry<I>(read: Reader, schema: LayoutSchema<I>, value: unknown, pat
       column = undefined;
     }
   }
-  const item = schema.item(read, raw, path);
+  const item = schema.readItem(read, raw, path);
   return item === undefined ? undefined : { item, width, column };
 }
 
@@ -448,7 +448,7 @@ export const mapRowItems = <I>(rows: readonly RowConfig<I>[], fn: (item: I) => I
   rows.map((row) => ({ ...row, cards: row.cards.map((entry) => ({ ...entry, item: fn(entry.item) })) }));
 
 /** A card as a schema reads it: the entity, and the kind that draws it. */
-export interface CardShape<K extends string = string> {
+export interface ReadCard<K extends string = string> {
   entity: string;
   kind: K;
   /**
@@ -467,7 +467,7 @@ export interface CardKindSpec {
   /** YAML keys this kind takes besides the card's common ones. */
   readonly keys?: readonly string[];
   /** Read this kind's own settings: the escape hatch for options only one card has. */
-  readonly options?: (read: Reader, raw: Raw, at: string) => Record<string, unknown>;
+  readonly readOptions?: (read: Reader, raw: Raw, at: string) => Record<string, unknown>;
 }
 
 /** How a card schema resolves an entity id to a kind. */
@@ -507,7 +507,7 @@ export function cardKindOrder<K extends string>(domainKind: Readonly<Record<stri
 }
 
 /** One skin's card reader: what a card is called, its common keys, its kind table and its per-kind options. */
-export interface CardReadSchema<K extends string, C extends CardShape<K>> {
+export interface CardReadSchema<K extends string, C extends ReadCard<K>> {
   /** What a card is called in messages: "card", "module". */
   readonly noun: string;
   /** YAML keys every card of this skin takes. */
@@ -535,7 +535,7 @@ export interface CardReadSchema<K extends string, C extends CardShape<K>> {
  * Read one card: its shape, entity id, kind, known keys, base settings and the kind's options. Every problem is
  * collected on `read`, with its path.
  */
-export function readCard<K extends string, C extends CardShape<K>>(
+export function readCard<K extends string, C extends ReadCard<K>>(
   read: Reader,
   schema: CardReadSchema<K, C>,
   value: unknown,
@@ -587,13 +587,13 @@ export function readCard<K extends string, C extends CardShape<K>>(
   if (schema.checkKeys) schema.checkKeys(read, raw, at, checked);
   else read.keys(raw, at, checked);
   const base = schema.base(read, raw, at);
-  const options = schema.kinds[kind].options?.(read, raw, at) ?? {};
+  const options = schema.kinds[kind].readOptions?.(read, raw, at) ?? {};
   const defaulted = raw.card == null && !schema.kinds[kind].id && available.length > 1 && !own.some((key) => key in raw);
   return { ...base, entity, kind, ...options, ...(defaulted && { defaulted: true }) } as C;
 }
 
 /** Read a non-empty list of cards, each with its path. */
-export function readCards<K extends string, C extends CardShape<K>>(
+export function readCards<K extends string, C extends ReadCard<K>>(
   read: Reader,
   schema: CardReadSchema<K, C>,
   value: unknown,
@@ -608,15 +608,15 @@ export function readCards<K extends string, C extends CardShape<K>>(
 }
 
 /** A union member for one kind, or the whole shape when the card is not a discriminated union (field's module). */
-export type CardOf<K extends string, C extends CardShape<K>, P extends K> = [Extract<C, { kind: P }>] extends [never] ? C : Extract<C, { kind: P }>;
+export type CardOf<K extends string, C extends ReadCard<K>, P extends K> = [Extract<C, { kind: P }>] extends [never] ? C : Extract<C, { kind: P }>;
 
 /** How a skin draws each kind: one renderer per kind. */
-export type CardRenderers<K extends string, C extends CardShape<K>, R, A extends unknown[] = []> = {
+export type CardRenderers<K extends string, C extends ReadCard<K>, R, A extends unknown[] = []> = {
   [P in K]: (card: CardOf<K, C, P>, ...args: A) => R;
 };
 
 /** Draw a normalized card with its kind's renderer. */
-export function renderCard<K extends string, C extends CardShape<K>, R, A extends unknown[]>(
+export function renderCard<K extends string, C extends ReadCard<K>, R, A extends unknown[]>(
   renderers: CardRenderers<K, C, R, A>,
   card: C,
   ...args: A
