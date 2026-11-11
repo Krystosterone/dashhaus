@@ -125,6 +125,17 @@ describe("sensorFromHass", () => {
     expect(mapped.temperature).toBeUndefined();
   });
 
+  it("keeps a classless % sensor a humidity even when the YAML gives a temperature unit", () => {
+    const mapped = sensorFromHass({
+      entity_id: "sensor.bathroom",
+      state: "45",
+      attributes: { friendly_name: "Bathroom", unit_of_measurement: "%" },
+    }, "sensor.bathroom", { unit: "°C" });
+
+    expect(mapped.humidity).toBe(45);
+    expect(mapped.temperature).toBeUndefined();
+  });
+
   it("does not infer a temperature from an unrelated numeric sensor", () => {
     const mapped = sensorFromHass({
       ...temperature,
