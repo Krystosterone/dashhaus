@@ -201,9 +201,11 @@
 .hd-pill:active { scale: 0.98; }
 .hd-pill[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-/* A disabled button lies flat: nothing to do now (a step at its bound). Every button in the skin says so with
-   hd-btn, whether its raised face is the button itself (a pill, a fine step) or the span inside it (a stepper's
-   end, a cover's open and close), so one rule covers both. */
+/* A disabled button with nothing to do now (a step at its bound, a retry already sent) lies flat: no fill or raise,
+   muted words, no press. The buttons that take it say so with hd-btn, whether their raised face is the button itself
+   (a pill, a fine step) or the span inside it (a stepper's end, a cover's open and close), so one rule covers both.
+   The guarded sheet keeps its own disabled look: its keypad and its action dim in place, so a key keeps the surface
+   that makes it a key while the code is empty or a press is under way. */
 .hd-btn:disabled,
 .hd-btn:disabled > span { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default; }
 .hd-btn:disabled:active,
