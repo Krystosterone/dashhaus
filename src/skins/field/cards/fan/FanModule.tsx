@@ -2,6 +2,7 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { canSwitchFan } from "@dashhaus/core/entities/fan/power";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, fanWord, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -17,6 +18,9 @@ export interface FanModuleProps {
   /** Today, for the detail panel. Omit to leave its meter dark. */
   history?: FanHistory;
   onToggle: () => void;
+  /** While its state is assumed or unknown (`eitherWay`): turn it on, or off, whatever it shows. The panel's Turn keys. */
+  onTurnOn?: () => void;
+  onTurnOff?: () => void;
   /** The speed fader, in percent. Omit, or a fan without speeds, and the key spans the row. */
   onPercentageChange?: (percent: number) => void;
   /** Panel: the preset keys. */
@@ -38,7 +42,7 @@ const DIRECTIONS: FanDirection[] = ["forward", "reverse"];
  * speeds has one wide key with its state word. The name, or a press and hold on the key, opens the detail panel:
  * presets, oscillation, direction, today.
  */
-export function FanModule({ entity: e, footprint = "standard", history, onToggle, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, defaultOpen = false }: FanModuleProps) {
+export function FanModule({ entity: e, footprint = "standard", history, onToggle, onTurnOn, onTurnOff, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, defaultOpen = false }: FanModuleProps) {
   const uid = useId();
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
@@ -54,13 +58,14 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   // A fan with a few speeds reads its step, as its own buttons are numbered (2/3); a stepless one its percent (040%).
   const named = namedSpeeds(count);
   const read: ReactNode = unav ? <Blank label="Unavailable" />
+    : e.state === "unknown" ? <Blank label="Unknown" />
     : !on ? "OFF"
     : speed != null && named ? <><Digits value={speed} places={1} /><small aria-hidden="true">/{count}</small><span className="fd-sr"> of {count}</span></>
     : pct != null ? <><Digits value={pct} /><small>%</small></>
     : "ON";
   const first = fanMode(e);
   const since = unav ? (e.lastSeen ? lastSeenFact(e.lastSeen) : undefined) : sinceFact(e.lastChanged);
-  const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : first ? [first, since] : since ? [since] : undefined;
+  const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : e.state === "unknown" ? ["Unknown", since] : first ? [first, since] : since ? [since] : undefined;
 
   // The hub always lights while on, so the first of three speeds still reads lit; the blades fill with the speed.
   const pict = <Pictogram level={pct != null ? 0.25 + 0.75 * (pct / 100) : 1} lit={on}>{FAN_PICT}</Pictogram>;
@@ -117,6 +122,15 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
       aside={aside}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: fanAbilities(e) }}
     >
+      {eitherWay(e) && onTurnOn && onTurnOff && (
+        <div className="fd-block">
+          <KeyGroup legend={EITHER_WAY_LEGEND} columns={2}>
+            {EITHER_WAY.map((w) => <Key key={w.value} label={`${e.name}, turn ${w.label.toLowerCase()}`} wide caption={w.label} onPress={w.value === "on" ? onTurnOn : onTurnOff}>{null}</Key>)}
+          </KeyGroup>
+          <p className="fd-hint">{eitherWayHint(e)}</p>
+        </div>
+      )}
+
       {presets.length > 0 && onPresetChange && (
         <KeyGroup legend="Preset" value={e.presetMode ? presetLabel(e.presetMode) : undefined} columns={choices(presets.length)} narrow={2}>
           {presets.map((p) => (

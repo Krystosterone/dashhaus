@@ -63,7 +63,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "humidifier", fixture: humidifier, map: humidifierFromHass, keepsState: true },
   { domain: "sound", fixture: sound, map: soundFromHass, keepsState: true },
   { domain: "lock", fixture: lock, map: lockFromHass, keepsState: true },
-  { domain: "fan", fixture: fan, map: fanFromHass, keepsState: true },
+  { domain: "fan", fixture: fan, map: fanFromHass, keepsState: true, keepsUnknown: true },
   { domain: "guest wifi", fixture: guestWifi, map: guestWifiFromHass, keepsState: false },
   { domain: "binary sensor", fixture: binarySensor, map: binarySensorFromHass, keepsState: true },
   { domain: "camera", fixture: camera, map: cameraFromHass, keepsState: true },

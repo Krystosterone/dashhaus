@@ -6,8 +6,13 @@ import type { Unsure } from "../../entities/assumed";
  * `turn_on` and `turn_off` whatever it shows, since a press that flips what it shows may do the opposite of what was
  * meant. Nothing for any other entity, so a card draws them only then.
  */
-export function eitherWayHandlers(entity: Unsure, run: (service: string) => unknown, actionable: () => boolean): { onTurnOn?: () => void; onTurnOff?: () => void } {
-  if (!eitherWay(entity)) return {};
+export function eitherWayHandlers(
+  entity: Unsure & { supportsTurnOn?: boolean; supportsTurnOff?: boolean },
+  run: (service: string) => unknown,
+  actionable: () => boolean,
+): { onTurnOn?: () => void; onTurnOff?: () => void } {
+  // Both or neither: one alone is no choice. A domain that declares its turn-on and turn-off needs both.
+  if (!eitherWay(entity) || entity.supportsTurnOn === false || entity.supportsTurnOff === false) return {};
   return {
     onTurnOn: () => {
       if (actionable()) run("turn_on");

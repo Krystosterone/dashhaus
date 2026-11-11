@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { FanCard } from "./FanCard";
 import type { FanEntity } from "@dashhaus/core/entities/fan/types";
@@ -99,5 +99,15 @@ describe("FanCard", () => {
     expect(container.querySelector("button.hd-orb")).toBeNull();
     expect(container.querySelector(".hd-pill")).toBeNull();
     expect(container.querySelector(".hd-st")?.textContent).toBe("On");
+  });
+
+  it("says Unknown rather than Off, and offers on and off apart in the sheet while its state is assumed", () => {
+    const onTurnOn = vi.fn();
+    const { container, unmount } = render(<FanCard entity={{ ...extractor, state: "unknown" }} onToggle={noop} />);
+    expect(container.querySelector(".hd-pill")?.textContent).toContain("Unknown");
+    unmount();
+    render(<FanCard entity={{ ...extractor, assumedState: true }} variant="sheet" onToggle={noop} onTurnOn={onTurnOn} onTurnOff={noop} />);
+    fireEvent.click(within(screen.getByRole("group", { name: "Turn" })).getByRole("button", { name: "On" }));
+    expect(onTurnOn).toHaveBeenCalledOnce();
   });
 });

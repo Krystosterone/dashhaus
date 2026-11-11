@@ -1,5 +1,6 @@
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { canSwitchFan } from "@dashhaus/core/entities/fan/power";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { percentOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, OSCILLATION, fanAbilities, fanMode, fanWord, presetLabel } from "@dashhaus/core/entities/fan/labels";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -16,6 +17,9 @@ export interface FanCardProps extends CardProps {
   history?: FanHistory;
   /** The orb, and the pill of a fan without speeds. */
   onToggle: () => void;
+  /** Sheet, while its state is assumed or unknown (`eitherWay`): turn it on, or off, whatever it shows. */
+  onTurnOn?: () => void;
+  onTurnOff?: () => void;
   /** The speed groove, in percent. Omit, or a fan without speeds, and the slot is the On/Off pill. */
   onPercentageChange?: (percent: number) => void;
   /** Sheet: the preset chips. */
@@ -33,7 +37,7 @@ const DIRECTIONS = (["forward", "reverse"] as const).map((value) => ({ value, la
  * the slot is the light card's groove, counted in the fan's speeds, or an On/Off pill for a fan without speeds;
  * the name, or a press and hold on the orb, opens the sheet with its presets, oscillation, direction and today.
  */
-export function FanCard({ entity: e, history, variant, footprint, showControl, onToggle, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, onOpenDetails, onClose }: FanCardProps) {
+export function FanCard({ entity: e, history, variant, footprint, showControl, onToggle, onTurnOn, onTurnOff, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, onOpenDetails, onClose }: FanCardProps) {
   const card = useCard("fn", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
@@ -58,8 +62,9 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
   const since = unav ? e.lastSeen : e.lastChanged;
   const detail = mode ?? sinceFact(since) ?? null;
 
+  const both = eitherWay(e) && !!onTurnOn && !!onTurnOff;
   const extras = !unav && (
-    (e.supportsPreset && e.presetModes && onPresetChange) || (e.supportsOscillate && onOscillateChange) || (e.supportsDirection && onDirectionChange)
+    both || (e.supportsPreset && e.presetModes && onPresetChange) || (e.supportsOscillate && onOscillateChange) || (e.supportsDirection && onDirectionChange)
   );
 
   return (
@@ -85,6 +90,10 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
     >
       {extras && (
         <SheetBlock>
+          {both && <>
+            <p className="hd-note">{eitherWayHint(e)}</p>
+            <ChoiceChips id={`${uid}-w`} label={EITHER_WAY_LEGEND} options={[...EITHER_WAY]} value={null} onChange={(v) => (v === "on" ? onTurnOn : onTurnOff)?.()} />
+          </>}
           {e.supportsPreset && e.presetModes && onPresetChange && (
             <ChoiceChips id={`${uid}-p`} label="Preset" options={e.presetModes.map((p) => ({ value: p, label: presetLabel(p) }))} value={e.presetMode} onChange={onPresetChange} />
           )}

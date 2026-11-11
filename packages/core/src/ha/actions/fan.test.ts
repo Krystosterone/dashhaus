@@ -105,4 +105,12 @@ describe("createFanHandlers", () => {
     createFanHandlers({ callService }, entity, { onError }).onPercentageChange(50);
     await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "service_failed", domain: "fan", service: "set_percentage" })));
   });
+
+  it("turns on and off apart only a fan whose state is assumed or unknown, and that declares both", () => {
+    expect(setup().handlers.onTurnOn).toBeUndefined();
+    const rf = setup({ ...onOff, state: "unknown", supportsTurnOn: true, supportsTurnOff: true });
+    rf.handlers.onTurnOff?.();
+    expect(rf.callService).toHaveBeenCalledWith("fan", "turn_off", { entity_id: "fan.bedroom" });
+    expect(setup({ ...onOff, assumedState: true, supportsTurnOff: false }).handlers.onTurnOn).toBeUndefined();
+  });
 });

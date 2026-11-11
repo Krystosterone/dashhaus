@@ -1,5 +1,6 @@
 import type { FanDirection, FanEntity } from "../../entities/fan/types";
 import type { HaActionError, HaStore } from "../types";
+import { eitherWayHandlers } from "./either";
 import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
@@ -23,6 +24,13 @@ export interface FanHandlers {
   onOscillateChange: (oscillating: boolean) => void;
   /** Calls `fan.set_direction` with `forward` or `reverse`. A fan that doesn't reverse reports `unsupported`. */
   onDirectionChange: (direction: FanDirection) => void;
+  /**
+   * Only while its state is assumed or unknown (`eitherWay`), and for a fan that declares both: calls `fan.turn_on`,
+   * whatever it shows, since what it shows may be wrong.
+   */
+  onTurnOn?: () => void;
+  /** As `onTurnOn`, with `fan.turn_off`. */
+  onTurnOff?: () => void;
 }
 
 /** What each handler is, for a card drawing fan without knowing it (`ActionKind`). */
@@ -32,6 +40,8 @@ export const FAN_ACTIONS = {
   onPresetChange: { takes: "choice", field: "presetMode", options: "presetModes" },
   onOscillateChange: { takes: "switch", field: "oscillating" },
   onDirectionChange: { takes: "choice", field: "direction", options: ["forward", "reverse"] },
+  onTurnOn: { takes: "nothing", either: true },
+  onTurnOff: { takes: "nothing", either: true },
 } as const satisfies ActionKinds<FanHandlers, FanEntity>;
 
 export interface FanHandlerOptions {
@@ -53,6 +63,7 @@ export function createFanHandlers(caller: Pick<HaStore, "callService">, entity: 
     return false;
   };
   return {
+    ...eitherWayHandlers(entity, run, actionable),
     onToggle: () => {
       if (entity.state === "on") {
         if (can(entity.supportsTurnOff !== false, "turning off")) run("turn_off");

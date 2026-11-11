@@ -142,7 +142,9 @@ export function dysonFromHass(raw: HassEntity | undefined, entityId: string, opt
   const mapped = fanFromHass(raw, entityId, options);
   const presetModes = mapped.presetModes ?? [];
   // Dyson's presets are Auto and Normal: the model says Auto or not instead.
-  const fan = { ...mapped };
+  // A Dyson reports every state it is in, so its unknown is unavailable, as it always was.
+  const fan = { ...mapped, state: mapped.state === "unknown" ? "unavailable" as const : mapped.state };
+  delete fan.assumedState;
   delete fan.supportsPreset;
   delete fan.presetModes;
   delete fan.presetMode;

@@ -91,8 +91,8 @@ describe("fanFromHass", () => {
     expect(fanFromHass(withAttributes({ preset_modes: [] }), raw.entity_id).supportsPreset).toBe(false);
   });
 
-  it("keeps unknown, unavailable, and missing entities unavailable, with no values", () => {
-    expect(fanFromHass({ ...raw, state: "unknown" }, raw.entity_id).state).toBe("unavailable");
+  it("keeps unavailable and missing entities unavailable, and unknown apart, with no values", () => {
+    expect(fanFromHass({ ...raw, state: "unknown" }, raw.entity_id)).toMatchObject({ state: "unknown", percentage: undefined, oscillating: undefined, direction: undefined });
     const unavailable = fanFromHass({ ...raw, state: "unavailable" }, raw.entity_id);
     expect(unavailable.state).toBe("unavailable");
     expect(unavailable.percentage).toBeUndefined();
@@ -123,5 +123,11 @@ describe("fanFromHass", () => {
     expect(ceiling).toMatchObject({ percentage: 40, speedCount: 100, supportsDirection: true, direction: "reverse", supportsOscillate: false, supportsPreset: false });
     const extractor = fanFromHass(fixtures["fan.bathroom_extractor"], "fan.bathroom_extractor");
     expect(extractor).toMatchObject({ state: "off", supportsSpeed: false, supportsPreset: false, supportsOscillate: false, supportsDirection: false });
+  });
+
+  it("keeps unknown apart, and says when Home Assistant only assumes its state", () => {
+    expect(fanFromHass(withAttributes({}, "unknown"), raw.entity_id).state).toBe("unknown");
+    expect(fanFromHass(withAttributes({ assumed_state: true }), raw.entity_id).assumedState).toBe(true);
+    expect(fanFromHass(withAttributes({}), raw.entity_id)).not.toHaveProperty("assumedState");
   });
 });
