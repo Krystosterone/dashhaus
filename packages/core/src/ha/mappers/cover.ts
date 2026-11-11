@@ -13,6 +13,11 @@ export interface CoverMapOptions {
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
   lastSeen?: string;
+  /**
+   * Draws it as a garage door, a door or a gate whatever Home Assistant's `device_class` says, ahead of it: for one
+   * Home Assistant gives no class (a template cover), so it asks first and warns while open (YAML `device_class`).
+   */
+  deviceClass?: "garage" | "door" | "gate";
 }
 
 /** Position and tilt are percentages in the wire model: finite and clamped to 0..100 only. */
@@ -39,7 +44,7 @@ export function coverFromHass(raw: HassEntity | undefined, entityId: string, opt
   // An unknown cover can still be driven, but whatever position it last held is stale.
   const readable = state !== "unavailable" && state !== "unknown";
   const rawClass = stringValue(attributes.device_class);
-  const deviceClass: CoverClass = rawClass != null && COVER_CLASSES.has(rawClass as CoverClass) ? rawClass as CoverClass : "shade";
+  const deviceClass: CoverClass = options.deviceClass ?? (rawClass != null && COVER_CLASSES.has(rawClass as CoverClass) ? rawClass as CoverClass : "shade");
   const features = finiteNumber(attributes.supported_features) ?? 0;
   const has = (bit: number) => (features & bit) !== 0;
   const supportsPosition = has(COVER_FEATURES.SET_POSITION);

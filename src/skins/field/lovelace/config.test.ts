@@ -65,6 +65,17 @@ describe("parseFieldConfig: a module's keys", () => {
     ]);
   });
 
+  it("takes a cover's device_class, the classes that ask first, as the main card does", () => {
+    expect(modulesOf({ cards: ["cover.blind", { entity: "cover.garage_door", device_class: "garage" }] })).toEqual([
+      expect.objectContaining({ entity: "cover.blind", kind: "cover", deviceClass: undefined }),
+      expect.objectContaining({ entity: "cover.garage_door", kind: "cover", deviceClass: "garage" }),
+    ]);
+    expect(problems({ cards: [{ entity: "cover.blind", device_class: "curtain" }, { entity: "light.a", device_class: "garage" }] })).toEqual([
+      'cards[0] (cover.blind): "device_class" must be one of "garage", "door", "gate"',
+      'cards[1] (light.a): unknown key "device_class"',
+    ]);
+  });
+
   it("takes a numeric reading's unit and the limits it warns past, a band low under high, on the numeric module only", () => {
     expect(modulesOf({ cards: [
       { entity: "sensor.bedroom_co2", card: "numeric", warn_above: 1200 },

@@ -71,6 +71,8 @@ export interface ModuleConfig {
   calendars?: string[];
   days?: number;
   events?: boolean;
+  /** A cover drawn as a garage door, a door or a gate whatever Home Assistant's `device_class` says (YAML `device_class`). */
+  deviceClass?: "garage" | "door" | "gate";
   /** A toggle's glyph, and one line on what it does for its panel. */
   icon?: ToggleIcon;
   description?: string;
@@ -219,15 +221,18 @@ const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT
 /** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"], numeric: ["unit", "warn_above", "warn_below"], calendar: ["calendars", "days", "events"], dyson: ["companions"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], cover: ["device_class"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"], numeric: ["unit", "warn_above", "warn_below"], calendar: ["calendars", "days", "events"], dyson: ["companions"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
+/** The classes a cover's `device_class` may give it: the covers that let a person in, which ask first. */
+const COVER_CLASSES = ["garage", "door", "gate"] as const;
 
 /** Each kind's own settings: the shared schema reads the rest. */
 const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: string) => Record<string, unknown>>> = {
   climate: (read, raw, at) => ({ unit: readUnit(read, raw, at) }),
   sensor: (read, raw, at) => ({ unit: readUnit(read, raw, at), ...readSensorOptions(read, raw, at) }),
   weather: readWeatherOptions,
+  cover: (read, raw, at) => ({ deviceClass: read.choice(raw, "device_class", at, COVER_CLASSES) }),
   toggle: (read, raw, at) => ({ icon: read.choice(raw, "icon", at, TOGGLE_ICONS), description: read.string(raw, "description", at) }),
   sound: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }),
   alarm: readAlarmOptions,

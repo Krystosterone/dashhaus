@@ -72,7 +72,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   ),
   humidifier: (item, footprint) => <HaHumidifierModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
   sound: (item, footprint) => <HaSoundModule entityId={item.entity} volumeEntityId={item.volume} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
-  cover: (item, footprint) => <HaCoverModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
+  cover: (item, footprint) => <HaCoverModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} deviceClass={item.deviceClass} />,
   alarm: (item, footprint) => (
     <HaAlarmModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} readOnly={item.readOnly} exitDelay={item.exitDelay} entryDelay={item.entryDelay} openSensors={item.openSensors} />
   ),

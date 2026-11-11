@@ -19,7 +19,8 @@ export const isAccess = (kind: CoverClass) => kind === "garage" || kind === "doo
  * never moves on one press, so a stray tap or a brush across a wall panel can't open the house or close a door on
  * someone: every skin's tap or press opens its details on the question, stopping it is one press, and its position
  * is shown, never set (`COVER_ACTIONS`, spec/cards.md → Using the cover card). A garage door Home Assistant gives no
- * `device_class` is mapped to a shade, so it moves on one press until it has one.
+ * `device_class` is mapped to a shade, so it moves on one press until it has one, or the card's YAML gives it one
+ * (`device_class`, the `deviceClass` option of `useHaCover`).
  */
 export const coverAsksFirst = (e: Pick<CoverEntity, "deviceClass">) => isAccess(e.deviceClass);
 

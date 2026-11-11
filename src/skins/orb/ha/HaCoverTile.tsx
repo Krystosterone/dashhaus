@@ -10,7 +10,7 @@ export interface HaCoverTileProps extends HaCoverOptions, Omit<CoverTileProps, "
 }
 
 /** A live cover tile: the useHaCover hook above the presentational tile. */
-export function HaCoverTile({ entityId, name, area, lastSeen, history, loadHistory, onActionError, ...props }: HaCoverTileProps) {
-  const cover = useHaCover(entityId, { name, area, lastSeen, history, loadHistory, onActionError });
+export function HaCoverTile({ entityId, name, area, lastSeen, deviceClass, history, loadHistory, onActionError, ...props }: HaCoverTileProps) {
+  const cover = useHaCover(entityId, { name, area, lastSeen, deviceClass, history, loadHistory, onActionError });
   return <CoverTile {...props} entity={cover.entity} history={cover.history} {...cover.actions} />;
 }

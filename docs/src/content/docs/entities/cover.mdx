@@ -29,7 +29,10 @@ covers ask, and the question's words are core's, so your own controls can ask th
 
 A garage door Home Assistant gives no `device_class` (a template cover, say) is drawn as a shade and moves on one
 press. Give it its class, `garage`, `door` or `gate`, in the cover's settings or under `customize` in Home Assistant,
-and it asks first.
+and it asks first. Or give it the class on the dashboard alone: in Orb's or Field's YAML, add `device_class` to the
+cover's card, and it is drawn and guarded as one, whatever Home Assistant says.
+
+<Example file="entities/cover/device-class.yaml" />
 
 ## Component
 

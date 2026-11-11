@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { coverFromHass } from "./cover";
+import { coverAsksFirst } from "../../entities/cover/position";
 import type { HassEntity } from "../types";
 
 const raw: HassEntity = {
@@ -92,6 +93,12 @@ describe("coverFromHass", () => {
   it("falls back to the shade device class for unknown or missing device classes", () => {
     expect(coverFromHass({ ...raw, attributes: { ...raw.attributes, device_class: "roller" } }, raw.entity_id).deviceClass).toBe("shade");
     expect(coverFromHass({ ...raw, attributes: {} }, raw.entity_id).deviceClass).toBe("shade");
+  });
+
+  it("takes the deviceClass option ahead of Home Assistant's device_class, so a classless garage door asks first", () => {
+    expect(coverFromHass({ ...raw, attributes: {} }, raw.entity_id, { deviceClass: "garage" }).deviceClass).toBe("garage");
+    expect(coverFromHass({ ...raw, attributes: { ...raw.attributes, device_class: "curtain" } }, raw.entity_id, { deviceClass: "gate" }).deviceClass).toBe("gate");
+    expect(coverAsksFirst(coverFromHass({ ...raw, attributes: {} }, raw.entity_id, { deviceClass: "door" }))).toBe(true);
   });
 
   it("omits position and tilt outside 0..100 or non-finite", () => {
