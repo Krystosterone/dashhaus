@@ -169,6 +169,12 @@ describe("climateFromHass", () => {
     expect(climateFromHass({ ...raw, attributes: { temperature: 70 } }, "climate.us", { unit: "°C", systemUnit: "°F" }).unit).toBe("°C");
   });
 
+  it("steps a whole degree in °F and half a degree in °C when the entity names no step, as Home Assistant does", () => {
+    expect(climateFromHass({ ...raw, attributes: { temperature: 70, temperature_unit: "°F" } }, "climate.us").step).toBe(1);
+    expect(climateFromHass({ ...raw, attributes: { temperature: 70 } }, "climate.us", { systemUnit: "°F" }).step).toBe(1);
+    expect(climateFromHass({ ...raw, attributes: { temperature: 21 } }, "climate.eu").step).toBe(0.5);
+  });
+
   it("omits setpoints outside the reported control bounds", () => {
     const mapped = climateFromHass({
       ...raw,

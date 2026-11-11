@@ -24,7 +24,8 @@ const DEFAULT_MIN_TEMP = 7;
 const DEFAULT_MAX_TEMP = 35;
 const DEFAULT_FAHRENHEIT_MIN_TEMP = 44.6;
 const DEFAULT_FAHRENHEIT_MAX_TEMP = 95;
-const DEFAULT_STEP = 0.5;
+/** Home Assistant's frontend steps a whole degree in °F and half a degree in °C when the entity names no step. */
+const DEFAULT_STEP = { "°C": 0.5, "°F": 1 } as const;
 /** Home Assistant `ClimateEntityFeature` bit values the card reads. */
 export const CLIMATE_FEATURES = { TURN_OFF: 128, TURN_ON: 256 } as const;
 
@@ -106,7 +107,7 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     unit,
   );
   const rawStep = firstNumber(attributes.target_temp_step, attributes.temperature_step, attributes.precision);
-  const step = rawStep != null && rawStep > 0 ? rawStep : DEFAULT_STEP;
+  const step = rawStep != null && rawStep > 0 ? rawStep : DEFAULT_STEP[unit];
   const targetRange = validTargetRange(
     firstNumber(attributes.target_temp_low, attributes.target_temperature_low, attributes.native_target_temperature_low),
     firstNumber(attributes.target_temp_high, attributes.target_temperature_high, attributes.native_target_temperature_high),
