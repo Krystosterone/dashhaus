@@ -117,6 +117,18 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
+  it("takes a cover's device_class, the classes that ask first, ahead of Home Assistant's", () => {
+    expect(items({ cards: ["cover.blind", { entity: "cover.garage_door", device_class: "garage" }] })).toMatchObject([
+      { kind: "cover", entity: "cover.blind", deviceClass: undefined },
+      { kind: "cover", entity: "cover.garage_door", deviceClass: "garage" },
+    ]);
+    expect(problems({ cards: [{ entity: "cover.blind", device_class: "curtain" }, { entity: "cover.gate", device_class: "gates" }, { entity: "light.a", device_class: "garage" }] })).toEqual([
+      'cards[0] (cover.blind): "device_class" must be one of "garage", "door", "gate"',
+      'cards[1] (cover.gate): "device_class" must be one of "garage", "door", "gate" — did you mean "gate"?',
+      'cards[2] (light.a): unknown key "device_class"',
+    ]);
+  });
+
   it("draws a switch as a sound only with card:, with its volume number", () => {
     expect(items({ cards: [
       "switch.nursery_music",

@@ -118,7 +118,7 @@ export type CardConfig = CardBase & (
   | { kind: "climate"; unit?: "°C" | "°F" }
   | { kind: "sensor"; humidity?: string; battery?: string; outdoor?: boolean; unit?: "°C" | "°F" }
   | { kind: "weather"; aqi?: string; aqiScale?: "US"; sun?: string; forecasts: boolean }
-  | { kind: "cover" }
+  | { kind: "cover"; deviceClass?: "garage" | "door" | "gate" }
   | { kind: "toggle"; icon?: ToggleIcon; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
   | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number }
@@ -191,6 +191,8 @@ export const ACCENTS: Record<string, Accent> = {
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 const FOOTPRINTS: readonly CardFootprint[] = ["compact", "standard", "featured"];
+/** The classes a cover's `device_class` may give it: the covers that let a person in, which ask first. */
+const COVER_CLASSES = ["garage", "door", "gate"] as const;
 
 const COMMON_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT_KEYS, "show_control", "history"];
 /** The most columns a row may have. */
@@ -211,7 +213,10 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     keys: ["aqi", "aqi_scale", "sun", "forecasts"],
     options: readWeatherOptions,
   },
-  cover: {},
+  cover: {
+    keys: ["device_class"],
+    options: (read, raw, at) => ({ deviceClass: read.choice(raw, "device_class", at, COVER_CLASSES) }),
+  },
   toggle: {
     keys: ["icon", "description"],
     options: (read, raw, at) => ({

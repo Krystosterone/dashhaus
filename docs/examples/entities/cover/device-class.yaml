@@ -1,0 +1,4 @@
+type: custom:dashhaus-orb
+cards:
+  - entity: cover.garage_door
+    device_class: garage   # asks first, whatever Home Assistant says

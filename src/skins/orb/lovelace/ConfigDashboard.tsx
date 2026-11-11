@@ -69,7 +69,7 @@ function DefaultedSensor({ card, sensor }: { card: Extract<CardConfig, { kind: "
 const TILES: CardRenderers<Kind, CardConfig, ReactElement<{ footprint?: CardFootprint }>, [key?: string]> = {
   light: (card, key) => <HaLightTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   climate: (card, key) => <HaClimateTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} />,
-  cover: (card, key) => <HaCoverTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
+  cover: (card, key) => <HaCoverTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} deviceClass={card.deviceClass} />,
   sensor: (card, key) => {
     const sensor = <HaSensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} humidityEntityId={card.humidity} batteryEntityId={card.battery} outdoor={card.outdoor} unit={card.unit} />;
     return card.defaulted ? <DefaultedSensor key={key} card={card} sensor={sensor} /> : sensor;
