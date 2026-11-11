@@ -2,8 +2,7 @@ import type { AlarmEntity, AlarmMode } from "../../entities/alarm/types";
 import { HaActionError } from "../types";
 import type { HaStore } from "../types";
 import type { ActionKinds } from "./kinds";
-
-type AlarmServiceCaller = Pick<HaStore, "callService">;
+import { serviceRunner } from "./run";
 
 export interface AlarmHandlers {
   /**
@@ -34,54 +33,34 @@ const ARM_SERVICE: Record<AlarmMode, string> = {
 };
 
 /**
- * A rejection that means "wrong code" rather than "didn't go through". The transport layer sanitizes the
- * raw Home Assistant error into this scalar on the HaActionError it rejects with. A bare
- * `service_validation_error` code is NOT wrong-code evidence on its own: without the raw message the
- * failure is ambiguous, so the keypad must report that the call did not go through.
+ * Create arm/disarm handlers for the existing AlarmTile contract. Resolve true when accepted, false for a wrong code
+ * (the keypad shakes): Home Assistant's sanitized `invalid_code` translation key, since a bare
+ * `service_validation_error` is ambiguous without the raw message and must say the call did not go through. Anything
+ * else is reported through `onError` and rejects with the sanitized `HaActionError`, as does arming in a mode the
+ * panel doesn't support, or any call while it is unavailable, which are refused before transport.
  */
-function isWrongCode(cause: unknown): boolean {
-  if (typeof cause !== "object" || cause === null) return false;
-  const error = cause as { translationKey?: unknown };
-  return error.translationKey === "invalid_code";
-}
-
-/**
- * Create arm/disarm handlers for the existing AlarmTile contract. Resolve true when accepted, false for a
- * wrong code (the keypad shakes), reject when the call did not go through.
- */
-export function createAlarmHandlers(caller: AlarmServiceCaller, entity: AlarmEntity, options: AlarmHandlerOptions = {}): AlarmHandlers {
+export function createAlarmHandlers(caller: Pick<HaStore, "callService">, entity: AlarmEntity, options: AlarmHandlerOptions = {}): AlarmHandlers {
+  const domain = "alarm_control_panel";
+  const { attempt, report } = serviceRunner(caller, domain, entity, options.onError);
+  const refuse = (message: string) => {
+    const error = new HaActionError("unsupported", message, { domain, entityId: entity.entityId });
+    report(error);
+    return Promise.reject(error);
+  };
   const call = async (service: string, code?: string): Promise<boolean> => {
-    const serviceData: Record<string, unknown> = { entity_id: entity.entityId };
-    if (code) serviceData.code = code;
-    try {
-      await caller.callService("alarm_control_panel", service, serviceData);
-      return true;
-    } catch (cause) {
-      if (isWrongCode(cause)) return false;
-      const error = cause instanceof HaActionError
-        ? cause
-        : new HaActionError("service_failed", `Home Assistant rejected alarm_control_panel.${service}`, {
-          domain: "alarm_control_panel",
-          service,
-          entityId: entity.entityId,
-        });
-      options.onError?.(error);
-      throw cause;
-    }
+    const error = await attempt(service, code ? { code } : {});
+    if (!error) return true;
+    if (error.translationKey === "invalid_code") return false;
+    report(error);
+    throw error;
   };
 
   return {
     onArm: (mode, code) => {
-      if (!entity.modes.includes(mode)) {
-        const error = new HaActionError("unsupported", `${entity.entityId} does not support arming ${mode}`, {
-          domain: "alarm_control_panel",
-          entityId: entity.entityId,
-        });
-        options.onError?.(error);
-        return Promise.reject(error);
-      }
+      if (entity.state === "unavailable") return refuse(`${entity.entityId} is unavailable`);
+      if (!entity.modes.includes(mode)) return refuse(`${entity.entityId} does not support arming ${mode}`);
       return call(ARM_SERVICE[mode], code);
     },
-    onDisarm: (code) => call("alarm_disarm", code),
+    onDisarm: (code) => (entity.state === "unavailable" ? refuse(`${entity.entityId} is unavailable`) : call("alarm_disarm", code)),
   };
 }

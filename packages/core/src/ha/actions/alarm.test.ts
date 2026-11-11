@@ -54,11 +54,15 @@ describe("createAlarmHandlers", () => {
     await expect(handlers.onDisarm("9999")).rejects.toBeInstanceOf(HaActionError);
   });
 
-  it("rethrows any other rejection", async () => {
+  it("rejects any other rejection with the sanitized error, never the raw cause", async () => {
     const callService = vi.fn(async () => { throw new Error("offline"); });
-    const handlers = createAlarmHandlers(caller(callService), entity);
+    const onError = vi.fn();
+    const handlers = createAlarmHandlers(caller(callService), entity, { onError });
 
-    await expect(handlers.onDisarm("1234")).rejects.toThrow("offline");
+    const rejection = handlers.onDisarm("1234");
+    await expect(rejection).rejects.toBeInstanceOf(HaActionError);
+    await expect(rejection).rejects.toThrow("Home Assistant rejected alarm_control_panel.alarm_disarm");
+    expect(onError).toHaveBeenCalledWith(await rejection.catch((error: unknown) => error));
   });
 
   it("rejects an unsupported arm mode before transport", async () => {
@@ -71,12 +75,24 @@ describe("createAlarmHandlers", () => {
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
   });
 
+  it("refuses to arm or disarm while unavailable, before transport", async () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const handlers = createAlarmHandlers(caller(callService), { ...entity, state: "unavailable" }, { onError });
+
+    await expect(handlers.onArm("away", "1234")).rejects.toThrow("alarm_control_panel.main is unavailable");
+    await expect(handlers.onDisarm("1234")).rejects.toThrow("alarm_control_panel.main is unavailable");
+    expect(callService).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledTimes(2);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
+  });
+
   it("never passes the code into error handling or logging", async () => {
     const callService = vi.fn(async () => { throw new Error("offline"); });
     const onError = vi.fn();
     const handlers = createAlarmHandlers(caller(callService), entity, { onError });
 
-    await expect(handlers.onArm("away", "1234")).rejects.toThrow("offline");
+    await expect(handlers.onArm("away", "1234")).rejects.not.toThrow("1234");
     expect(onError).toHaveBeenCalledTimes(1);
     const reported = onError.mock.calls[0][0] as HaActionError;
     expect(JSON.stringify(reported)).not.toContain("1234");
