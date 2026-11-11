@@ -20,7 +20,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir, smallPrint, seedWords } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, keypadWord, names, read, root, seams, skinDir, smallPrint, seedWords } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("field");
@@ -109,6 +109,8 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const toggle = taps.some(({ action }) => action === "onToggle") && domain.onOff;
   const wantsCode = domain.code;
   const { keyOf, labelOf } = card;
+  // The keypad's verb phrase is the domain's core word (spec/cards.md → What every card says); the frame stays field's.
+  const codeWord = asked.length ? keypadWord(domain) : undefined;
   const hold = asked.length ? "openPanel" : "details.openDetails";
   const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
   /** What asks first, and what takes a code, in words: "Unlock and Open ask first, and Lock takes a code where the lock wants one". */
@@ -234,7 +236,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __keys__: keyLines.join("\n"),
     __actionProps__: pressed.map(({ action, takes, asks }) => `  /** ${asks ? "Asks first: the panel's question, or its keypad where the entity wants a code. Never one press." : takes === "code" ? "A press does it, asking for the code where the entity wants one." : "A press does it."} */\n  ${action}?: (${takes === "code" ? "code?: string" : ""}) => ${asks || takes === "code" ? "GuardedResult" : "void"};`).join("\n"),
     __actionArgs__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `, ${action}`).join(""),
-    __partsImport__: asked.length ? "Confirm, Keypad, " : "",
+    __partsImport__: asked.length ? `Confirm, ${codeWord ? "Keypad, " : ""}` : "",
     __valuesProps__: drawnValues.map((action) => `  /** Drawn from its declaration (\`${CONST}_ACTIONS\`). */\n  ${action}?: (${handed(action)}) => void;`).join("\n"),
     __valuePartsImport__: valueParts.map((part) => `${part}, `).join(""),
     __reactImport__: rowLevel || panelLevels.length ? 'import { useId } from "react";' : "",
@@ -255,7 +257,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       asked.some(({ asks }) => asks) ? "      {!unav && hint && <p className=\"fd-hint\">{hint}</p>}" : ""].filter(Boolean).join("\n"),
     __valueBlocks__: valueBlocks,
     __optionWordsConst__: values.choices.length ? '/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const spaced = option.replace(/[_-]+/g, " "); return spaced[0].toUpperCase() + spaced.slice(1); };\n' : "",
-    __guardImports__: asked.length ? `import { ACTION_FAILED, ASKS_DETAIL${asked.some(({ asks }) => asks) ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
+    __guardImports__: asked.length ? `import { ACTION_FAILED, ASKS_DETAIL${asked.some(({ asks }) => asks) ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";${codeWord ? `\n${codeWord.import}` : ""}` : "",
     __defaultActionProp__: asked.length ? `  /** Open the detail panel on this action's question or keypad (stories). */\n  defaultAction?: ${askedKeys.join(" | ")};` : "",
     __defaultActionArg__: asked.length ? ", defaultAction" : "",
     __defaultActionOpen__: asked.length ? " || defaultAction != null" : "",
@@ -280,12 +282,19 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __panelFocus__: asked.length ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
     __details__: asked.length ? "{ ...details, openDetails: openPanel }" : "details",
     __factsWhen__: asked.length ? "guard.pending ? undefined : " : "",
-    __panelBody__: asked.length ? [
-      "      {guard.pending ? (guard.code",
-      `        ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
-      `        : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
-      "      ) : panel}",
-    ].join("\n") : "      {panel}",
+    __panelBody__: asked.length ? (() => {
+      const confirm = `<Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`;
+      return codeWord ? [
+        "      {guard.pending ? (guard.code",
+        `        ? <Keypad key={guard.pendingKey} prompt={\`Code to \${${codeWord.expression}}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
+        `        : ${confirm}`,
+        "      ) : panel}",
+      ].join("\n") : [
+        "      {guard.pending ? (",
+        `        ${confirm}`,
+        "      ) : panel}",
+      ].join("\n");
+    })() : "      {panel}",
     __guardedAbout__: guardedWords ? `; ${guardedWords}, never one press` : "",
     __wordsConst__: toggle ? "" : '/** A state as words: "deep_sleep" becomes "deep sleep". */\nconst words = (state: string) => state.replace(/[_-]+/g, " ");\n',
     // The module test's presses: each action once, and what asks first never on one press.

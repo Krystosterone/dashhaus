@@ -19,9 +19,9 @@ export function ActionStatus() {
         </span>
         <span className="ha-action-buttons">
           {canRetry && (
-            <button type="button" className="ha-action-b" disabled={retrying} onClick={status.retry}>{retrying ? "Retrying…" : "Retry"}</button>
+            <button type="button" className="hd-btn ha-action-b" disabled={retrying} onClick={status.retry}>{retrying ? "Retrying…" : "Retry"}</button>
           )}
-          <button type="button" className="ha-action-b" onClick={status.dismiss}>Dismiss</button>
+          <button type="button" className="hd-btn ha-action-b" onClick={status.dismiss}>Dismiss</button>
         </span>
       </div>
     </div>

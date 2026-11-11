@@ -16,6 +16,15 @@ describe("DysonCard", () => {
     expect(card?.className).toBe("hd dy");
     rerender(<DysonCard entity={heater} onToggle={() => {}} />);
     expect(container.querySelector("article")?.getAttribute("data-role")).toBe("energy");
+    expect(container.querySelector("article")?.getAttribute("data-glow")).toBe("");
+  });
+
+  it("keeps its energy colour, without its glow, while it heats and warns", () => {
+    const { container } = render(<DysonCard entity={DYSON_SEEDS.heatingWarning.entity} onToggle={() => {}} />);
+    const card = container.querySelector("article");
+    expect(card?.getAttribute("data-role")).toBe("energy");
+    expect(card?.getAttribute("data-level")).toBe("advisory");
+    expect(card?.getAttribute("data-glow")).toBeNull();
   });
 
   it("toggles from the orb, and sets a speed on its groove of ten", () => {

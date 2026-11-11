@@ -219,7 +219,7 @@ export function TogglePill({ label, on, onToggle, children, extra, action, turnO
   const press = usePress({ onPress: onToggle, pressed: on, disabled });
   const second = action ?? extra;
   return (
-    <button className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} {...press}>
+    <button className={turnOn ? "hd-btn hd-pill hd-pill--turn-on" : "hd-btn hd-pill"} aria-label={label} {...press}>
       <span className="hd-pill-w">{children}</span>
       {second && <span className="hd-pill-x" data-action={action ? "" : undefined}>{second}</span>}
     </button>
@@ -330,13 +330,13 @@ export function Stepper({ label, kicker, cue, value, unit, format = String, min,
   const up = Math.min(max, +(value + step).toFixed(2));
   return (
     <div className="hd-step" role="group" aria-label={label}>
-      <button type="button" className="hd-step-b" aria-label={`Lower to ${format(down)}${unit}`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
+      <button type="button" className="hd-btn hd-step-b" aria-label={`Lower to ${format(down)}${unit}`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
       <span className="hd-step-v" aria-live="polite">
         {kicker && <span className="hd-step-k">{kicker}</span>}
         {cue && <span className="hd-cue">{cue}</span>}
         {format(value)}<small>{unit}</small>
       </span>
-      <button type="button" className="hd-step-b" aria-label={`Raise to ${format(up)}${unit}`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
+      <button type="button" className="hd-btn hd-step-b" aria-label={`Raise to ${format(up)}${unit}`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
 import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, qrFailedWords, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { useGuardedAction } from "@dashhaus/core/primitives";
 import { GuestWifiIcon } from "./icons";
 import { CardFrame, Confirm, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
@@ -34,12 +36,13 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
   const card = useCard("gw", { variant, footprint, showControl, area: e.area });
   const { sheet, featured, nameId } = card;
   const [pending, setPending] = useState<Pending>(null);
-  const [asking, setAsking] = useState(false);
   // The QR code that failed to load, by its URL, so a rotated token's new one is tried afresh.
   const [failedQr, setFailedQr] = useState<string>();
   const unav = e.state === "unavailable";
   const ready = e.state === "ready" && e.code != null;
   const password = e.access === "password";
+  // A new password asks first (`GUEST_WIFI_ACTIONS` declares it, for a password): the sheet's question, then the press.
+  const guard = useGuardedAction<"new">({ run: () => onNewCode?.(), needsCode: () => false, disabled: !onNewCode || unav });
   const secret = secretWord(e);
   const colors = paint("reading", 0);
 
@@ -63,7 +66,7 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
   const press = (which: Exclude<Pending, null>, action?: () => Promise<void>) => action && (() => {
     if (pending) return;
     setPending(which);
-    void action().finally(() => { setPending(null); setAsking(false); });
+    void action().finally(() => setPending(null));
   });
   const refresh = press("refresh", onRefresh);
   const make = press("new", onNewCode);
@@ -106,16 +109,17 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
     >
       {join}
       <SheetBlock>
-        {!unav && (refresh || make || terms) && (asking && make ? (
+        {!unav && (refresh || make || terms) && (guard.pending === "new" ? (
           // A new password ends the old one for every device already in, so it asks first, as the lock's unlock does.
           <Confirm
             question={newPasswordQuestion(e)}
             detail={newSecretWords(e)}
             action={NEW_PASSWORD_ACTION}
-            busy={pending === "new"}
+            busy={guard.busy}
             waiting={NEW_PASSWORD_WAITING}
-            onConfirm={make}
-            onCancel={() => setAsking(false)}
+            error={guard.failed ? ACTION_FAILED : null}
+            onConfirm={() => void guard.confirm()}
+            onCancel={guard.close}
           />
         ) : (
           <section className="hd-blk gw-codes" aria-labelledby={`${nameId}-c`}>
@@ -124,7 +128,7 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
               <div className="gw-acts">
                 {refresh && <TogglePill label={pending === "refresh" ? `Checking the ${secret}` : `Refresh ${e.name}'s ${secret}`} onToggle={refresh}>{pending === "refresh" ? "Checking…" : "Refresh"}</TogglePill>}
                 {make && (
-                  <TogglePill label={pending === "new" ? `Making a new ${secret}` : `Make a new ${secret} for ${e.name}${password ? "…" : ""}`} onToggle={password ? () => setAsking(true) : make}>
+                  <TogglePill label={pending === "new" ? `Making a new ${secret}` : `Make a new ${secret} for ${e.name}${password ? "…" : ""}`} onToggle={password ? () => guard.ask("new") : make}>
                     {pending === "new" ? "Making…" : `New ${secret}${password ? "…" : ""}`}
                   </TogglePill>
                 )}

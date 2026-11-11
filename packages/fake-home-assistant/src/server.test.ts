@@ -146,14 +146,19 @@ describe("the websocket API", () => {
     expect(html).toContain("window.customStrategies");
   });
 
-  it("takes a dashboard page's lovelace commands, as the frontend's websocket would, and nothing else", async () => {
+  it("takes a dashboard page's lovelace commands and registry reads, as the frontend's websocket would, and nothing else", async () => {
     const { ha, settings } = await start();
     const post = async (message: Record<string, unknown>) =>
       (await (await fetch(`${settings.HA_URL}/api/fake/lovelace`, { method: "POST", body: JSON.stringify(message) })).json()) as { success: boolean; result?: unknown; error?: { code: string; message: string } };
     expect(await post({ type: "lovelace/dashboards/create", url_path: "home-new", title: "New", icon: "mdi:home" })).toMatchObject({ success: true, result: { id: "dashboard-1", url_path: "home-new" } });
     expect(await post({ type: "lovelace/dashboards/list" })).toMatchObject({ success: true, result: [{ url_path: "home-new" }] });
     expect(await post({ type: "lovelace/dashboards/delete", dashboard_id: "missing" })).toMatchObject({ success: false, error: { code: "unknown_command" } });
+    // The registry reads a card asks the connection for, in the shapes `FakeHomeAssistant` gives the websocket.
+    expect(await post({ type: "config/entity_registry/list_for_display" })).toEqual({ success: true, result: ha.entityRegistryForDisplay() });
+    expect(await post({ type: "config/device_registry/list" })).toEqual({ success: true, result: ha.deviceRegistry() });
+    expect(await post({ type: "config/area_registry/list" })).toEqual({ success: true, result: ha.areaRegistry() });
     expect(await post({ type: "call_service", domain: "light", service: "turn_off", target: { entity_id: "light.kitchen_ceiling" } })).toMatchObject({ success: false });
+    expect(await post({ type: "config/floor_registry/list" })).toMatchObject({ success: false, error: { code: "unknown_command" } });
     expect(ha.states["light.kitchen_ceiling"]?.state).toBe("on");
     expect((await fetch(`${settings.HA_URL}/api/fake/lovelace`)).status).toBe(405);
   });

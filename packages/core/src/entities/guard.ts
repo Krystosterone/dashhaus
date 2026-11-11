@@ -24,6 +24,12 @@ export const WRONG_CODE = "Wrong code. Try again";
 /** A keypad's code is on its way. */
 export const CHECKING_CODE = "Checking";
 
+/**
+ * A keypad's code is for what an action's words say, where the domain has no word of its own (a generated card):
+ * `codeFor("Open door")` is "open door". A domain with a word of its own says it there (`lockCodeFor`, `alarmCodeFor`).
+ */
+export const codeFor = (label: string) => label.toLowerCase();
+
 /** What a question says it means when its card has nothing more to say: a generated card's, until its words are written. */
 export const ASKS_DETAIL = "It asks first, so a stray press never does it.";
 

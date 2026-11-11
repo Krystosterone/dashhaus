@@ -71,8 +71,8 @@ export function RangeFine({ low, high, min, max, step, onChange }: {
   const group = (kind: "heat" | "cool", label: string, value: number, down: number, up: number, set: (v: number) => void) => (
     <div className={`cw-fine-g cw-fine-g--${kind}`} role="group" aria-label={label}>
       <span className="cw-fine-l"><span>{label}</span><b>{fmtTarget(value)}°</b></span>
-      <button type="button" className="cw-fine-b" aria-label={`${label} ${fmtTarget(down)}°`} disabled={down === value} onClick={() => set(down)}><IconMinus /></button>
-      <button type="button" className="cw-fine-b" aria-label={`${label} ${fmtTarget(up)}°`} disabled={up === value} onClick={() => set(up)}><IconPlus /></button>
+      <button type="button" className="hd-btn cw-fine-b" aria-label={`${label} ${fmtTarget(down)}°`} disabled={down === value} onClick={() => set(down)}><IconMinus /></button>
+      <button type="button" className="hd-btn cw-fine-b" aria-label={`${label} ${fmtTarget(up)}°`} disabled={up === value} onClick={() => set(up)}><IconPlus /></button>
     </div>
   );
   return (

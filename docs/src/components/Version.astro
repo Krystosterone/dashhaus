@@ -1,0 +1,13 @@
+---
+/**
+ * The version the site describes: every public package shares one, and the public site is built from the latest
+ * release's tag (`spec/release.md` → The site), so the shared version names the latest release. It is read from the
+ * packages' manifests, never typed, so a release moves it with the code.
+ */
+import { publicPackageList } from "../lib/packages";
+
+const versions = [...new Set(publicPackageList().map((pkg) => pkg.version))];
+if (versions.length !== 1) throw new Error(`version: the public packages don't share one version (${versions.join(", ")})`);
+---
+
+<code>{versions[0]}</code>

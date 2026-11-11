@@ -58,6 +58,7 @@ export const DEMO_WALL_HOUSE: DemoWallHouse = {
     living_air: { area: "living_room", entities: ["sensor.living_room_temperature", "sensor.living_room_humidity", "sensor.living_room_battery", "sensor.living_room_co2"] },
     living_blinds: { area: "living_room", entities: ["cover.living_room"] },
     living_fan: { area: "living_room", entities: ["fan.living_room_ceiling"] },
+    living_dyson: { area: "living_room", entities: ["fan.living_room_hot_cool", "climate.living_room_hot_cool"] },
     living_tv: { area: "living_room", entities: ["media_player.living_room_tv"] },
     bedroom_humidifier: { area: "bedroom", entities: ["humidifier.bedroom"] },
     bedroom_plug: { area: "bedroom", entities: ["switch.bedroom"] },
