@@ -76,6 +76,17 @@ export const MEDIA_PLAYER_SEEDS = {
     },
     past: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
   },
+  /**
+   * An IR TV Home Assistant sends to but never hears back from (`assumed_state`): it shows on, and may not be. It turns
+   * on and off, steps its volume and mutes.
+   */
+  assumed: {
+    entity: {
+      entityId: "media_player.bedroom_tv", name: "Bedroom TV", area: "Bedroom", state: "on", assumedState: true,
+      supportsTurnOn: true, supportsTurnOff: true, supportsVolumeStep: true, supportsMute: true, lastChanged: "21:40",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  },
   /** On with nothing loaded: a press plays. */
   idle: {
     entity: { entityId: "media_player.hall", name: "Hall speaker", area: "Hall", state: "idle", ...full(), source: "Spotify", volume: 25, lastChanged: "09:05" },

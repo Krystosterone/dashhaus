@@ -73,6 +73,11 @@ export interface MediaPlayerEntity {
   supportsMute?: boolean;
   /** It picks a source (`SELECT_SOURCE`) and lists at least one. */
   supportsSource?: boolean;
+  /**
+   * Home Assistant only assumes its state (`assumed_state`: an IR or CEC TV it sends commands to but never hears back
+   * from), so a power press that flips what it shows may do the opposite: on and off are offered apart (`eitherWay`).
+   */
+  assumedState?: boolean;
   /** It turns on (`TURN_ON`). */
   supportsTurnOn?: boolean;
   /** It turns off (`TURN_OFF`). */

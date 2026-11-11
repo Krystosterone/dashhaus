@@ -935,6 +935,7 @@
       "supportsVolumeStep",
       "supportsMute",
       "supportsSource",
+      "assumedState",
       "supportsTurnOn",
       "supportsTurnOff",
       "lastChanged",

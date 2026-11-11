@@ -5,6 +5,7 @@ import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entitie
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { MediaPlayerIcon } from "./icons";
 import { Progress, SeekGroove } from "./parts";
 import { CardFrame, ChoiceChips, LevelBar, Picture, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
@@ -125,7 +126,9 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   const can = {
     previous: loaded && e.supportsPrevious && !!onPrevious,
     next: loaded && e.supportsNext && !!onNext,
-    off: !unav && !isOff(e) && e.supportsTurnOff && !!onTurnOff && press !== "turnOff",
+    // On and off apart, whatever it shows, while Home Assistant only assumes its state (an IR TV): in place of Turn off.
+    either: eitherWay(e) && e.supportsTurnOn && e.supportsTurnOff && !!onTurnOn && !!onTurnOff,
+    off: !unav && !isOff(e) && !eitherWay(e) && e.supportsTurnOff && !!onTurnOff && press !== "turnOff",
     volume: loaded && e.supportsVolume && e.volume != null && !!onVolumeChange,
     // A player that steps its volume rather than sets it: Down and Up, each one step, in place of the groove.
     steps: loaded && volumeBySteps(e) && !!onVolumeUp && !!onVolumeDown,
@@ -170,7 +173,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
           </div>
         </div>
       )}
-      {(seek || can.previous || can.next || can.off || can.volume || can.steps || can.mute || can.source || can.more) && (
+      {(seek || can.previous || can.next || can.off || can.either || can.volume || can.steps || can.mute || can.source || can.more) && (
         <SheetBlock>
           {seek && <SeekGroove id={`${uid}-pos`} label={`${e.name} ${POSITION.toLowerCase()}`} seek={seek} />}
           {(can.previous || can.next) && (
@@ -213,6 +216,10 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
             <ChoiceChips id={`${uid}-s`} label="Source" options={e.sources!.map((s) => ({ value: s, label: s }))} value={e.source} onChange={onSourceChange!} />
           )}
           {can.off && <div className="hd-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>{pressWord("turnOff")}</TogglePill></div>}
+          {can.either && <>
+            <p className="hd-note">{eitherWayHint(e)}</p>
+            <ChoiceChips id={`${uid}-w`} label={EITHER_WAY_LEGEND} options={[...EITHER_WAY]} value={null} onChange={(v) => (v === "on" ? onTurnOn : onTurnOff)?.()} />
+          </>}
           {/* Last, a raised pill that acts once: it leaves the skin's look for Home Assistant's own player. */}
           {can.more && <div className="hd-acts"><TogglePill label={openInHomeAssistantSaid(e.name)} onToggle={onOpenMore!}>{OPEN_IN_HOME_ASSISTANT}</TogglePill></div>}
         </SheetBlock>

@@ -10,6 +10,7 @@ import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { IconMediaPlayer, IconMute, IconNext, IconOpenOut, IconPower, IconPrevious, MEDIA_PLAYER_PICT } from "./icons";
 import { ScreenClock, ScreenProgress } from "./parts";
 import "./MediaPlayerModule.css";
@@ -261,7 +262,15 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onStop,
           </Key>
         </KeyGroup>
       )}
-      {power && (
+      {/* While Home Assistant only assumes its state (an IR TV), on and off apart, whatever the screen shows. */}
+      {power && eitherWay(e) && e.supportsTurnOn && e.supportsTurnOff && onTurnOn && onTurnOff ? (
+        <div className="fd-block">
+          <KeyGroup legend={EITHER_WAY_LEGEND} columns={2}>
+            {EITHER_WAY.map((w) => <Key key={w.value} label={`${e.name}, turn ${w.label.toLowerCase()}`} wide caption={w.label} onPress={w.value === "on" ? onTurnOn : onTurnOff}>{null}</Key>)}
+          </KeyGroup>
+          <p className="fd-hint">{eitherWayHint(e)}</p>
+        </div>
+      ) : power && (
         <KeyGroup legend="Power" columns={2}>
           <Key label="Power" pressed={on} unavailable={unav || (on ? !(e.supportsTurnOff && onTurnOff) : !(e.supportsTurnOn && onTurnOn))} wide caption={unav ? undefined : on ? "On" : "Off"} onPress={() => (on ? onTurnOff?.() : onTurnOn?.())}>
             <IconPower />

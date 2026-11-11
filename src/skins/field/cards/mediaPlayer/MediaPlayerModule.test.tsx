@@ -250,4 +250,11 @@ describe("MediaPlayerModule", () => {
     expect(h.onStop).toHaveBeenCalledOnce();
     expect(h.onTurnOff).not.toHaveBeenCalled();
   });
+
+  it("offers on and off apart in the panel, in place of the Power latch, while Home Assistant only assumes its state", () => {
+    const { h } = draw(S.assumed.entity, "standard", true);
+    expect(screen.queryByRole("button", { name: "Power" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Bedroom TV, turn on" }));
+    expect(h.onTurnOn).toHaveBeenCalledOnce();
+  });
 });

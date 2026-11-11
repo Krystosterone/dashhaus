@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MediaPlayerCard } from "./MediaPlayerCard";
 import { MEDIA_PLAYER_SEEDS } from "@dashhaus/core/seeds/mediaPlayer";
@@ -278,5 +278,13 @@ describe("MediaPlayerCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Stop Workshop radio" }));
     expect(onStop).toHaveBeenCalledOnce();
     expect(onTurnOff).not.toHaveBeenCalled();
+  });
+
+  it("offers on and off apart in the sheet, in place of Turn off, while Home Assistant only assumes its state", () => {
+    const onTurnOn = vi.fn();
+    render(<MediaPlayerCard entity={MEDIA_PLAYER_SEEDS.assumed.entity} variant="sheet" {...press()} onTurnOn={onTurnOn} onTurnOff={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Turn Bedroom TV off" })).toBeNull();
+    fireEvent.click(within(screen.getByRole("group", { name: "Turn" })).getByRole("button", { name: "On" }));
+    expect(onTurnOn).toHaveBeenCalledOnce();
   });
 });

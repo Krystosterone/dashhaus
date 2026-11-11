@@ -5,7 +5,7 @@ import { onHourCycle } from "@dashhaus/core/seeds/clock";
 import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["playing", "paused", "buffering", "muted", "stream", "stops", "idle", "on", "steps", "standby", "off", "other", "unavailable", "long"] as const;
+const SEEDS = ["playing", "paused", "buffering", "muted", "stream", "stops", "idle", "on", "steps", "standby", "off", "other", "assumed", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/MediaPlayer",
@@ -82,6 +82,8 @@ export const TwelveHourClock: Story = {
     </div>
   ),
 };
+/** An IR TV Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the sheet. */
+export const AssumedState: Story = { name: "Assumed state", args: { seed: "assumed" } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /**
  * Realistic worst-case data from the demo seeds (MEDIA_PLAYER_WORST_CASE): long everything on an hour-long track with art
@@ -162,6 +164,8 @@ export const DetailsSources: Story = { name: "Details, sources", args: { seed: "
  * Assistant's own player, for browsing media, grouping and the sound mode. Here it stands in for one that opens nothing.
  */
 export const DetailsInHomeAssistant: Story = { name: "Details, in Home Assistant", args: { defaultOpen: true, more: true } };
+/** Its state assumed: Turn Off and On in place of the power press, either sent whatever it shows. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { seed: "assumed", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",

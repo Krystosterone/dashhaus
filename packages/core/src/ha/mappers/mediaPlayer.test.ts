@@ -64,6 +64,8 @@ describe("mediaPlayerFromHass", () => {
     expect(mediaPlayerFromHass(raw, raw.entity_id).supportsSeek).toBe(false);
     expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: F.SEEK } }, raw.entity_id).supportsSeek).toBe(true);
     expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: F.STOP } }, raw.entity_id).supportsStop).toBe(true);
+    expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, assumed_state: true } }, raw.entity_id).assumedState).toBe(true);
+    expect(mediaPlayerFromHass(raw, raw.entity_id)).not.toHaveProperty("assumedState");
     expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: F.VOLUME_STEP } }, raw.entity_id)).toMatchObject({ supportsVolume: false, supportsVolumeStep: true });
     expect(bare).toMatchObject({ supportsPlay: false, supportsPause: false, supportsStop: false, supportsPrevious: false, supportsNext: false, supportsSeek: false, supportsVolume: false, supportsVolumeStep: false, supportsMute: false, supportsSource: false, supportsTurnOn: false, supportsTurnOff: false });
     expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, source_list: [] } }, raw.entity_id).supportsSource).toBe(false);
