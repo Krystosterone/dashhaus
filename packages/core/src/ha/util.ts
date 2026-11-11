@@ -38,3 +38,17 @@ export function safeProperty(value: unknown, key: string): unknown {
     return undefined;
   }
 }
+
+/**
+ * The string scalars a provider's rejection carries that are safe to keep on a sanitized `HaActionError`: Home
+ * Assistant's `translation_key` (as `translationKey`, which tells a wrong code apart) and its `code` (as `providerCode`).
+ * Never the message or any payload, which can echo what was sent, a code among it.
+ */
+export function providerDetails(cause: unknown): { translationKey?: string; providerCode?: string } {
+  const translationKey = safeProperty(cause, "translation_key");
+  const providerCode = safeProperty(cause, "code");
+  return {
+    ...(typeof translationKey === "string" ? { translationKey } : {}),
+    ...(typeof providerCode === "string" ? { providerCode } : {}),
+  };
+}

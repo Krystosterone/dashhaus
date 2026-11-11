@@ -13,8 +13,9 @@ export interface AlarmHandlers {
   /**
    * Calls `alarm_control_panel.alarm_disarm` with the code when given. Like arming, it is sent even while the model
    * says unavailable: the model folds Home Assistant's `unknown` into it, and a panel with no known state (an MQTT
-   * panel with nothing retained) still takes a disarm, which is the call never to refuse. Home Assistant answers for an
-   * entity that is really unavailable.
+   * panel with nothing retained) still takes a disarm, which is the call never to refuse. To a panel that is really
+   * unavailable, Home Assistant skips the call and answers success, so it resolves `true` with nothing done: a caller
+   * that must tell the two apart reads the raw state itself.
    */
   onDisarm: (code?: string) => Promise<boolean>;
 }

@@ -22,6 +22,13 @@ describe("serviceRunner", () => {
     expect(error.message).not.toContain("secret");
   });
 
+  it("keeps a raw rejection's translation key and code, and nothing else of it", async () => {
+    const callService = vi.fn(async () => { throw { code: "service_validation_error", message: "Invalid code 9999", translation_key: "invalid_code", translation_placeholders: { code: "9999" } }; });
+    const error = await serviceRunner({ callService }, "alarm_control_panel", entity).attempt("alarm_disarm", { code: "9999" });
+    expect(error).toMatchObject({ code: "service_failed", translationKey: "invalid_code", providerCode: "service_validation_error" });
+    expect(JSON.stringify(error) + error!.message).not.toContain("9999");
+  });
+
   it("passes an HaActionError rejection through", async () => {
     const onError = vi.fn();
     const failure = new HaActionError("not_connected", "Not connected");

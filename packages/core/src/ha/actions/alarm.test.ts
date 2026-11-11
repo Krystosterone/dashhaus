@@ -45,6 +45,15 @@ describe("createAlarmHandlers", () => {
     await expect(handlers.onDisarm("9999")).resolves.toBe(false);
   });
 
+  it("resolves false for Home Assistant's own wrong-code rejection from a caller's own callService", async () => {
+    const callService = vi.fn(async () => { throw { code: "service_validation_error", message: "Invalid code 9999", translation_key: "invalid_code", translation_placeholders: { code: "9999" } }; });
+    const onError = vi.fn();
+    const handlers = createAlarmHandlers(caller(callService), entity, { onError });
+
+    await expect(handlers.onDisarm("9999")).resolves.toBe(false);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it("rethrows a bare service_validation_error instead of treating it as a wrong code", async () => {
     const callService = vi.fn(async () => {
       throw Object.assign(new HaActionError("service_failed", "rejected"), { providerCode: "service_validation_error" });

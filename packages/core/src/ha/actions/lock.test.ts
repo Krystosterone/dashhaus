@@ -43,6 +43,13 @@ describe("createLockHandlers", () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
+  it("answers wrong_code for Home Assistant's own wrong-code rejection from a caller's own callService", async () => {
+    const onError = vi.fn();
+    const callService = vi.fn(async () => { throw { code: "service_validation_error", message: "Invalid code 9999", translation_key: "invalid_code", translation_placeholders: { code: "9999" } }; });
+    await expect(createLockHandlers({ callService }, coded, { onError }).onUnlock("9999")).resolves.toBe("wrong_code");
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it("answers failed and reports a call that didn't go through, never rejecting", async () => {
     const onError = vi.fn();
     const callService = vi.fn(async () => { throw new Error("socket closed"); });
