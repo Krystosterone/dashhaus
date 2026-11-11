@@ -2,7 +2,7 @@ import { isRecord } from "./util";
 
 /*
  * Home Assistant's energy preferences: what the person set up on the Energy dashboard (Settings → Dashboards →
- * Energy), read with `energy/get_prefs`. The automatic layouts take the house's grid, solar and battery sensors from
+ * Energy), read with `energy/get_prefs`. The automatic layouts take the house's own power and energy meters from
  * them (`energySensors` in `@dashhaus/core/lovelace/layout`). Pure: no React, so the layout's types can name it.
  */
 
@@ -12,16 +12,16 @@ export const ENERGY_PREFS = "energy/get_prefs";
 /**
  * One energy source, as far as a dashboard reads it. Home Assistant's own shape, kept raw: the current one gives a
  * grid its meters and power flat (`stat_energy_from`, `stat_energy_to`, `stat_rate`), an older one in `flow_from`,
- * `flow_to` and `power` lists. Solar and battery give theirs flat. Every id is a statistic id: usually an entity id, an
- * external statistic (`opower:…`) otherwise.
+ * `flow_to` and `power` lists. The home, solar, battery, gas and water give theirs flat. Every id is a statistic id:
+ * usually an entity id, an external statistic (`opower:…`) otherwise.
  */
 export interface EnergySourcePrefs {
   type: string;
-  /** Grid consumption, solar production, or a battery's discharge (energy out of it): a meter, in kWh. */
+  /** Grid consumption, solar production, a battery's discharge (energy out of it), or gas or water used: a meter. */
   stat_energy_from?: string | null;
-  /** Grid return, or a battery's charge (energy into it): a meter, in kWh. */
+  /** Grid return, a battery's charge (energy into it), or the home's whole consumption: a meter, in kWh. */
   stat_energy_to?: string | null;
-  /** Power now, in W. */
+  /** Power now, in W; gas's and water's flow now. A power config's sensor, once Home Assistant has resolved it. */
   stat_rate?: string | null;
   flow_from?: readonly { stat_energy_from?: string | null; stat_rate?: string | null }[];
   flow_to?: readonly { stat_energy_to?: string | null; stat_rate?: string | null }[];

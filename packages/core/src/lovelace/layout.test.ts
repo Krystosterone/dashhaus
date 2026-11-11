@@ -194,6 +194,7 @@ describe("energySensors", () => {
   const ids = [
     "sensor.grid_power", "sensor.grid_import", "sensor.grid_export", "sensor.solar_power", "sensor.solar_energy",
     "sensor.battery_power", "sensor.battery_out", "sensor.battery_in", "sensor.gas", "sensor.water", "sensor.dishwasher",
+    "sensor.home_power", "sensor.home_energy", "sensor.gas_flow", "sensor.water_flow", "sensor.grid_power_from", "sensor.grid_power_to",
     "sensor.hidden_power", "sensor.diagnostic_energy", "sensor.second_grid_power", "sensor.old_grid_import", "sensor.old_grid_export",
   ];
   const states = Object.fromEntries(ids.map((id) => [id, { attributes: { friendly_name: id } }]));
@@ -245,18 +246,43 @@ describe("energySensors", () => {
     })).toEqual(["sensor.solar_energy"]);
   });
 
-  it("leaves out gas, water, the home and the devices under device consumption", () => {
+  it("puts the home first, its power and then its meter, and gas and water's meters after the battery", () => {
     expect(energySensors({
       states,
       energy: {
         energy_sources: [
-          { type: "gas", stat_energy_from: "sensor.gas", stat_rate: "sensor.gas" },
           { type: "water", stat_energy_from: "sensor.water" },
-          { type: "home", stat_energy_to: "sensor.grid_import", stat_rate: "sensor.grid_power" },
+          { type: "gas", stat_energy_from: "sensor.gas" },
+          { type: "grid", stat_energy_from: "sensor.grid_import", stat_energy_to: null, stat_rate: "sensor.grid_power" },
+          { type: "home", stat_energy_to: "sensor.home_energy", stat_rate: "sensor.home_power" },
         ],
-        device_consumption: [{ stat_consumption: "sensor.dishwasher" }],
       },
-    })).toEqual([]);
+    })).toEqual(["sensor.home_power", "sensor.grid_power", "sensor.home_energy", "sensor.grid_import", "sensor.gas", "sensor.water"]);
+  });
+
+  it("leaves out gas's and water's flow rates and the devices under device consumption", () => {
+    expect(energySensors({
+      states,
+      energy: {
+        energy_sources: [
+          { type: "gas", stat_energy_from: "sensor.gas", stat_rate: "sensor.gas_flow" },
+          { type: "water", stat_energy_from: "sensor.water", stat_rate: "sensor.water_flow" },
+        ],
+        device_consumption: [{ stat_consumption: "sensor.dishwasher", stat_rate: "sensor.hidden_power" }],
+      },
+    })).toEqual(["sensor.gas", "sensor.water"]);
+  });
+
+  it("reads a power config's sensor from the stat_rate Home Assistant writes for it, never the config's own sensors", () => {
+    expect(energySensors({
+      states,
+      energy: {
+        energy_sources: [{
+          type: "grid", stat_energy_from: null, stat_energy_to: null, stat_rate: "sensor.grid_power",
+          power_config: { stat_rate_from: "sensor.grid_power_from", stat_rate_to: "sensor.grid_power_to" },
+        } as never],
+      },
+    })).toEqual(["sensor.grid_power"]);
   });
 
   it("gives nothing with no preferences, empty ones, or ones that aren't the right shape", () => {
