@@ -165,6 +165,16 @@ describe("dashhaus-field card", () => {
     expect(new Set(modules.map((module) => module.getAttribute("data-footprint")))).toEqual(new Set(["compact"]));
   });
 
+  it("follows a footprint edited into or out of a live wall's YAML", async () => {
+    const card = await mount({ layout: "wall" });
+    const footprints = () => new Set([...card.shadowRoot!.querySelectorAll(".fd-dash-stack .fd-module")].map((module) => module.getAttribute("data-footprint")));
+    expect(footprints()).toEqual(new Set(["standard", "compact"]));
+    await act(async () => card.setConfig({ layout: "wall", footprint: "compact" }));
+    expect(footprints()).toEqual(new Set(["compact"]));
+    await act(async () => card.setConfig({ layout: "wall" }));
+    expect(footprints()).toEqual(new Set(["standard", "compact"]));
+  });
+
   it("lists the areas in the automatic layout's nav, and draws none with nav: false", async () => {
     const auto = await mount({});
     expect([...auto.shadowRoot!.querySelectorAll(".fd-nav-key")].map((k) => k.textContent)).toEqual(["Kitchen", "Living room", "Office"]);

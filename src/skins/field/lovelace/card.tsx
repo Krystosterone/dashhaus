@@ -41,7 +41,6 @@ export function createFieldCard(css: string): CustomElementConstructor {
     setConfig(raw: unknown) {
       this.#layout = undefined;
       super.setConfig(raw);
-      this.#footprint = isRaw(raw) && raw.footprint != null ? this.config?.footprint : undefined;
     }
 
     /** What the card picker pre-fills: automatic, every supported entity by area. */
@@ -49,8 +48,11 @@ export function createFieldCard(css: string): CustomElementConstructor {
       return { type: `custom:${FIELD_CARD_TYPE}` };
     }
 
+    /** Reads the footprint here, before the first render lays the wall out with it; YAML that doesn't parse keeps the last one. */
     protected parse(raw: unknown) {
-      return parseFieldConfig(raw);
+      const config = parseFieldConfig(raw);
+      this.#footprint = isRaw(raw) && raw.footprint != null ? config.footprint : undefined;
+      return config;
     }
 
     protected changed(previous: LovelaceHass, next: LovelaceHass) {

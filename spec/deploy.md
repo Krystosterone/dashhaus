@@ -216,7 +216,8 @@ rows:
 A page is the card's top level (the main page, `home`) or one of its `pages`. A page is either `cards` or `rows`;
 there is no third layout shape, no nested rows, no side-by-side groups and no `gap` (the skin spaces its grid). With
 an explicit row `columns`, a `width` wider than the row, a `column` past it, or a `column` and `width` that run past it
-is an error that names the fix.
+is an error that names the fix. Without one, a `column` and `width` that run past the skin's most columns are the same
+error, since no width of row could hold that anchor.
 
 #### Placement
 

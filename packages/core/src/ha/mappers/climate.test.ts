@@ -160,13 +160,19 @@ describe("climateFromHass", () => {
     }, "climate.fahrenheit");
 
     expect(celsius).toMatchObject({ minTemp: 10, maxTemp: 35 });
-    expect(fahrenheit).toMatchObject({ unit: "°F", minTemp: 44.6, maxTemp: 95, targetTemperature: 70 });
+    expect(fahrenheit).toMatchObject({ unit: "°F", minTemp: 45, maxTemp: 95, targetTemperature: 70 });
   });
 
   it("takes the house's unit system when the entity names no unit, as a real climate entity doesn't", () => {
     const us = climateFromHass({ ...raw, attributes: { current_temperature: 68, temperature: 70, min_temp: 45, max_temp: 95 } }, "climate.us", { systemUnit: "°F" });
     expect(us).toMatchObject({ unit: "°F", currentTemperature: 68, targetTemperature: 70 });
     expect(climateFromHass({ ...raw, attributes: { temperature: 70 } }, "climate.us", { unit: "°C", systemUnit: "°F" }).unit).toBe("°C");
+  });
+
+  it("steps a whole degree in °F and half a degree in °C when the entity names no step, as Home Assistant does", () => {
+    expect(climateFromHass({ ...raw, attributes: { temperature: 70, temperature_unit: "°F" } }, "climate.us").step).toBe(1);
+    expect(climateFromHass({ ...raw, attributes: { temperature: 70 } }, "climate.us", { systemUnit: "°F" }).step).toBe(1);
+    expect(climateFromHass({ ...raw, attributes: { temperature: 21 } }, "climate.eu").step).toBe(0.5);
   });
 
   it("omits setpoints outside the reported control bounds", () => {

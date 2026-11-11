@@ -19,4 +19,11 @@ describe("TitanSensorCard", () => {
     fireEvent.click(view.getByRole("button", { name: SENSOR_SEEDS.living.entity.name }));
     expect(view.getByRole("dialog").textContent).toContain(SENSOR_SEEDS.living.entity.entityId);
   });
+
+  it("judges a Fahrenheit room's comfort in Celsius", () => {
+    const entity = { ...SENSOR_SEEDS.living.entity, temperature: 70, unit: "°F" as const };
+    const view = render(<TitanSensorCard entity={entity} />);
+    expect(view.container.textContent).toContain("Comfortable");
+    expect(view.container.textContent).not.toContain("Warm");
+  });
 });

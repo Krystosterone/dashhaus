@@ -86,7 +86,7 @@ export function sensorFromHass(raw: HassEntity | undefined, entityId: string, op
   const unit = options.unit ?? primaryUnit ?? "°C";
   const primaryClass = deviceClass(raw);
   const hasTemperatureUnit = options.unit != null || primaryUnit != null;
-  const temperature = primaryValue != null && hasTemperatureUnit && (primaryClass === "temperature" || primaryClass == null)
+  const temperature = primaryValue != null && hasTemperatureUnit && (primaryClass === "temperature" || (primaryClass == null && !isHumiditySensor(raw)))
     ? primaryValue
     : undefined;
   const primaryHumidity = primaryValue != null && (primaryClass === "humidity" || isHumiditySensor(raw))

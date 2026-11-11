@@ -340,6 +340,9 @@ function readEntry<I>(read: Reader, schema: LayoutSchema<I>, value: unknown, pat
         read.problem(at, `starts in column ${column} and spans ${width}, past this row's ${columns} columns: use column: ${columns - width + 1}, or raise the row's columns to ${column + width - 1}`);
         column = undefined;
       }
+    } else if (column !== undefined && typeof width === "number" && column + width - 1 > max) {
+      read.problem(at, `starts in column ${column} and spans ${width}, past the ${max} columns a row can have: use column: ${max - width + 1}, or a smaller width`);
+      column = undefined;
     }
   }
   const item = schema.item(read, raw, path);
