@@ -3,7 +3,7 @@ import { DemoDysonTile as DemoTile } from "./demo/DemoDysonTile";
 import { DYSON_WORST_CASE } from "@dashhaus/core/seeds/dyson";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["on", "pointing", "heating", "off", "poorAir", "filter", "unavailable"] as const;
+const SEEDS = ["on", "pointing", "heating", "heatingWarning", "off", "poorAir", "filter", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Dyson",
@@ -41,6 +41,8 @@ export const On: Story = {};
 export const Pointing: Story = { args: { seed: "pointing" } };
 /** A Hot+Cool in Auto, heating to 23°: it claims the energy bloom while it heats. */
 export const Heating: Story = { args: { seed: "heating" } };
+/** A Hot+Cool heating to 21° through a worn filter: a level keeps its energy colour, without its glow. */
+export const HeatingWarning: Story = { name: "Heating, warning", args: { seed: "heatingWarning" } };
 export const Off: Story = { args: { seed: "off" } };
 /** Fine particles past Dyson's Poor band: the status line leads with the warning. */
 export const PoorAir: Story = { name: "Poor air", args: { seed: "poorAir" } };

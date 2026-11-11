@@ -134,13 +134,6 @@ export function vacuumWarningText(e: Pick<VacuumEntity, "state" | "battery" | "c
   return word && e.state === "error" && e.error ? `${word} · ${e.error}` : word;
 }
 
-/** Its warning as a sentence, for a screen reader: "Robot vacuum has stopped with an error: brush jammed". */
-export function vacuumWarningSentence(e: Pick<VacuumEntity, "name" | "state" | "battery" | "charging" | "error">): string | undefined {
-  if (e.state === "error") return `${e.name} has stopped with an error${e.error ? `: ${e.error.charAt(0).toLowerCase()}${e.error.slice(1)}` : ""}`;
-  if (lowBattery(e)) return `${e.name}: battery ${e.battery}%, needs charging`;
-  return undefined;
-}
-
 /**
  * Its warning as a sentence without the name, for a skin that names the card before it (Orb's `Warning: <name>: …`):
  * "Stopped with an error: brush jammed", "Battery 9%, needs charging".

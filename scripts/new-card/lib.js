@@ -49,6 +49,23 @@ export function smallPrint(has) {
   };
 }
 
+/**
+ * The code keypad's verb phrase for a generated card, in core's words (spec/cards.md → What every card says): the
+ * domain's own word where it has one, else core's generic word for its action's label. The skin keeps its frame, and
+ * the generator never writes the phrase itself; `guarded` is the domain's description (`describeDomain`).
+ */
+export function keypadWord(domain) {
+  const code = (domain.guarded ?? []).filter(({ code }) => code);
+  if (!code.length) return undefined;
+  if (domain.name === "lock") {
+    return { import: `import { lockCodeFor } from "${packageSpecifier("core", "entities/lock/words")}";`, expression: "lockCodeFor(guard.pending)" };
+  }
+  if (domain.name === "alarm" && code.every(({ action }) => card.keyOf(action) === "disarm")) {
+    return { import: `import { alarmCodeFor } from "${packageSpecifier("core", "entities/alarm/words")}";`, expression: 'alarmCodeFor({ kind: "disarm" }, e)' };
+  }
+  return { import: `import { codeFor } from "${packageSpecifier("core", "entities/guard")}";`, expression: "codeFor(asked[guard.pending].label)" };
+}
+
 /** A card's name in every form a template and a doc use, or a failure if it isn't camelCase. */
 export function names(name, example) {
   if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like ${example}`);

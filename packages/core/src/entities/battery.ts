@@ -17,6 +17,3 @@ export const BATTERY_ADVICE = "replace soon";
 
 /** A low battery's level and what it asks for, in small print and a hint: "Battery 12%, replace soon". */
 export const batteryAdvice = (level: number) => `${batteryText(level)}, ${BATTERY_ADVICE}`;
-
-/** A low battery said in full, for a screen reader: "battery 12% on Hall sensor, replace soon". */
-export const batterySaid = (level: number, name: string) => `battery ${level}% on ${name}, ${BATTERY_ADVICE}`;

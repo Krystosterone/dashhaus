@@ -30,6 +30,12 @@ export const lockAskDetail = (action: LockAction, name: string) =>
 /** The yes, as its button says it: "Unlock", "Open door". */
 export const lockAskAction = (action: LockAction) => (action === "lock" ? "Lock" : action === "unlock" ? "Unlock" : "Open door");
 
+/**
+ * What a keypad's code is for, after the skin's own frame ("Enter the code to", "Code to"): "unlock", "lock",
+ * "open the door".
+ */
+export const lockCodeFor = (action: LockAction) => (action === "open" ? "open the door" : action);
+
 /** What the details say while the yes is on its way. A skin adds its end punctuation. */
 export const LOCK_WAITING = waitingFor("lock");
 

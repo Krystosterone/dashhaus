@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { areaName, areaOrder, visibleEntities } from "../lovelace/layout";
+import { areaName, areaOrder, dysonFans, visibleEntities } from "../lovelace/layout";
 import { readRegistries } from "../ha/registry";
 import type { HaTransport, HassEntities } from "../ha/types";
 import { DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_ORDERED, DEMO_WALL_HOUSE_WORST_CASE, DEMO_WALL_LONGEST_AREA, createDemoWallHouseTransport, demoWallInput } from "./wall";
@@ -40,6 +40,13 @@ describe("the demo wall house", () => {
     expect(everyday["lock.back_door"].state).toBe("unlocked");
     expect(worst["lock.back_door"].state).toBe("jammed");
     expect(worst["binary_sensor.patio_door"].state).toBe("on");
+  });
+
+  it("registers the living room's Dyson, its fan and its heater, so the wall finds it there", async () => {
+    const input = demoWallInput(await entitiesOf(createDemoWallHouseTransport()));
+    expect(dysonFans(input)).toContainEqual({ fan: "fan.living_room_hot_cool", heat: "climate.living_room_hot_cool" });
+    expect(areaName(input, "fan.living_room_hot_cool")).toBe("Living room");
+    expect(areaName(input, "climate.living_room_hot_cool")).toBe("Living room");
   });
 
   it("has more rooms in the worst case, the longest name among them, and a room of one card", () => {

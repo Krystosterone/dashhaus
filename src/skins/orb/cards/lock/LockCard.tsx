@@ -1,7 +1,7 @@
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
 import { BATTERY_ADVICE, batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
-import { JAMMED_MEANING, LOCK_WAITING, LOCK_WORD, lockAskAction, lockAskDetail, lockAsksHint, lockQuestion } from "@dashhaus/core/entities/lock/words";
+import { JAMMED_MEANING, LOCK_WAITING, LOCK_WORD, lockAskAction, lockAskDetail, lockAsksHint, lockCodeFor, lockQuestion } from "@dashhaus/core/entities/lock/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -89,7 +89,6 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
     </TogglePill>
   );
 
-  const prompt = (a: LockAction) => `Enter the code to ${a === "open" ? "open the door" : a}`;
   const icon = <LockIcon open={!unav && !locked && e.state !== "locking"} alert={jammed} />;
   const canOpen = e.supportsOpen && !!onOpenDoor && !ro && !unav && !moving && e.state !== "open";
   // What asks first here, said once while no question stands: unlocking it, and opening the door where it can.
@@ -119,7 +118,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
       {!unav && (
         <SheetBlock>
           {pending && (needsCode
-            ? <Keypad key={pending} prompt={prompt(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
+            ? <Keypad key={pending} prompt={`Enter the code to ${lockCodeFor(pending)}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
             : <Confirm key={pending} busy={guard.busy} waiting={LOCK_WAITING} error={guard.failed ? ACTION_FAILED : null}
                 question={lockQuestion(pending, e.name)} detail={lockAskDetail(pending, e.name)} action={lockAskAction(pending)}
                 onConfirm={() => void guard.confirm()} onCancel={guard.close} />)}
