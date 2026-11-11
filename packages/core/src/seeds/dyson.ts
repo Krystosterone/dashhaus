@@ -49,6 +49,18 @@ export const DYSON_SEEDS = {
     },
     past: [0, 0, 0, 0, 0, 0, 0, 0.9, 1, 1, 1],
   },
+  /** A Hot+Cool heating a dining room through a worn filter: it warns, so its energy colour comes without its glow. */
+  heatingWarning: {
+    entity: {
+      entityId: "fan.dining_room_hot_cool", name: "Hot+Cool", area: "Dining room", state: "on", ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes], ...HEATER,
+      auto: true, oscillating: false, oscillationLow: 85, oscillationHigh: 265, direction: "forward", nightMode: false, heatOn: true, heating: true, heatTarget: 21,
+      temperature: 17.8, temperatureUnit: "°C", humidity: 46,
+      air: [{ pollutant: "pm25", value: 14, unit: "µg/m³" }, { pollutant: "pm10", value: 19, unit: "µg/m³" }, { pollutant: "voc", value: 2 }, { pollutant: "no2", value: 1 }],
+      filters: [{ kind: "combined", percent: 8 }],
+      lastChanged: "06:40",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0.4, 1, 1, 1, 1],
+  },
   /** A Humidify+Cool, off, its range from its select: Breeze among them. */
   off: {
     entity: {
