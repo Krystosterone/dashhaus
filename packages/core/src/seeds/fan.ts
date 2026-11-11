@@ -18,7 +18,7 @@ const TOWER = { supportsSpeed: true, speedCount: 3, supportsPreset: true, preset
 
 export const FAN_SEEDS = {
   on: {
-    entity: { entityId: "fan.bedroom", name: "Tower fan", area: "Bedroom", state: "on", ...TOWER, presetModes: [...TOWER.presetModes], percentage: 67, oscillating: true, lastChanged: "10:58" },
+    entity: { entityId: "fan.bedroom", name: "Tower fan", area: "Bedroom", state: "on", ...TOWER, presetModes: [...TOWER.presetModes], percentage: 66, oscillating: true, lastChanged: "10:58" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.5, 1, 0, 0.2],
   },
   /** A ceiling fan: stepless speed and a summer/winter direction. */

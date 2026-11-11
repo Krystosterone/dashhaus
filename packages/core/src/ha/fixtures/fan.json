@@ -4,7 +4,7 @@
     "state": "on",
     "attributes": {
       "friendly_name": "Bedroom",
-      "percentage": 67,
+      "percentage": 66,
       "percentage_step": 33.333333333333336,
       "preset_mode": "sleep",
       "preset_modes": ["normal", "sleep", "nature"],

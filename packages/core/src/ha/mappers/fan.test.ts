@@ -7,7 +7,7 @@ const raw = {
   state: "on",
   attributes: {
     friendly_name: "Bedroom",
-    percentage: 67,
+    percentage: 66,
     percentage_step: 100 / 3,
     preset_mode: "sleep",
     preset_modes: ["normal", "sleep", "nature"],
@@ -38,7 +38,7 @@ describe("fanFromHass", () => {
   it("reads every declared control and its value", () => {
     expect(fanFromHass(raw, raw.entity_id)).toMatchObject({
       supportsSpeed: true,
-      percentage: 67,
+      percentage: 66,
       speedCount: 3,
       supportsPreset: true,
       presetModes: ["normal", "sleep", "nature"],

@@ -8,7 +8,7 @@ const raw: HassEntities = {
   "fan.bedroom": {
     entity_id: "fan.bedroom",
     state: "on",
-    attributes: { friendly_name: "Bedroom", percentage: 67, percentage_step: 100 / 3, supported_features: 1 | 16 | 32 },
+    attributes: { friendly_name: "Bedroom", percentage: 66, percentage_step: 100 / 3, supported_features: 1 | 16 | 32 },
     last_changed: "2026-10-19T10:00:00Z",
     last_updated: "2026-10-19T10:00:00Z",
   },

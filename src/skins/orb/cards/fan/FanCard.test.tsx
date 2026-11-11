@@ -5,7 +5,7 @@ import type { FanEntity } from "@dashhaus/core/entities/fan/types";
 
 const tower: FanEntity = {
   entityId: "fan.bedroom", name: "Tower fan", area: "Bedroom", state: "on",
-  supportsSpeed: true, speedCount: 3, percentage: 67,
+  supportsSpeed: true, speedCount: 3, percentage: 66,
   supportsPreset: true, presetModes: ["normal", "sleep"],
   supportsOscillate: true, oscillating: true,
 };

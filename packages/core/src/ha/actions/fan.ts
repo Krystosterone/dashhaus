@@ -11,7 +11,7 @@ export interface FanHandlers {
    */
   onToggle: () => void;
   /**
-   * Calls `fan.set_percentage`, rounded to a whole percent from 1 to 100, so it never switches the fan off; setting a
+   * Calls `fan.set_percentage`, truncated to a whole percent from 1 to 100 as Home Assistant does (66.67 sends 66), so it never switches the fan off; setting a
    * speed while it is off turns it on. A fan without speeds reports `unsupported`.
    */
   onPercentageChange: (percent: number) => void;
@@ -75,7 +75,7 @@ export function createFanHandlers(caller: Pick<HaStore, "callService">, entity: 
         invalidInput(`${id} speed must be finite`);
         return;
       }
-      run("set_percentage", { percentage: Math.min(100, Math.max(1, Math.round(percent))) });
+      run("set_percentage", { percentage: Math.min(100, Math.max(1, Math.floor(percent))) });
     },
     onPresetChange: (preset) => {
       if (!can(entity.supportsPreset, "preset modes")) return;
