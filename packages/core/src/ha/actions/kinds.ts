@@ -16,8 +16,8 @@
  *     out.
  * - `asks`: it asks first, a question or the code, before it runs: never one tap (a lock's unlock, a door's open).
  *   An action that takes a code but doesn't ask (an alarm's disarm, a lock's lock) runs at once unless the entity
- *   wants a code, and asks for it then. A level that asks has no question yet in any skin, so it is left out where it
- *   asks: set only where it doesn't.
+ *   wants a code, and asks for it then. A level that asks is still slid or set, then asked: a tap asks at once, a drag
+ *   when it is let go, and Cancel puts it back where the entity is (the domain's question, else `levelQuestion`).
  * - `either`: a press given only while the entity's state is assumed or unknown (`eitherWay`): its turn-on and turn-off,
  *   sent whatever it shows. A skin draws the pair in its details; a generator leaves it out, since the card's own
  *   press already switches it.

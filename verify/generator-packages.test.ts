@@ -76,7 +76,7 @@ describe("the generator package map", () => {
       { action: "onCloseCover", asks: true, code: false, when: access },
     ]);
     expect(cover.actions).toEqual(["onStopCover"]);
-    // Its position is never set for those three: a generator that draws levels leaves it out there.
+    // Its position asks first for those three: a generator that draws levels sets it, then asks.
     expect(cover.levels.find(({ action }: { action: string }) => action === "onSetPosition")).toMatchObject({ asks: true, when: access });
     const { cardKind, cardTokens, skinNames } = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
     const tokens = cardTokens(cover, skinNames("my-skin"), cardKind(cover));

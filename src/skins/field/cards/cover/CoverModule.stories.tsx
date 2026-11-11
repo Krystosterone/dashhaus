@@ -3,14 +3,14 @@ import { CoverModule } from "./CoverModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "@dashhaus/core/seeds/cover";
 import type { CoverSeed, CoverSeedName } from "@dashhaus/core/seeds/cover";
-import type { CoverAction } from "@dashhaus/core/entities/cover/types";
+import type { CoverAsk } from "@dashhaus/core/entities/cover/types";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(COVER_SEEDS) as CoverSeedName[];
 /** The worst case's door with the longest name and area, for the question at its widest. */
 const LONG_DOOR = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!;
 
-function DemoCover({ seed, width, footprint, defaultOpen, defaultAction }: { seed: CoverSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean; defaultAction?: CoverAction }) {
+function DemoCover({ seed, width, footprint, defaultOpen, defaultAction }: { seed: CoverSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean; defaultAction?: CoverAsk }) {
   const demo = useDemoCover(seed);
   return (
     <div style={{ width, maxWidth: "100%" }}>
@@ -42,7 +42,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "One cover as a field module: curtains, blinds, shades, a garage door. Press the key to open or close it, or to stop it on the way; its LED is lit while it's open. The screen leads with how open it is, and the fader moves it, its ends magnetic. A garage door, door or gate never moves on one press: its key opens the panel on the question, as the lock's Unlock does, Stop is one press, and its position is shown, not set. Tap the name, or press and hold the key, for the detail panel: quick positions, slats and today. Standard modules are 160 px, compact rows 64 px.",
+          "One cover as a field module: curtains, blinds, shades, a garage door. Press the key to open or close it, or to stop it on the way; its LED is lit while it's open. The screen leads with how open it is, and the fader moves it, its ends magnetic. A garage door, door or gate never moves on one press: its key opens the panel on the question, as the lock's Unlock does, Stop is one press, and its fader asks once let go. Tap the name, or press and hold the key, for the detail panel: quick positions, slats and today. Standard modules are 160 px, compact rows 64 px.",
       },
     },
   },
@@ -73,6 +73,11 @@ export const Moving: Story = { args: { cover: "moving" } };
 export const GarageDoor: Story = { name: "Garage door", args: { cover: "garage" } };
 /** No position, on its way: blank segments, since it's neither open nor shut, and the key says Stop. */
 export const GateClosing: Story = { name: "Gate, closing", args: { cover: "gate" } };
+/**
+ * A gate with a position: its fader sets it, and asks once a press or a drag lets go (`Move Front gate to 40%?`); on
+ * Cancel the thumb is back where the gate is.
+ */
+export const FrontGate: Story = { name: "Front gate", args: { cover: "frontGate" } };
 /**
  * An RF blind Home Assistant drives on an assumed state: blank segments and Unknown, since it never says where it is,
  * but nothing lies flat. The key opens it, as Home Assistant's own toggle does.
@@ -155,12 +160,20 @@ export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { 
 
 /**
  * A press on a garage door, door or gate opens the panel on its question: the worst case's longest name, its yes
- * naming what it moves, in place of the panel's controls. A door with a position has no fader and no quick positions:
- * its position is shown, not set.
+ * naming what it moves, in place of the panel's controls; the module's fader takes no press while it stands.
  */
 export const DetailsClose: Story = {
   name: "Details, close",
   render: ({ width, footprint }) => <DemoCover seed={LONG_DOOR} width={width} footprint={footprint} defaultAction="close" />,
+};
+
+/**
+ * A gate's fader let go between its ends: the panel asks to move it there, in place of its controls, and the module's
+ * fader shows where it would go, taking no press. The yes says where it goes.
+ */
+export const DetailsMove: Story = {
+  name: "Details, move",
+  render: ({ width, footprint }) => <DemoCover seed={COVER_SEEDS.frontGate} width={width} footprint={footprint} defaultAction={{ position: 40 }} />,
 };
 
 /** An unknown cover's panel: close, stop and open all act, since it could be anywhere and on its way. */

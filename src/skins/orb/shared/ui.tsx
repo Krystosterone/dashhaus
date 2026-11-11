@@ -477,6 +477,10 @@ export interface LevelBarProps {
   /** What a screen reader hears for the level, on and off: the card's words. */
   valueText: (value: number) => string;
   onChange: (value: number) => void;
+  /** Called once a tap or a drag lets go, with where it ended: a level that asks first asks then, `onChange` drawing it. */
+  onCommit?: (value: number) => void;
+  /** It takes no press: a question about it already stands. */
+  disabled?: boolean;
 }
 
 /**
@@ -484,12 +488,13 @@ export interface LevelBarProps {
  * level while the entity is on, keeping a lit end cap at the bottom; the words on it invert where the fill passes,
  * and say Off while it is off. A card brings its words, its ends and what setting it does.
  */
-export function LevelBar({ id, label, heading, value, min, max, on, wakes, text, offText = () => "Off", valueText, onChange }: LevelBarProps) {
+export function LevelBar({ id, label, heading, value, min, max, on, wakes, text, offText = () => "Off", valueText, onChange, onCommit, disabled }: LevelBarProps) {
   return (
     <SliderTrack
       id={id}
       label={label}
-      slider={{ value: Math.round(value), min, max, inset: LEVEL_CAP / 2, reportUnchanged: wakes && !on, onChange, valueText }}
+      slider={{ value: Math.round(value), min, max, inset: LEVEL_CAP / 2, reportUnchanged: wakes && !on, onChange, onCommit, disabled, valueText }}
+      disabled={disabled}
       heading={heading ? () => <label htmlFor={id}>{heading}</label> : undefined}
       className="hd-level"
       text={(v) => (on ? text(v) : offText(v))}

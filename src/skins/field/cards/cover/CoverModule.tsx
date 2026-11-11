@@ -1,7 +1,7 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { ReactNode } from "react";
-import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isMoving, openness, slatsBy, snapEnds } from "@dashhaus/core/entities/cover/position";
+import type { CoverAction, CoverAsk, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
+import { CLASS_LABEL, QUICK_ENDS, QUICK_POSITIONS, coverAskOpens, coverAskPosition, coverAskSettled, coverAskTo, coverAsksFirst, hasPosition, isMoving, openness, slatsBy, snapEnds } from "@dashhaus/core/entities/cover/position";
 import { COVER_ASKS_HINT, LEFT_OPEN_WORD, SLAT_ENDS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
@@ -24,8 +24,8 @@ export interface CoverModuleProps {
   /** Always one press. */
   onStopCover: () => void;
   /**
-   * Move it to a position, 0 closed to 100 open. Omit, or a cover without a position, and there is no fader; a garage
-   * door, door or gate has none either, its position shown and never set.
+   * Move it to a position, 0 closed to 100 open. Omit, or a cover without a position, and there is no fader. A garage
+   * door, door or gate's fader asks first in the panel, once it is let go.
    */
   onSetPosition?: (position: number) => void;
   /** Tilt a blind's slats, 0 to 100. Omit, or a cover without tilt, and the panel has no slats fader. */
@@ -33,7 +33,7 @@ export interface CoverModuleProps {
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
   /** Open the detail panel on this action's question: a garage door, door or gate (stories). */
-  defaultAction?: CoverAction;
+  defaultAction?: CoverAsk;
 }
 
 /** A pointer value onto whole percent, with magnetic ends: a tap near an end closes or opens it fully. */
@@ -49,7 +49,8 @@ const Percent = ({ value }: { value: number }) => <><Digits value={value} /><sma
  * fader thumb's; a cover with no position says OPEN or SHUT. A garage door, door or gate left open is a warning on
  * the screen. The name, or a press and hold on the key, opens the detail panel: quick positions, slats, today. A
  * garage door, door or gate never moves on one press (`coverAsksFirst`): a press on its key opens the panel on the
- * question, as a lock's Unlock does, and stopping it is one press; its position is shown, never set.
+ * question, as a lock's Unlock does, and stopping it is one press; its fader asks once a press or a drag lets go
+ * (`MOVE FRONT GATE TO 40%?`), and its quick positions are its ends alone, each asking.
  */
 export function CoverModule({ entity: e, footprint = "standard", history, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, defaultOpen = false, defaultAction }: CoverModuleProps) {
   const uid = useId();
@@ -65,8 +66,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const pos = Math.round(openness(e));
   const open = !unav && (pos > 0 || e.state === "open");
   const withPos = hasPosition(e);
-  // A garage door, door or gate's position is shown, never set: a tap on a fader would jump it.
-  const settable = withPos && onSetPosition != null && !unav && !asks;
+  // A garage door, door or gate's fader asks first, once let go (below).
+  const settable = withPos && onSetPosition != null && !unav;
   const stopping = moving && e.supportsStop;
   const word = coverWord(e);
   // A door left open (core ranks it advisory) is about what it reads, so it stays on the screen, `Open` behind the
@@ -91,15 +92,21 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // A garage door, door or gate asks first, as a lock's Unlock does: a press on its key (the module's, the row's, the
   // panel's) or on the panel's Close or Open opens the panel on the question, and a press and hold opens it bare, as on
   // every module. Stopping is never asked. On its way where it can't be stopped, its key lies flat.
-  const guard = useGuardedAction<CoverAction>({
-    run: (a) => (a === "open" ? onOpenCover : onCloseCover)(),
+  const guard = useGuardedAction<CoverAsk>({
+    run: (a) => (typeof a !== "string" ? onSetPosition?.(a.position) : a === "open" ? onOpenCover() : onCloseCover()),
     needsCode: () => false,
-    settled: (a) => unav || (a === "open" ? e.state === "open" || e.state === "opening" : e.state === "closed" || e.state === "closing"),
+    settled: (a) => coverAskSettled(a, e),
     initial: defaultAction,
     disabled: !asks,
   });
   const pending = guard.pending;
-  const ask = (a: CoverAction) => { guard.ask(a); details.openDetails(); };
+  const ask = (a: CoverAsk) => { guard.ask(a); details.openDetails(); };
+  // Its fader draws where it is slid, and asks once let go, a press at once; while the question stands it shows where it
+  // would go and takes no press, so the second press of a double press can't ask again, and on Cancel it is back where
+  // the cover is.
+  const [draft, setDraft] = useState<number | null>(null);
+  const askTo = (v: number) => { setDraft(null); if (v !== pos) ask(coverAskTo(v)); };
+  const shown = draft ?? (pending != null ? coverAskPosition(pending) : pos);
   const openPanel = () => { guard.close(); details.openDetails(); };
   const adrift = asks && moving && !e.supportsStop;
   const toward: CoverAction = open ? "close" : "open";
@@ -127,15 +134,17 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       {settable && (
         <Fader
           id={`${uid}-${where}`}
-          label={`${e.name} position`}
+          label={`${e.name} position${asks ? ": asks first" : ""}`}
           legend={moving ? word : "Position"}
-          value={pos}
+          value={asks ? shown : pos}
           min={0}
           max={100}
           lit={open}
-          valueText={positionText(pos)}
+          disabled={asks && (adrift || pending != null)}
+          valueText={positionText(asks ? shown : pos)}
           snap={snap}
-          onChange={onSetPosition}
+          onChange={asks ? setDraft : onSetPosition}
+          onCommit={asks ? askTo : undefined}
         />
       )}
     </ModuleRow>
@@ -163,16 +172,26 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   );
   const panel = (
     <>
-      {settable && onSetPosition && (
+      {settable && onSetPosition && !asks && (
         <KeyGroup legend="Quick positions" columns={4} narrow={2}>
           {QUICK_POSITIONS.map((q) => <Key key={q.value} label={positionText(q.value)} wide caption={q.label} chosen={!moving && q.value === pos} onPress={() => onSetPosition(q.value)}>{null}</Key>)}
         </KeyGroup>
       )}
 
-      {/* A cover with no position, or a garage door, door or gate: explicit transport, each key acting once (asking first,
-          for those three); the one that can't act lies flat. Unknown, any of them can, since it could be anywhere and on
-          its way. */}
-      {!unav && asks && <div className="fd-block">{move}<p className="fd-hint">{COVER_ASKS_HINT}</p></div>}
+      {/* A garage door, door or gate with a position: its ends alone, each asking first, under the line that says so. */}
+      {settable && asks && (
+        <div className="fd-block">
+          <KeyGroup legend="Quick positions" columns={2}>
+            {QUICK_ENDS.map((q) => <Key key={q.value} label={`${positionText(q.value)}: asks first`} wide caption={q.label} chosen={!moving && q.value === pos} unavailable={adrift} onPress={() => askTo(q.value)}>{null}</Key>)}
+          </KeyGroup>
+          <p className="fd-hint">{COVER_ASKS_HINT}</p>
+        </div>
+      )}
+
+      {/* A cover with no position, or a garage door, door or gate whose position isn't set here: explicit transport, each
+          key acting once (asking first, for those three); the one that can't act lies flat. Unknown, any of them can,
+          since it could be anywhere and on its way. */}
+      {!unav && asks && !settable && <div className="fd-block">{move}<p className="fd-hint">{COVER_ASKS_HINT}</p></div>}
       {!unav && !asks && !withPos && move}
 
       {/* Slats set to an angle on a fader, with no thumb while their tilt isn't known (unknown); slats that only open
@@ -231,10 +250,10 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       facts={pending ? undefined : { start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", slats ? "tilt" : null].filter(Boolean).join(", ")}` }}
     >
       {pending ? (
-        <Confirm key={pending}
+        <Confirm key={guard.pendingKey}
           question={coverQuestion(pending, e.name)} detail={coverAskDetail(pending, e)}
           action={coverAskAction(pending, e)} actionLabel={`${coverAskAction(pending, e)}, ${e.name}`}
-          icon={pending === "open" ? <IconUp /> : <IconDown />}
+          icon={coverAskOpens(pending, e) ? <IconUp /> : <IconDown />}
           busy={guard.busy} waiting={coverAskWaiting(e)} error={guard.failed ? ACTION_FAILED : null}
           onConfirm={() => void guard.confirm()} onCancel={guard.close} />
       ) : panel}

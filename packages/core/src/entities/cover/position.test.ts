@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CLASS_LABEL, coverAsksFirst, isAccess, openness, snapEnds } from "./position";
+import { CLASS_LABEL, QUICK_ENDS, coverAskOpens, coverAskPosition, coverAskSettled, coverAskTo, coverAsksFirst, isAccess, openness, snapEnds } from "./position";
 import type { CoverEntity } from "./types";
 
 const cover = (over: Partial<CoverEntity>): CoverEntity => ({ entityId: "cover.x", name: "X", state: "closed", deviceClass: "blind", supportsPosition: true, supportsStop: true, ...over });
@@ -42,5 +42,35 @@ describe("coverAsksFirst", () => {
     for (const kind of Object.keys(CLASS_LABEL) as CoverEntity["deviceClass"][]) {
       expect(coverAsksFirst({ deviceClass: kind }), kind).toBe(isAccess(kind));
     }
+  });
+});
+
+describe("a position that asks first", () => {
+  it("asks to close or open at an end, and to move there between them", () => {
+    expect(coverAskTo(0)).toBe("close");
+    expect(coverAskTo(100)).toBe("open");
+    expect(coverAskTo(40)).toEqual({ position: 40 });
+    expect(QUICK_ENDS.map((q) => q.label)).toEqual(["Closed", "Open"]);
+  });
+
+  it("knows whether yes lets more through, from where it is now", () => {
+    expect(coverAskOpens("open", cover({}))).toBe(true);
+    expect(coverAskOpens("close", cover({ state: "open", position: 100 }))).toBe(false);
+    expect(coverAskOpens({ position: 40 }, cover({ position: 0 }))).toBe(true);
+    expect(coverAskOpens({ position: 40 }, cover({ state: "open", position: 100 }))).toBe(false);
+  });
+
+  it("stops asking once it gets there, by itself or elsewhere, or goes unavailable", () => {
+    expect(coverAskSettled({ position: 40 }, cover({ state: "open", position: 40 }))).toBe(true);
+    expect(coverAskSettled({ position: 40 }, cover({ state: "opening", position: 20 }))).toBe(false);
+    expect(coverAskSettled("open", cover({ state: "opening", position: 20 }))).toBe(true);
+    expect(coverAskSettled("close", cover({ state: "open", position: 100 }))).toBe(false);
+    expect(coverAskSettled({ position: 40 }, cover({ state: "unavailable" }))).toBe(true);
+  });
+
+  it("is drawn where it would go while it is asked", () => {
+    expect(coverAskPosition({ position: 40 })).toBe(40);
+    expect(coverAskPosition("open")).toBe(100);
+    expect(coverAskPosition("close")).toBe(0);
   });
 });

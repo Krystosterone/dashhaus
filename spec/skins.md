@@ -69,7 +69,9 @@ package; `verify/skin-rules.test.ts` holds it to that.
   on `:active`, built on the `@dashhaus/core/primitives` hooks rather than hand-written ARIA.
 - **An action that asks first is never one press.** An action its domain declares `asks` for this entity
   (`<NAME>_ACTIONS`, with its `when`) never runs on a press: the press opens the details on the skin's question, or on
-  its keypad where the entity wants a code, a press and hold opens them bare, and a declared level that asks is left out.
+  its keypad where the entity wants a code, and a press and hold opens them bare. A declared level that asks is set, then
+  asked: a tap asks at once, a drag once it is let go, it takes no press while the question stands, and Cancel puts it
+  back where the entity is (a skin with no part for it leaves it out).
   A code the entity wants is never sent from one press either: the keypad takes it. `verify/guarded-actions.test.tsx`
   presses every control of Orb's and Field's guarded cards on every seed.
 - **An action that asks first says so in its control's name**, in the skin's one idiom and never in a second way: Orb's

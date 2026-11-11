@@ -8,7 +8,7 @@ import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_SUNDAY, ARTWORK_TALL, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
 import {
-  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Dial, Facts, IconClose, Keypad, Orb, Picture, Readout, Said, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
+  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Dial, Facts, IconClose, Keypad, LevelBar, Orb, Picture, Readout, Said, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
 } from "../shared/ui";
 import type { CardFootprint, CardFrameProps, HourSample } from "../shared/ui";
 import { BrightnessBar, ColorChips, IconBulb, WarmthRuler } from "../cards/light/parts";
@@ -143,6 +143,9 @@ function AllParts() {
   const [setpoint, setSetpoint] = useState(21.5);
   const [aim, setAim] = useState(120);
   const [level, setLevel] = useState(64);
+  const [speed, setSpeed] = useState(55);
+  const [gate, setGate] = useState(0);
+  const [gateAsked, setGateAsked] = useState<number | null>(null);
   const [kelvin, setKelvin] = useState(3000);
   const [volume, setVolume] = useState(35);
   const [curtain, setCurtain] = useState(60);
@@ -238,6 +241,14 @@ function AllParts() {
         </State>
         <State label="Light: warmth" width={280}><WarmthRuler id="parts-warmth" kelvin={kelvin} min={2200} max={6500} onChange={setKelvin} /></State>
         <State label="Light: warmth, lamp off" width={280}><WarmthRuler id="parts-warmth-off" kelvin={2700} min={2200} max={6500} disabled onChange={() => {}} /></State>
+      </Part>
+
+      <Part name="Level bar" rule="One level in a groove (LevelBar): a fan's speed, a sound's volume. The accent fills it while on, with a lit end cap, and its words flip where the fill passes. One that asks first draws where it is slid and asks once a tap or a drag lets go (onCommit), then takes no press while its question stands (disabled), so a second tap can't ask again.">
+        <State label="On, slide it" width={280}><LevelBar id="parts-level" label="Fan speed" value={speed} min={1} max={100} on text={(v) => `${v}%`} valueText={(v) => `${v} percent`} onChange={setSpeed} /></State>
+        <State label={gateAsked == null ? "Asks first, once let go: slide it" : `Asks first: Move to ${gateAsked}%?`} width={280}>
+          <LevelBar id="parts-level-asks" label="Front gate position…" value={gate} min={0} max={100} on text={(v) => `${v}%`} valueText={(v) => `${v} percent`} onChange={setGate} onCommit={setGateAsked} />
+        </State>
+        <State label="A question stands: takes no press" width={280}><LevelBar id="parts-level-asked" label="Front gate position…" value={40} min={0} max={100} on text={(v) => `${v}%`} valueText={(v) => `${v} percent`} disabled onChange={() => {}} /></State>
       </Part>
 
       <Part name="Readout" cardRole="reading" rule="A reading's figures with no container: look at it. With details, the whole readout opens them.">

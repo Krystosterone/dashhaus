@@ -11,8 +11,8 @@
  *   - control: one key per action the domain declares a press can give (`<NAME>_ACTIONS` beside its handlers): a tap
  *     acts (`onToggle` latches, its LED on while the entity is "on"); an action that asks first, or takes a code, opens
  *     the panel on the skin's Confirm or Keypad instead, never one tap (one that asks only where its `when` says, for
- *     those entities; a level that asks there is left out there). An action that takes a value is left out, saying
- *     so. The default when the domain has one.
+ *     those entities); a level that asks first is set on its fader, then asked in the panel (`levelQuestion`). An
+ *     action that takes a value is left out, saying so. The default when the domain has one.
  *   - reading: the glyph on a flat plate and today's meter, nothing pressed. The default when it has none.
  * Today's meter is drawn only for a domain with a `<Name>History`: a lock's day is its last change.
  * Nothing is written unless every file and every registration can be made.
@@ -109,16 +109,25 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const toggle = taps.some(({ action }) => action === "onToggle") && domain.onOff;
   const wantsCode = domain.code;
   const { keyOf, labelOf } = card;
+  // A value's words, from its field: "presetMode" → "Preset mode".
+  const fieldWords = (field) => labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
+  const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
+  const isPercent = ({ min, max }) => typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
+  // A level that asks first (`asks`, for the entities its `when` says): set on its fader, then asked in the panel, as a
+  // garage door's position is. With one, the guard holds it too, beside what a press asks.
+  const askLevels = values.levels.filter(({ asks }) => asks);
+  const guards = asked.length > 0 || askLevels.length > 0;
   // The keypad's verb phrase is the domain's core word (spec/cards.md → What every card says); the frame stays field's.
-  const codeWord = asked.length ? keypadWord(domain) : undefined;
-  const hold = asked.length ? "openPanel" : "details.openDetails";
+  const keypad = asked.length ? keypadWord(domain) : undefined;
+  const codeWord = keypad && askLevels.length ? { ...keypad, expression: keypad.expression.replace("asked[guard.pending].label", "said(guard.pending).yes") } : keypad;
+  const hold = guards ? "openPanel" : "details.openDetails";
   const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
   /** What asks first, and what takes a code, in words: "Unlock and Open ask first, and Lock takes a code where the lock wants one". */
   const guardedWords = (() => {
     const verb = (xs, one, many) => `${andList(xs.map(({ action }) => labelOf(action)))} ${xs.length > 1 ? many : one}`;
-    const asks = asked.filter(({ asks }) => asks);
+    const asks = [...asked.filter(({ asks }) => asks).map(({ action }) => labelOf(action)), ...askLevels.map(({ field }) => `setting ${fieldWords(field).toLowerCase()}`)];
     const codes = asked.filter(({ asks }) => !asks);
-    return [asks.length && `${verb(asks, "asks", "ask")} first, on the panel's question or keypad`, codes.length && `${verb(codes, "takes", "take")} a code where the ${words} wants one`].filter(Boolean).join(", and ");
+    return [asks.length && `${andList(asks)} ${asks.length > 1 ? "ask" : "asks"} first, on the panel's question or keypad`, codes.length && `${verb(codes, "takes", "take")} a code where the ${words} wants one`].filter(Boolean).join(", and ");
   })();
   const keyLines = pressed.map(({ action, takes, asks, when }) => {
     const label = labelOf(action);
@@ -131,6 +140,8 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     return `    <Key key="${action}" label={\`${label} \${e.name}\`} unavailable={unav} onPress={() => ${action}?.()} onHold={${hold}} wide={wide} caption={wide && !unav ? "${label}" : undefined}><Icon${Name} /></Key>,`;
   });
   const askedKeys = asked.map(({ action }) => `"${keyOf(action)}"`);
+  // What the guard holds: a press's key, or a level that asks with the value it would be set to.
+  const actionKeys = [...askedKeys, ...(askLevels.length ? [`{ level: ${askLevels.map(({ field }) => `"${field}"`).join(" | ")}; value: number }`] : [])].join(" | ");
   const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
   const since = has("lastChanged") ? "sinceFact(e.lastChanged)" : "undefined";
   const small = smallPrint(has);
@@ -156,13 +167,17 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const fixtureAsks = (when) => Object.entries(when).every(([field, values]) => values.includes(raw(field)));
   const sentAtOnce = pressed.filter(({ takes, asks, when }) => !(asks && (!when || fixtureAsks(when))) && !(takes === "code" && fixtureCode)).length;
   // ---------- Values on field's parts ----------
-  // A value's words, from its field: "presetMode" → "Preset mode".
-  const fieldWords = (field) => labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
-  const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
-  const isPercent = ({ min, max }) => typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
-  /** A level as a fader; one that asks first for some entities (its `when`) is left out for those: shown, never set. */
-  const fader = (level, id) => level.when ? `{!(${card.whenExpr(level.when)}) && ${faderOf(level, id)}}` : faderOf(level, id);
-  const faderOf = ({ action, field, min, max }, id) => `<Fader id={${id}} label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`} legend="${fieldWords(field)}" value={unav ? undefined : e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} lit={${toggle ? "on" : "!unav"}} disabled={unav} valueText={${isPercent({ min, max }) ? `\`\${e.${field} ?? ${bound(min)}} percent\`` : `String(e.${field} ?? ${bound(min)})`}} onChange={(v) => ${action}?.(v)} />`;
+  /**
+   * A level as a fader. One that asks first (for the entities its `when` says) draws where it is slid and asks in the
+   * panel once let go, its name marked as every field action that asks is.
+   */
+  const fader = ({ action, field, min, max, asks }, id) => {
+    const at = asks ? `shown("${field}", e.${field} ?? ${bound(min)})` : `e.${field} ?? ${bound(min)}`;
+    const set = asks
+      ? `disabled={unav || (levels.${field}.asks && guard.pending != null)} valueText={${isPercent({ min, max }) ? `\`\${${at}} percent\`` : `String(${at})`}} onChange={(v) => (levels.${field}.asks ? setDraft({ level: "${field}", value: v }) : ${action}?.(v))} onCommit={levels.${field}.asks ? (v) => askLevel("${field}", v) : undefined}`
+      : `disabled={unav} valueText={${isPercent({ min, max }) ? `\`\${${at}} percent\`` : `String(${at})`}} onChange={(v) => ${action}?.(v)}`;
+    return `<Fader id={${id}} label={\`\${e.name} ${fieldWords(field).toLowerCase()}${asks ? `\${levels.${field}.asks ? ": asks first" : ""}` : ""}\`} legend="${fieldWords(field)}" value={unav ? undefined : ${at}} min={${bound(min)}} max={${bound(max)}} lit={${toggle ? "on" : "!unav"}} ${set} />`;
+  };
   // The first level beside the one key, in the module's row and again in the panel; with more keys, in the panel.
   const [rowLevel, ...panelLevels] = pressed.length <= 1 ? values.levels : [undefined, ...values.levels];
   const choiceKeys = ({ action, field, options }) => {
@@ -236,54 +251,78 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __keys__: keyLines.join("\n"),
     __actionProps__: pressed.map(({ action, takes, asks }) => `  /** ${asks ? "Asks first: the panel's question, or its keypad where the entity wants a code. Never one press." : takes === "code" ? "A press does it, asking for the code where the entity wants one." : "A press does it."} */\n  ${action}?: (${takes === "code" ? "code?: string" : ""}) => ${asks || takes === "code" ? "GuardedResult" : "void"};`).join("\n"),
     __actionArgs__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `, ${action}`).join(""),
-    __partsImport__: asked.length ? `Confirm, ${codeWord ? "Keypad, " : ""}` : "",
+    __partsImport__: guards ? `Confirm, ${codeWord ? "Keypad, " : ""}` : "",
     __valuesProps__: drawnValues.map((action) => `  /** Drawn from its declaration (\`${CONST}_ACTIONS\`). */\n  ${action}?: (${handed(action)}) => void;`).join("\n"),
     __valuePartsImport__: valueParts.map((part) => `${part}, `).join(""),
-    __reactImport__: rowLevel || panelLevels.length ? 'import { useId } from "react";' : "",
+    __reactImport__: rowLevel || panelLevels.length ? `import { ${askLevels.length ? "useId, useState" : "useId"} } from "react";` : "",
     __uidConst__: rowLevel || panelLevels.length ? "  const uid = useId();" : "",
     __controlsConst__: rowLevel ? [
       `  // The key and its ${fieldWords(rowLevel.field).toLowerCase()} fader, the same in the module and the panel. Unavailable, the fader goes and the key`,
       "  // spans the row, as every field control's does.",
       "  const controls = (where: \"m\" | \"p\") => (",
-      `    <ModuleRow className="fd-${code}-row" solo={unav${rowLevel.when ? ` || ${card.whenExpr(rowLevel.when)}` : ""}}>`,
-      `      {keys(unav${rowLevel.when ? ` || ${card.whenExpr(rowLevel.when)}` : ""})[0]}`,
-      `      {!unav${rowLevel.when ? ` && !(${card.whenExpr(rowLevel.when)})` : ""} && ${faderOf(rowLevel, "`${uid}-${where}`")}}`,
+      `    <ModuleRow className="fd-${code}-row" solo={unav}>`,
+      "      {keys(unav)[0]}",
+      `      {!unav && ${fader(rowLevel, "`${uid}-${where}`")}}`,
       "    </ModuleRow>",
       "  );",
     ].join("\n") : "",
     __rowProp__: rowLevel ? "controls={controls}" : "row={<KeyGroup label={e.name}>{keys(true)}</KeyGroup>}",
     __panelKeys__: [rowLevel ? "" : '      <KeyGroup legend="__Label__">{keys(true)}</KeyGroup>',
       // What asks first, said once in the panel while no question stands, in core's words (spec/cards.md → What every card says).
-      asked.some(({ asks }) => asks) ? "      {!unav && hint && <p className=\"fd-hint\">{hint}</p>}" : ""].filter(Boolean).join("\n"),
+      asked.some(({ asks }) => asks) || askLevels.length ? "      {!unav && hint && <p className=\"fd-hint\">{hint}</p>}" : ""].filter(Boolean).join("\n"),
     __valueBlocks__: valueBlocks,
     __optionWordsConst__: values.choices.length ? '/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const spaced = option.replace(/[_-]+/g, " "); return spaced[0].toUpperCase() + spaced.slice(1); };\n' : "",
-    __guardImports__: asked.length ? `import { ACTION_FAILED, ASKS_DETAIL${asked.some(({ asks }) => asks) ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";${codeWord ? `\n${codeWord.import}` : ""}` : "",
-    __defaultActionProp__: asked.length ? `  /** Open the detail panel on this action's question or keypad (stories). */\n  defaultAction?: ${askedKeys.join(" | ")};` : "",
-    __defaultActionArg__: asked.length ? ", defaultAction" : "",
-    __defaultActionOpen__: asked.length ? " || defaultAction != null" : "",
-    __guardBlock__: asked.length ? [
+    __guardImports__: guards ? [
+      `import { ACTION_FAILED, ASKS_DETAIL${asked.some(({ asks }) => asks) || askLevels.length ? ", asksFirst" : ""}${askLevels.length ? ", levelAction, levelQuestion" : ""} } from "${packageSpecifier("core", "entities/guard")}";`,
+      `import { useGuardedAction } from "${packageSpecifier("core", "primitives")}";`,
+      asked.length && `import type { GuardedResult } from "${packageSpecifier("core", "primitives")}";`,
+      codeWord?.import,
+    ].filter(Boolean).join("\n") : "",
+    __defaultActionProp__: guards ? `  /** Open the detail panel on this action's question or keypad${askLevels.length ? ", a level on the value it would be set to" : ""} (stories). */\n  defaultAction?: ${actionKeys};` : "",
+    __defaultActionArg__: guards ? ", defaultAction" : "",
+    __defaultActionOpen__: guards ? " || defaultAction != null" : "",
+    __guardBlock__: guards ? [
       "  // What asks first, or takes a code, is answered in the panel: its question, or its keypad where the entity wants one.",
-      `  const asked: Record<${askedKeys.join(" | ")}, { label: string; run?: (code?: string) => GuardedResult }> = {`,
-      ...asked.map(({ action }) => `    "${keyOf(action)}": { label: "${labelOf(action)}", run: ${action} },`),
-      "  };",
-      `  const guard = useGuardedAction<keyof typeof asked>({`,
-      "    run: (a, code) => asked[a].run?.(code),",
-      `    needsCode: (a) => ${wantsCode && codeKeys.length ? `([${codeKeys.join(", ")}] as string[]).includes(a) && !!e.codeFormat` : "false"},`,
-      "    settled: () => unav,",
+      ...(asked.length ? [
+        `  const asked: Record<${askedKeys.join(" | ")}, { label: string; run?: (code?: string) => GuardedResult }> = {`,
+        ...asked.map(({ action }) => `    "${keyOf(action)}": { label: "${labelOf(action)}", run: ${action} },`),
+        "  };",
+      ] : []),
+      ...(askLevels.length ? [
+        "  // A level that asks first is set, then asked where `asks` says: its words, a value in words, and what sets it.",
+        "  const levels = {",
+        ...askLevels.map((level) => `    ${level.field}: { words: "${fieldWords(level.field)}", text: (v: number) => ${isPercent(level) ? "`${v}%`" : "String(v)"}, asks: ${level.when ? card.whenExpr(level.when) : "true"}, run: ${level.action} },`),
+        "  };",
+      ] : []),
+      `  const guard = useGuardedAction<${askLevels.length ? `NonNullable<${Name}ModuleProps["defaultAction"]>` : "keyof typeof asked"}>({`,
+      `    run: ${!askLevels.length ? "(a, code) => asked[a].run?.(code)" : asked.length ? "(a, code) => (typeof a === \"string\" ? asked[a].run?.(code) : levels[a.level].run?.(a.value))" : "(a) => levels[a.level].run?.(a.value)"},`,
+      `    needsCode: (a) => ${wantsCode && codeKeys.length ? `${askLevels.length ? "typeof a === \"string\" && " : ""}([${codeKeys.join(", ")}] as string[]).includes(a) && !!e.codeFormat` : "false"},`,
+      `    settled: ${askLevels.length ? `(a) => unav || (${asked.length ? "typeof a !== \"string\" && " : ""}e[a.level] === a.value)` : "() => unav"},`,
       "    initial: defaultAction,",
       "  });",
       "  const openPanel = () => { guard.close(); details.openDetails(); };",
-      ...(asked.some(({ asks }) => asks) ? [`  const hint = asksFirst([${asked.filter(({ asks }) => asks).map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${labelOf(action)}"`).join(", ")}]);`] : []),
-      ...(asked.some(({ asks }) => asks) ? ["  const ask = (a: keyof typeof asked) => { guard.ask(a); details.openDetails(); };"] : []),
+      ...(asked.some(({ asks }) => asks) || askLevels.length ? [`  const hint = asksFirst([${[...asked.filter(({ asks }) => asks).map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${labelOf(action)}"`), ...askLevels.map((level) => `${level.when ? `${card.whenExpr(level.when)} && ` : ""}"Setting ${fieldWords(level.field).toLowerCase()}"`)].join(", ")}]);`] : []),
+      ...(asked.some(({ asks }) => asks) || askLevels.length ? [`  const ask = (a: ${askLevels.length ? "NonNullable<typeof defaultAction>" : "keyof typeof asked"}) => { guard.ask(a); details.openDetails(); };`] : []),
       // A tap that takes a code: done at once, or the panel opens on the keypad where the entity wants a code (asked, or refused).
       ...(asked.some(({ asks }) => !asks) ? ["  const attempt = (a: keyof typeof asked) => { void guard.attempt(a).then((result) => { if (result === undefined || result === \"wrong_code\") details.openDetails(); }); };"] : []),
+      ...(askLevels.length ? [
+        `  const said = (a: NonNullable<typeof defaultAction>) => (${asked.length ? "typeof a === \"string\" ? { question: `${asked[a].label} ${e.name}?`, yes: asked[a].label } : " : ""}{ question: levelQuestion(e.name, levels[a.level].words, levels[a.level].text(a.value)), yes: levelAction(levels[a.level].text(a.value)) });`,
+        "  // Its fader draws where it is slid and asks once let go, a press at once; while the question stands it shows where it",
+        "  // would go and takes no press, so the second press of a double press can't ask again, and on Cancel it is back where it is.",
+        "  const [draft, setDraft] = useState<{ level: keyof typeof levels; value: number } | null>(null);",
+        `  const asking = ${asked.length ? "guard.pending != null && typeof guard.pending !== \"string\" ? guard.pending : null" : "guard.pending"};`,
+        "  const shown = (level: keyof typeof levels, at: number) => (draft?.level === level ? draft.value : asking?.level === level ? asking.value : at);",
+        "  const askLevel = (level: keyof typeof levels, v: number) => { setDraft(null); if (v !== e[level]) ask({ level, value: v }); };",
+      ] : []),
     ].join("\n") : "",
     __leftOut__: leftOut.length ? `  // Left out: ${card.leftOutWhy(leftOut, domain.runs, "field's own control (a fader, a key group)")}.` : "",
-    __panelFocus__: asked.length ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
-    __details__: asked.length ? "{ ...details, openDetails: openPanel }" : "details",
-    __factsWhen__: asked.length ? "guard.pending ? undefined : " : "",
-    __panelBody__: asked.length ? (() => {
-      const confirm = `<Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`;
+    __panelFocus__: guards ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
+    __details__: guards ? "{ ...details, openDetails: openPanel }" : "details",
+    __factsWhen__: guards ? "guard.pending ? undefined : " : "",
+    __panelBody__: guards ? (() => {
+      const question = askLevels.length ? "said(guard.pending).question" : "`${asked[guard.pending].label} ${e.name}?`";
+      const yes = askLevels.length ? "said(guard.pending).yes" : "asked[guard.pending].label";
+      const confirm = `<Confirm key={guard.pendingKey} question={${question}} detail={ASKS_DETAIL} action={${yes}} actionLabel={\`\${${yes}}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`;
       return codeWord ? [
         "      {guard.pending ? (guard.code",
         `        ? <Keypad key={guard.pendingKey} prompt={\`Code to \${${codeWord.expression}}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,

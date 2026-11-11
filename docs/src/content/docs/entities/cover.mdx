@@ -24,7 +24,9 @@ Open and close work on every cover. Stop, a position and a tilt depend on what t
 A garage door, a door or a gate lets a person in, so it must never move on one stray press: a tap brushed across a
 wall panel could open the house, or close a door on someone. Both skins ask first for these three, as they do before
 unlocking a lock: a press opens the details on the question (`Close Garage door?`, what it means, then Cancel and
-`Close garage door`). Stop is always one press, and their position is shown, never set. `coverAsksFirst` says which
+`Close garage door`). Stop is always one press. Where they report a position, you can set it, and it asks too: a tap
+on the bar asks straight away, a drag asks when you let go (`Move Front gate to 40%?`, then `Move to 40%`), and Cancel
+puts the bar back where the cover is. Their quick positions are Closed and Open. `coverAsksFirst` says which
 covers ask, and the question's words are core's, so your own controls can ask the same way, as the example does.
 
 A garage door Home Assistant gives no `device_class` (a template cover, say) is drawn as a shade and moves on one

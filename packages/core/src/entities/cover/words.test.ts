@@ -51,6 +51,13 @@ describe("asking first", () => {
     expect(COVER_ASKS_HINT).toBe("Opening and closing ask first.");
   });
 
+  it("asks before a position between its ends, naming it, and its yes says where it goes", () => {
+    expect(coverQuestion({ position: 40 }, "Front gate")).toBe("Move Front gate to 40%?");
+    expect(coverAskAction({ position: 40 }, cover({ deviceClass: "gate" }))).toBe("Move to 40%");
+    expect(coverAskDetail({ position: 40 }, cover({ deviceClass: "gate", position: 0 }))).toBe("It opens now, and anyone outside can come in.");
+    expect(coverAskDetail({ position: 40 }, cover({ deviceClass: "gate", state: "open", position: 100 }))).toBe("It closes now. Check nothing is in its way.");
+  });
+
   it("says what it waits for, naming the thing, with no end punctuation of its own", () => {
     expect(coverAskWaiting(cover({}))).toBe("Waiting for the garage door");
     expect(coverAskWaiting(cover({ deviceClass: "gate" }))).toBe("Waiting for the gate");

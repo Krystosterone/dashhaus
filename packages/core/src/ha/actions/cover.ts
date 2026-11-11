@@ -35,8 +35,8 @@ export interface CoverHandlers {
 
 /**
  * What each handler is, for a card drawing cover without knowing it (`ActionKind`). A garage door, door or gate
- * (`coverAsksFirst`) never moves on one press: opening and closing it ask first, and its position is shown, never set
- * (no skin asks before a level yet). Stopping never asks. Each `when` is written out, one per line, so a generator's
+ * (`coverAsksFirst`) never moves on one press: opening and closing it ask first, and so does setting its position.
+ * Stopping never asks. Each `when` is written out, one per line, so a generator's
  * reader (scripts/domains.js) sees it; `cover.test.ts` holds it to `isAccess`.
  */
 export const COVER_ACTIONS = {

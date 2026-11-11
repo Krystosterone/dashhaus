@@ -51,6 +51,14 @@ export const COVER_SEEDS = {
     past: [0, 0, 0, 0, 0, 0, 0, 0.2, 0, 0, 0.1],
   },
   /**
+   * A gate with a position, shut: one that opens part way for people on foot. Setting its position asks first, as
+   * opening it does ("Move Front gate to 40%?"), and its quick positions are its ends alone.
+   */
+  frontGate: {
+    entity: { ...base, entityId: "cover.front_gate", name: "Front gate", area: "Outside", state: "closed", deviceClass: "gate", position: 0, lastChanged: "08:40" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0.4, 0, 0],
+  },
+  /**
    * Reachable, but never says where it is: a Somfy RTS blind, driven on an assumed state with no position. Home
    * Assistant still opens, closes and stops it, and so does the card.
    */

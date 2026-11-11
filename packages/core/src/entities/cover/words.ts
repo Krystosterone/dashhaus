@@ -1,6 +1,6 @@
 import { asksFirst, waitingFor } from "../guard";
-import { CLASS_LABEL, openness } from "./position";
-import type { CoverAction, CoverEntity } from "./types";
+import { CLASS_LABEL, coverAskOpens, openness } from "./position";
+import type { CoverAction, CoverAsk, CoverEntity } from "./types";
 
 /** Whether it lets anything through: a position above closed, or open by its state. Never while unavailable. */
 export const isOpen = (e: Pick<CoverEntity, "state" | "position">) => e.state !== "unavailable" && (openness(e as CoverEntity) > 0 || e.state === "open");
@@ -44,26 +44,31 @@ export const leftOpenText = (lastChanged?: string) => `${LEFT_OPEN_WORD}${lastCh
 
 const VERB: Record<CoverAction, string> = { open: "Open", close: "Close" };
 
-/** The question a garage door, door or gate asks before it moves (`coverAsksFirst`): "Close Garage door?". */
-export const coverQuestion = (action: CoverAction, name: string) => `${VERB[action]} ${name}?`;
+/**
+ * The question a garage door, door or gate asks before it moves (`coverAsksFirst`), naming it: "Close Garage door?",
+ * and for a position between its ends, "Move Front gate to 40%?".
+ */
+export const coverQuestion = (action: CoverAsk, name: string) => (typeof action === "string" ? `${VERB[action]} ${name}?` : `Move ${name} to ${action.position}%?`);
 
 /**
- * What answering yes means, under the question: it moves now, who that lets in or what it could close on; where it
- * is isn't known (`unknown`), and it can't be stopped from here when it can't stop.
+ * What answering yes means, under the question: it moves now, who that lets in or what it could close on (a position
+ * says which by where it is going); where it is isn't known (`unknown`), and it can't be stopped from here when it
+ * can't stop.
  */
-export function coverAskDetail(action: CoverAction, e: Pick<CoverEntity, "state" | "supportsStop">): string {
+export function coverAskDetail(action: CoverAsk, e: Pick<CoverEntity, "state" | "supportsStop" | "position">): string {
   return [
-    action === "open" ? "It opens now, and anyone outside can come in." : "It closes now. Check nothing is in its way.",
+    coverAskOpens(action, e) ? "It opens now, and anyone outside can come in." : "It closes now. Check nothing is in its way.",
     e.state === "unknown" ? "Where it is isn't known." : null,
     e.supportsStop ? null : "It can't be stopped from here.",
   ].filter(Boolean).join(" ");
 }
 
 /**
- * The yes, naming the thing it moves, never a bare Close beside the details' own close: "Close garage door",
- * "Open gate".
+ * The yes, saying what happens: naming the thing it moves, never a bare Close beside the details' own close ("Close
+ * garage door", "Open gate"), or where it goes ("Move to 40%").
  */
-export const coverAskAction = (action: CoverAction, e: Pick<CoverEntity, "deviceClass">) => `${VERB[action]} ${CLASS_LABEL[e.deviceClass].toLowerCase()}`;
+export const coverAskAction = (action: CoverAsk, e: Pick<CoverEntity, "deviceClass">) =>
+  typeof action === "string" ? `${VERB[action]} ${CLASS_LABEL[e.deviceClass].toLowerCase()}` : `Move to ${action.position}%`;
 
 /** What the details say while the yes is on its way, naming the thing: "Waiting for the garage door". A skin adds its end punctuation. */
 export const coverAskWaiting = (e: Pick<CoverEntity, "deviceClass">) => waitingFor(CLASS_LABEL[e.deviceClass].toLowerCase());
