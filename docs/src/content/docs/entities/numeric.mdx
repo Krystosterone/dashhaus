@@ -92,8 +92,9 @@ Pass `history` to supply your own, or `loadHistory={false}` to skip the read.
 ## Today
 
 `numericToday` says the day the same way in every skin. A measurement gives its low and high. A meter that only climbs
-(`state_class: total_increasing`, such as energy or water) gives how far it rose since the day's first reading, since
-its low and high would only be midnight and now.
+(`state_class: total_increasing`, such as energy or water) gives how far it rose since midnight, since its low and
+high would only be midnight and now. A meter that resets counts again from zero, as Home Assistant's energy dashboard
+does.
 
 <Example file="entities/numeric/Today.tsx" />
 

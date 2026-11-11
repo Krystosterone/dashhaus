@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { HaHistoryRecord } from "./history";
 import fixture from "./fixtures/history_during_period.json";
+import { numericToday } from "../entities/numeric/readings";
 import {
   alarmHistoryFromHass,
   climateHistoryFromHass,
@@ -124,7 +125,7 @@ describe("vacuumHistoryFromHass", () => {
     expect(result.samples[9]).toBe(1);
     expect(result.samples[10]).toBe(0);
     expect(result.samples[13]).toBeNull();
-    expect(result.cleaningMinutes).toBe(60 + 34);
+    expect(result.cleaningMinutes).toBe(60 + 30); // 9:00 to 10:00, then 12:04 to now
   });
 
   it("marks hours it was unreachable", () => {
@@ -478,5 +479,149 @@ describe("mediaPlayerHistoryFromHass", () => {
     );
     expect(result.samples.slice(0, 13)).toEqual([0, 0, 0, 0, 0, 0, 0, 1, 1, 0, "unavailable", 1, 1]);
     expect(result.playingMinutes).toBe(3 * 60 + 34);
+  });
+});
+
+/** Run `test` with the clock in Toronto, whose DST days are 23 and 25 hours long. */
+const inToronto = <T>(test: () => T): T => {
+  const previous = process.env.TZ;
+  process.env.TZ = "America/Toronto";
+  try {
+    return test();
+  } finally {
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  }
+};
+
+describe("today's minutes", () => {
+  it("counts from the change, not from the top of its hour", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", iso(12, 30))], "switch.x", now());
+    expect(result.onMinutes).toBe(4);
+  });
+
+  it("counts the minutes before an hour's first change", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", iso(11, 59))], "switch.x", now());
+    expect(result.onMinutes).toBe(35);
+  });
+
+  it("counts an hour that ended off up to the change", () => {
+    const result = toggleHistoryFromHass(
+      [record("switch.x", "on", "2026-10-19T20:00:00"), record("switch.x", "off", iso(12, 33))],
+      "switch.x",
+      now(),
+    );
+    expect(result.onMinutes).toBe(12 * 60 + 33);
+  });
+
+  it("counts the real hours of a 23-hour day", () => {
+    const minutes = inToronto(() =>
+      toggleHistoryFromHass([record("switch.x", "on", "2026-03-08T00:00:00")], "switch.x", new Date(2026, 2, 8, 12, 0)).onMinutes,
+    );
+    expect(minutes).toBe(11 * 60);
+  });
+
+  it("counts the real hours of a 25-hour day", () => {
+    const minutes = inToronto(() =>
+      toggleHistoryFromHass([record("switch.x", "on", "2026-11-01T00:00:00")], "switch.x", new Date(2026, 10, 1, 12, 0)).onMinutes,
+    );
+    expect(minutes).toBe(13 * 60);
+  });
+
+  it("says what the climate did while it ran, not while it idled or was off", () => {
+    const offOvernight = climateHistoryFromHass(
+      [record("climate.home", "off", "2026-10-19T22:00:00", { hvac_action: "off" }), record("climate.home", "cool", iso(12), { hvac_action: "cooling" })],
+      "climate.home",
+      new Date(2026, 9, 20, 18, 0),
+    );
+    expect(offOvernight.activity).toBe("cooling");
+    const cycling = Array.from({ length: 18 }, (_, h) => [
+      record("climate.home", "heat", iso(h), { hvac_action: "heating" }),
+      record("climate.home", "heat", iso(h, 20), { hvac_action: "idle" }),
+    ]).flat();
+    expect(climateHistoryFromHass(cycling, "climate.home", new Date(2026, 9, 20, 18, 0)).activity).toBe("heating");
+  });
+
+  it("says it was running on a day it never heated or cooled", () => {
+    const idle = climateHistoryFromHass([record("climate.home", "heat", iso(0), { hvac_action: "idle" })], "climate.home", now());
+    expect(idle.activity).toBe("running");
+    expect(idle.activeMinutes).toBe(12 * 60 + 34);
+  });
+
+  it("counts a change at exactly now as a minute, as the strip draws it on", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", iso(12, 34))], "switch.x", now());
+    expect(result.samples[12]).toBe(1);
+    expect(result.onMinutes).toBe(1);
+  });
+
+  it("counts a change under half a minute old as a minute, as the strip draws it on", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", "2026-10-20T12:33:31")], "switch.x", now());
+    expect(result.samples[12]).toBe(1);
+    expect(result.onMinutes).toBe(1);
+  });
+
+  it("weighs the climate's activity by how long each lasted, not by its rows", () => {
+    const result = climateHistoryFromHass(
+      [
+        record("climate.home", "heat", "2026-10-19T22:00:00", { hvac_action: "heating" }),
+        record("climate.home", "cool", iso(11), { hvac_action: "cooling" }),
+        record("climate.home", "cool", iso(11, 10), { hvac_action: "cooling" }),
+        record("climate.home", "cool", iso(11, 20), { hvac_action: "cooling" }),
+      ],
+      "climate.home",
+      now(),
+    );
+    expect(result.activity).toBe("heating");
+  });
+});
+
+describe("a meter's rise today", () => {
+  const meter = { state_class: "total_increasing" };
+  const rise = (records: HaHistoryRecord[]) =>
+    readingHistoryFromHass(records.map((r) => ({ ...r, attributes: { ...meter, ...r.attributes } })), "sensor.energy", now());
+  const say = (records: HaHistoryRecord[]) => numericToday({ unit: "kWh", stateClass: "total_increasing" }, rise(records)).long;
+
+  it("rises from the reading in effect at midnight", () => {
+    const records = [record("sensor.energy", "99.2", "2026-10-19T21:00:00"), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))];
+    expect(rise(records).rise).toBeCloseTo(9.4);
+    expect(say(records)).toBe("+9.4 kWh today");
+  });
+
+  it("rises from a reading recorded at midnight", () => {
+    expect(say([record("sensor.energy", "100", iso(0)), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))])).toBe("+8.6 kWh today");
+  });
+
+  it("rises from the day's first reading when nothing was recorded by midnight", () => {
+    expect(say([record("sensor.energy", "100", iso(0, 5)), record("sensor.energy", "100.5", iso(0, 55)), record("sensor.energy", "108.6", iso(12))])).toBe("+8.6 kWh today");
+  });
+
+  it("counts a daily meter's reset after midnight as a restart from 0, as Home Assistant does", () => {
+    const records = [
+      record("sensor.energy", "12.3", iso(0)),
+      record("sensor.energy", "0", "2026-10-20T00:00:00.300"),
+      record("sensor.energy", "0.4", iso(0, 59)),
+      record("sensor.energy", "3.1", iso(12)),
+    ];
+    expect(say(records)).toBe("+3.1 kWh today");
+  });
+
+  it("counts a reset during the day from 0 too", () => {
+    expect(say([record("sensor.energy", "12", iso(0)), record("sensor.energy", "14", iso(6)), record("sensor.energy", "0.5", iso(9))])).toBe("+2.5 kWh today");
+  });
+
+  it("skips the hours it was unavailable", () => {
+    expect(say([record("sensor.energy", "unavailable", iso(0)), record("sensor.energy", "100", iso(1)), record("sensor.energy", "unknown", iso(2)), record("sensor.energy", "101", iso(3))])).toBe("+1 kWh today");
+  });
+
+  it("reads no rise for a sensor that isn't a meter that only climbs", () => {
+    const of = (stateClass: string, values: string[]) =>
+      readingHistoryFromHass(values.map((v, i) => record("sensor.x", v, iso(i * 6), { state_class: stateClass })), "sensor.x", now()).rise;
+    expect(of("total", ["100", "95", "80"])).toBeUndefined();
+    expect(of("measurement", ["900", "500", "600"])).toBeUndefined();
+    expect(readingHistoryFromHass([record("sensor.x", "100", iso(0)), record("sensor.x", "101", iso(6))], "sensor.x", now()).rise).toBeUndefined();
+  });
+
+  it("says nothing of a rise before a reading", () => {
+    expect(rise([record("sensor.energy", "unavailable", iso(0))]).rise).toBeUndefined();
   });
 });

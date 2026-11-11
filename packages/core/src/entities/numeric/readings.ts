@@ -80,15 +80,32 @@ export interface NumericToday {
 }
 
 /**
+ * How far a meter that only climbs rose over `values`, in order: the sum of its rises, where a drop of more than a
+ * tenth is a reset and the meter starts again from 0, and a smaller dip is netted, as Home Assistant's statistics read a
+ * `total_increasing` sensor. None without a value.
+ */
+export function meterRise(values: readonly number[]): number | undefined {
+  if (values.length === 0) return undefined;
+  let rise = 0;
+  for (let i = 1; i < values.length; i++) {
+    const [before, now] = [values[i - 1], values[i]];
+    rise += now < 0.9 * before ? now : now - before;
+  }
+  return rise;
+}
+
+/**
  * Today's summary, the same on every card and in every skin. A measurement (CO₂, power) says its low and high; a
- * meter that only climbs (`total_increasing`: energy, water) says how far it rose since the day's first reading,
- * since its low and high would only be midnight and now. A meter that reset today falls back to its low and high.
+ * meter that only climbs (`total_increasing`: energy, water) says how far it rose since midnight (`meterRise`: from its
+ * reading then, else the day's first, a reset counted from 0), since its low and high would only be midnight and now.
+ * The history's `rise` where it read one, else the hourly readings'. A meter that only dipped falls back to its low
+ * and high.
  */
 export function numericToday(entity: Pick<NumericEntity, "unit" | "stateClass">, history: NumericHistory): NumericToday {
   const day = normalizeNumeric(history.readings);
   if (day.min == null || day.max == null) return { long: NO_READINGS_TODAY, samples: day.samples };
   const nums = history.readings.slice(0, history.currentHour + 1).filter((x): x is number => typeof x === "number");
-  const rise = nums.length ? nums[nums.length - 1] - nums[0] : undefined;
+  const rise = history.rise ?? meterRise(nums);
   if (entity.stateClass === "total_increasing" && rise != null && rise >= 0) {
     const short = `+${numericFigure(rise)}`;
     return { short, long: `${withUnit(`+${fmtNumeric(rise)}`, entity.unit)} today`, samples: day.samples };

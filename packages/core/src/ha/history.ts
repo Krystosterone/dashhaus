@@ -5,10 +5,12 @@ import type { CoverHistory } from "../entities/cover/types";
 import type { ToggleHistory } from "../entities/toggle/types";
 import type { AlarmHistory } from "../entities/alarm/types";
 import type { SensorHistory, Reading } from "../entities/sensor/types";
+import type { NumericHistory } from "../entities/numeric/types";
 import type { WeatherHistory } from "../entities/weather/types";
 import type { OwletHistory, SleepState } from "../entities/owlet/types";
 import { SLEEP_SAMPLE } from "../entities/owlet/sleep";
 import type { MediaPlayerHistory } from "../entities/mediaPlayer/types";
+import { meterRise } from "../entities/numeric/readings";
 import { mediaPlayerStateOf } from "./mappers/mediaPlayer";
 import type { VacuumHistory } from "../entities/vacuum/types";
 import { vacuumStateOf } from "./mappers/vacuum";
@@ -69,21 +71,18 @@ const only = (records: Records, entityId: string): HaHistoryRecord[] =>
 
 const localMidnight = (now: Date) => new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-/** Records between local midnight and `now`. */
-const today = (records: readonly HaHistoryRecord[], now: Date) => {
-  const start = localMidnight(now).getTime();
-  return records.filter((record) => record.changed.getTime() >= start && record.changed <= now);
-};
+/** The records up to `now`, oldest first. */
+const upTo = (records: readonly HaHistoryRecord[], now: Date) =>
+  records.filter((record) => record.changed <= now).sort((a, b) => a.changed.getTime() - b.changed.getTime());
 
 /**
  * For each local hour 0..23, the record in effect (last change at or before that hour). The latest
  * record from before local midnight is the state carried into hour 0; records after `now` are ignored.
+ * What the hourly strip draws; how long each state lasted is `stretches`.
  */
 function hourStates(records: readonly HaHistoryRecord[], now: Date): Array<HaHistoryRecord | undefined> {
   const start = localMidnight(now).getTime();
-  const sorted = records
-    .filter((record) => record.changed <= now)
-    .sort((a, b) => a.changed.getTime() - b.changed.getTime());
+  const sorted = upTo(records, now);
   const states = new Array<HaHistoryRecord | undefined>(24).fill(undefined);
   let idx = 0;
   let current: HaHistoryRecord | undefined;
@@ -93,6 +92,23 @@ function hourStates(records: readonly HaHistoryRecord[], now: Date): Array<HaHis
     states[hour] = current;
   }
   return states;
+}
+
+/**
+ * How long each record was in effect today, in ms: from its change (local midnight for the one carried in from
+ * before) to the next change or `now`. Real time, so a DST day is 23 or 25 hours long; records that never held
+ * today are left out.
+ */
+function stretches(records: readonly HaHistoryRecord[], now: Date): Array<{ record: HaHistoryRecord; ms: number }> {
+  const start = localMidnight(now).getTime();
+  const sorted = upTo(records, now);
+  const out: Array<{ record: HaHistoryRecord; ms: number }> = [];
+  sorted.forEach((record, i) => {
+    const from = Math.max(record.changed.getTime(), start);
+    const to = i + 1 < sorted.length ? sorted[i + 1].changed.getTime() : now.getTime();
+    if (to > from) out.push({ record, ms: to - from });
+  });
+  return out;
 }
 
 interface BuildOptions {
@@ -111,16 +127,16 @@ function build(records: readonly HaHistoryRecord[], now: Date, options: BuildOpt
     const record = states[hour];
     samples[hour] = record == null ? (options.noData ?? "unavailable") : options.value(record.state, record.attributes);
   }
-  let minutes = 0;
+  let ms = 0;
+  let onNow = false;
   if (options.on) {
-    for (let hour = 0; hour < currentHour; hour++) {
-      const record = states[hour];
-      if (record != null && options.on(record.state, record.attributes)) minutes += 60;
-    }
+    for (const { record, ms: lasted } of stretches(records, now)) if (options.on(record.state, record.attributes)) ms += lasted;
     const current = states[currentHour];
-    if (current != null && options.on(current.state, current.attributes)) minutes += now.getMinutes();
+    onNow = current != null && options.on(current.state, current.attributes);
   }
-  return { samples, currentHour, minutes };
+  // Anything on today, or on now (a change at this very instant), is at least a minute, so the summary never says
+  // "not on" beside an hour the strip draws on.
+  return { samples, currentHour, minutes: ms > 0 || onNow ? Math.max(1, Math.round(ms / 60_000)) : 0 };
 }
 
 /* ------------------------------------------------------------------ *
@@ -260,12 +276,13 @@ function climateSample(state: string): HourSample {
   return 1;
 }
 
-function climateActivity(records: readonly HaHistoryRecord[]): ClimateHistory["activity"] {
+/** What the unit did longest today while it ran (idle and off left out); heating or cooling wins a tie, else it was running. */
+function climateActivity(records: readonly HaHistoryRecord[], now: Date): ClimateHistory["activity"] {
   const counts = new Map<string, number>();
-  for (const record of records) {
+  for (const { record, ms } of stretches(records, now)) {
     const action = record.attributes.hvac_action;
-    if (typeof action !== "string" || action === "") continue;
-    counts.set(action, (counts.get(action) ?? 0) + 1);
+    if (typeof action !== "string" || action === "" || action === "idle" || action === "off") continue;
+    counts.set(action, (counts.get(action) ?? 0) + ms);
   }
   if (counts.size === 0) return "running";
   let max = 0;
@@ -284,7 +301,7 @@ export function climateHistoryFromHass(records: Records, entityId: string, now?:
     value: climateSample,
     on: (state) => state !== "off" && state !== "unavailable" && state !== "unknown",
   });
-  return { samples, currentHour, activeMinutes: minutes, activity: climateActivity(today(own, when)) };
+  return { samples, currentHour, activeMinutes: minutes, activity: climateActivity(own, when) };
 }
 
 /* ------------------------------------------------------------------ *
@@ -300,6 +317,21 @@ function numericState(state: string): Reading {
 function temperatureAttribute(state: string, attributes: Record<string, unknown>): Reading {
   if (state === "unavailable" || state === "unknown") return "unavailable";
   return finiteNumber(attributes.temperature) ?? "unavailable";
+}
+
+/**
+ * How far a meter that only climbs rose today: every numeric reading from the one in effect at local midnight (else
+ * the day's first) to `now`, through `meterRise`. None before a reading, and none unless the latest record says
+ * `state_class: total_increasing`, as Home Assistant's statistics read a reset only on such a meter.
+ */
+function todayRise(records: readonly HaHistoryRecord[], now: Date): number | undefined {
+  const start = localMidnight(now).getTime();
+  const sorted = upTo(records, now);
+  if (sorted.length === 0 || sorted[sorted.length - 1].attributes.state_class !== "total_increasing") return undefined;
+  let from = 0;
+  while (from + 1 < sorted.length && sorted[from + 1].changed.getTime() <= start) from++;
+  const values = sorted.slice(from).map((record) => numericState(record.state)).filter((x): x is number => typeof x === "number");
+  return meterRise(values);
 }
 
 function buildReadings(records: readonly HaHistoryRecord[], now: Date, reading: (state: string, attributes: Record<string, unknown>) => Reading): Reading[] {
@@ -325,10 +357,12 @@ export function sensorHistoryFromHass(
   return { temperature, humidity, currentHour: when.getHours() };
 }
 
-/** Today's numeric readings for any one sensor, carried forward hour by hour. */
-export function readingHistoryFromHass(records: Records, entityId: string, now?: Date): { readings: Reading[]; currentHour: number } {
+/** Today's numeric readings for any one sensor, carried forward hour by hour, and how far it rose today if a meter that only climbs. */
+export function readingHistoryFromHass(records: Records, entityId: string, now?: Date): NumericHistory {
   const when = safeNow(now);
-  return { readings: buildReadings(only(records, entityId), when, numericState), currentHour: when.getHours() };
+  const own = only(records, entityId);
+  const rise = todayRise(own, when);
+  return { readings: buildReadings(own, when, numericState), currentHour: when.getHours(), ...(rise === undefined ? {} : { rise }) };
 }
 
 /** Carry the weather entity's `temperature` attribute forward; its state is a condition, not a reading. */

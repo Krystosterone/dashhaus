@@ -92,4 +92,10 @@ export interface NumericHistory {
   /** One reading per hour, carried forward; "unavailable", or null for hours ahead and before the first reading. */
   readings: Reading[];
   currentHour: number;
+  /**
+   * How far a meter that only climbs (`state_class: total_increasing`) rose today (`meterRise`), from every reading
+   * recorded since its reading at midnight, where the history read them; unset for any other sensor. Without it,
+   * today's summary reads a meter's rise from `readings`.
+   */
+  rise?: number;
 }

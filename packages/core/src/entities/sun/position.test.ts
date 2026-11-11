@@ -67,6 +67,41 @@ describe("sunDay", () => {
   });
 });
 
+describe("sunDay on a DST day", () => {
+  /** Run `test` with the clock in Toronto, whose DST days are 23 and 25 hours long. */
+  const inToronto = <T>(test: () => T): T => {
+    const previous = process.env.TZ;
+    process.env.TZ = "America/Toronto";
+    try {
+      return test();
+    } finally {
+      if (previous === undefined) delete process.env.TZ;
+      else process.env.TZ = previous;
+    }
+  };
+
+  /** Each clock hour's highest sun against the day's peak, minute by minute. */
+  const clockHours = (year: number, month: number, date: number, latitude: number, longitude: number, peak: number) =>
+    Array.from({ length: 24 }, (_, h) => {
+      const from = new Date(year, month, date, h).getTime(), to = new Date(year, month, date, h + 1).getTime();
+      let top = -90;
+      for (let t = from; t <= to; t += 60_000) top = Math.max(top, sunElevation(t, latitude, longitude));
+      return peak > 0 && top > 0 ? Math.min(1, top / peak) : 0;
+    });
+
+  for (const [name, date] of [["spring", 8], ["fall", 1]] as const) {
+    const month = name === "spring" ? 2 : 10;
+    it(`says the clock's hour and cuts the hours on the clock, in the ${name}`, () => {
+      inToronto(() => {
+        const day = sunDay(new Date(2026, month, date, 12, 0).getTime(), 43.65, -79.38);
+        expect(day.currentHour).toBe(12);
+        const expected = clockHours(2026, month, date, 43.65, -79.38, day.peak);
+        day.samples.forEach((sample, h) => expect(sample as number).toBeCloseTo(expected[h], 1));
+      });
+    });
+  }
+});
+
 describe("sunEvents", () => {
   const now = new Date(2026, 9, 19, 11, 54).getTime();
   const longitude = -new Date(now).getTimezoneOffset() / 4;
