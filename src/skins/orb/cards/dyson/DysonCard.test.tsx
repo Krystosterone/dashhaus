@@ -16,6 +16,7 @@ describe("DysonCard", () => {
     expect(card?.className).toBe("hd dy");
     rerender(<DysonCard entity={heater} onToggle={() => {}} />);
     expect(container.querySelector("article")?.getAttribute("data-role")).toBe("energy");
+    expect(container.querySelector("article")?.getAttribute("data-glow")).toBe("");
   });
 
   it("keeps its energy colour, without its glow, while it heats and warns", () => {
