@@ -1,9 +1,10 @@
 // @vitest-environment node
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
+import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import { afterEach, describe, expect, it } from "vitest";
-import { deploy } from "./deploy.js";
+import { connectHomeAssistant, deploy } from "./deploy.js";
 import type { DeployClient } from "./deploy.js";
 
 const directories: string[] = [];
@@ -21,8 +22,13 @@ class FakeHomeAssistant implements DeployClient {
   closed = false;
   failResources = false;
   failSaves = 0;
+  /** The command at which Home Assistant goes away: it and every later one fail as a lost connection does. */
+  dropAt = "";
+  dropped = false;
 
   async send(type: string, payload: Record<string, unknown> = {}): Promise<unknown> {
+    if (type === this.dropAt) this.dropped = true;
+    if (this.dropped) throw Object.assign(new Error("Home Assistant closed the connection."), { closed: true });
     const data = payload as {
       url?: string;
       resource_id?: string;
@@ -460,5 +466,97 @@ export default {
     await expect(run(`export default { files: ["dist/orb-dashboard.js"], dashboards: [{ path: "home-a", title: "A", icon: "mdi:home" }] };`))
       .rejects.toThrowError("dashboards[0] needs a card");
     await expect(run(`export default { files: [], dashboards: [] };`)).rejects.toThrowError("files must name at least one file to upload");
+  });
+
+  it("copies nothing when Home Assistant refuses the token, so the served file keeps its resource's version", async () => {
+    const directory = await project();
+    const messages: string[] = [];
+    await expect(deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: (message) => messages.push(message),
+      connect: async () => { throw new Error("Home Assistant rejected HA_TOKEN. Create a new long-lived access token."); },
+    })).rejects.toThrowError("rejected HA_TOKEN");
+    expect(await readdir(join(directory, "www"))).toEqual([]);
+    expect(messages.some((message) => message.includes("Copying to"))).toBe(false);
+  });
+
+  it("stops at a lost connection while registering, instead of advising YAML mode for every file", async () => {
+    const directory = await project();
+    const ha = Object.assign(new FakeHomeAssistant(), { dropAt: "lovelace/resources" });
+    const warnings: string[] = [];
+    await expect(deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      warn: (message) => warnings.push(message),
+      connect: async () => ha,
+    })).rejects.toThrowError("Home Assistant closed the connection.");
+    expect(warnings).toEqual([]);
+    expect(ha.closed).toBe(true);
+  });
+
+  it.each(["lovelace/dashboards/create", "lovelace/config/save"])("names the dashboard to delete when the connection is lost at %s", async (dropAt) => {
+    const directory = await project();
+    const ha = Object.assign(new FakeHomeAssistant(), { dropAt });
+    await expect(deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      warn: () => {},
+      connect: async () => ha,
+    })).rejects.toThrowError('Home Assistant closed the connection. The "Home A" dashboard (/home-a) may have been created without its layout: if it is in the sidebar, delete it under Settings → Dashboards, then deploy again.');
+  });
+
+  it.skipIf(process.platform === "win32")("copies over ssh without blocking, so the open connection keeps answering Home Assistant", async () => {
+    const directory = await project();
+    const bin = join(directory, "bin");
+    await mkdir(bin);
+    // A stand-in ssh that takes its time, as one waiting at a prompt does, then runs the remote command here.
+    await writeFile(join(bin, "ssh"), '#!/bin/sh\nfor last; do :; done\nsleep 0.4\nexec sh -c "$last"\n');
+    await chmod(join(bin, "ssh"), 0o755);
+    const path = process.env.PATH;
+    process.env.PATH = `${bin}${delimiter}${path}`;
+    let ticks = 0;
+    const timer = setInterval(() => ticks++, 20);
+    try {
+      await deploy({
+        configFile: join(directory, "dashboard.config.mjs"),
+        env: { ...settings(directory), HA_WWW: `root@homeassistant.local:${join(directory, "remote")}` },
+        skipBuild: true,
+        report: () => {},
+        warn: () => {},
+        connect: async () => { ticks = 0; return new FakeHomeAssistant(); },
+      });
+    } finally {
+      clearInterval(timer);
+      process.env.PATH = path;
+    }
+    expect(await readFile(join(directory, "remote", "orb-dashboard", "orb-dashboard.js"), "utf8")).toBe("console.log('orb');");
+    // A blocked event loop would have let no timer run while ssh slept.
+    expect(ticks).toBeGreaterThanOrEqual(5);
+  });
+});
+
+
+describe("connectHomeAssistant", () => {
+  it("rejects a command sent after Home Assistant closes the connection instead of waiting forever", async () => {
+    const server = await startFakeHomeAssistant({ port: 0 });
+    try {
+      const ha = await connectHomeAssistant(server.settings.HA_URL, server.settings.HA_TOKEN);
+      await expect(ha.send("lovelace/dashboards/list")).resolves.toEqual(expect.any(Array));
+      await server.close();
+      // The first command can't be answered, so it settles once the client has seen the close.
+      const lost = { closed: true, message: "Home Assistant closed the connection." };
+      await expect(ha.send("lovelace/dashboards/list")).rejects.toMatchObject(lost);
+      // The next one is sent on a closed socket, which drops it: only the client can settle it.
+      await expect(ha.send("lovelace/config/save")).rejects.toMatchObject(lost);
+      ha.close();
+    } finally {
+      await server.close();
+    }
   });
 });

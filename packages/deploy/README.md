@@ -115,6 +115,7 @@ Settings live only in `.env` or the environment.
 | `No config at …` | Write `dashboard.config.mjs` in the folder you run from, or pass `--config <file>`. |
 | `Missing settings` | Add the keys it lists to `.env` beside the config. |
 | `Could not reach …` / `rejected HA_TOKEN` | Check `HA_URL` (the address you open Home Assistant at) or make a new token. |
+| `Home Assistant closed the connection.` | Home Assistant restarted or dropped the connection mid-deploy; run the deploy again once it is back. If the message names a dashboard, delete it under Settings → Dashboards first. |
 | `! … answers HTTP 404` | `HA_WWW` is not the folder Home Assistant serves at `/local/`, or `www` did not exist when Home Assistant started: restart it once. |
 | `! Could not manage resources` | Your dashboards are in YAML mode; add the printed lines, one entry per file, under `lovelace: resources:` in `configuration.yaml`. |
 | `! Another … is also registered` | The same file is installed twice, as from the Marketplace under `/hacsfiles/`; remove one under Settings → Dashboards → Resources. |

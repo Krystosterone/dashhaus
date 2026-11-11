@@ -1,7 +1,7 @@
 // The deploy CLI's work: read the user's config, build and upload its files, register each as a dashboard resource
 // and create the dashboards once. Node-only: it imports no @dashhaus package and no skin. Settings are the only thing it
 // reads from the environment; the config names the dashboards.
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile, rename } from "node:fs/promises";
@@ -68,9 +68,16 @@ async function upload({ contents, target, www, sshPort, configFile, report }) {
     const port = sshPort ? ["-p", sshPort] : [];
     const quoted = (path) => `'${path.replaceAll("'", "'\\''")}'`;
     report(`\n→ Copying to ${www}/${target.folder}/`);
-    // Streamed over plain ssh rather than scp: the Home Assistant SSH add-ons do not all offer SFTP.
-    const ssh = spawnSync("ssh", [...port, host, `mkdir -p ${quoted(dir)} && cat > ${quoted(`${dir}/${target.name}.tmp`)} && mv ${quoted(`${dir}/${target.name}.tmp`)} ${quoted(`${dir}/${target.name}`)}`], { input: contents, stdio: ["pipe", "inherit", "inherit"] });
-    if (ssh.status !== 0) {
+    // Streamed over plain ssh rather than scp: the Home Assistant SSH add-ons do not all offer SFTP. Run without
+    // blocking, so the open websocket keeps answering Home Assistant's heartbeat while ssh waits at a prompt.
+    const status = await new Promise((done) => {
+      const ssh = spawn("ssh", [...port, host, `mkdir -p ${quoted(dir)} && cat > ${quoted(`${dir}/${target.name}.tmp`)} && mv ${quoted(`${dir}/${target.name}.tmp`)} ${quoted(`${dir}/${target.name}`)}`], { stdio: ["pipe", "inherit", "inherit"] });
+      ssh.on("error", () => done(null));
+      ssh.on("close", done);
+      ssh.stdin.on("error", () => {}); // ssh that exits early stops reading; its status says why.
+      ssh.stdin.end(contents);
+    });
+    if (status !== 0) {
       throw new DeployConfigError(`Copying over SSH to ${host} failed. Check that the SSH add-on is running and that \`ssh ${[...port, host].join(" ")}\` works without a password prompt.`);
     }
     report(`  ✓ ${target.folder}/${target.name}`);
@@ -104,6 +111,8 @@ async function registerResource(ha, target, report, warn) {
     if (other) warn(`  ! Another ${target.name} is also registered (${other.url.split("?")[0]}). Both define the same cards and only the first to load is used, so remove one under Settings → Dashboards → Resources.`);
     return { name, url, version, updated: Boolean(existing) };
   } catch (error) {
+    // A lost connection is not YAML mode: stop rather than advise a resource for every file.
+    if (error?.closed) throw error;
     const message = error?.message ?? String(error);
     warn(`  ! Could not manage resources (${message}). If your dashboards are in YAML mode, add this under lovelace: resources: in configuration.yaml:
       - url: ${url}
@@ -144,15 +153,27 @@ async function reconcileDashboards(ha, dashboards, pageTitle, report) {
       continue;
     }
     const { config, made } = await layoutOf(dashboard, ha, pageTitle);
-    await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
+    // A connection lost around the create or the save may leave the dashboard without its layout for good, since the
+    // next run keeps an existing one: say which to delete. Home Assistant may have stored either before the close.
+    const leftBehind = (error) => new Error(`${error?.message ?? String(error)} The "${dashboard.title}" dashboard (/${dashboard.path}) may have been created without its layout: if it is in the sidebar, delete it under Settings → Dashboards, then deploy again.`, { cause: error });
+    try {
+      await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
+    } catch (error) {
+      throw error?.closed ? leftBehind(error) : error;
+    }
     try {
       await ha.send("lovelace/config/save", { url_path: dashboard.path, config });
     } catch (error) {
-      // Delete what this run created, so the next run creates it again rather than leaving
-      // it empty for good. The save's error is the one worth reporting.
-      const made = (await ha.send("lovelace/dashboards/list").catch(() => [])).find((item) => item.url_path === dashboard.path);
-      if (made) await ha.send("lovelace/dashboards/delete", { dashboard_id: made.id }).catch(() => {});
-      throw error;
+      // Delete what this run created, so the next run creates it again rather than leaving it empty for good. The
+      // save's error is the one worth reporting; when the rollback can't run either (Home Assistant restarted), the
+      // error says which dashboard to delete.
+      const rolledBack = await ha.send("lovelace/dashboards/list")
+        .then(async (list) => {
+          const made = list.find((item) => item.url_path === dashboard.path);
+          if (made) await ha.send("lovelace/dashboards/delete", { dashboard_id: made.id });
+        })
+        .then(() => true, () => false);
+      throw rolledBack ? error : leftBehind(error);
     }
     report(`  ✓ created with ${made}`);
     results.push({ path: dashboard.path, title: dashboard.title, status: "created" });
@@ -184,12 +205,13 @@ export async function deploy({
   report(`\n→ Reading ${targets.length === 1 ? "the file" : `the ${targets.length} files`}`);
   const files = [];
   for (const target of targets) files.push(await readTarget({ configFile: file, target, report }));
-  for (const target of files) await upload({ contents: target.contents, target, www: settings.www, sshPort: settings.sshPort, configFile: file, report });
 
+  // Connect before copying anything: a rejected token must leave the served file and its resource's version as they were.
   report(`\n→ Connecting to ${settings.url}`);
   const ha = await connect(settings.url, settings.token);
   try {
     report(`  ✓ Home Assistant ${ha.version}`);
+    for (const target of files) await upload({ contents: target.contents, target, www: settings.www, sshPort: settings.sshPort, configFile: file, report });
     report(`\n→ Registering ${files.length === 1 ? "the dashboard resource" : "the dashboard resources"}`);
     const resources = [];
     for (const target of files) resources.push(await registerResource(ha, target, report, warn));
@@ -250,6 +272,9 @@ export function connectHomeAssistant(base, token) {
     let id = 0;
     let version = "";
     let settled = false;
+    // A command that fails because the connection is gone says so with `closed`, apart from an error Home Assistant
+    // answers with.
+    const closed = () => Object.assign(new Error("Home Assistant closed the connection."), { closed: true });
     const rejectPending = (error) => {
       for (const { rej } of pending.values()) rej(error);
       pending.clear();
@@ -257,6 +282,8 @@ export function connectHomeAssistant(base, token) {
     const client = {
       get version() { return version; },
       send(type, payload = {}) {
+        // A closed WebSocket drops send() without a word, so a request after a close would wait forever.
+        if (socket.readyState !== WebSocket.OPEN) return Promise.reject(closed());
         const request = ++id;
         socket.send(JSON.stringify({ id: request, type, ...payload }));
         return new Promise((res, rej) => pending.set(request, { res, rej }));
@@ -283,13 +310,12 @@ export function connectHomeAssistant(base, token) {
       }
     });
     socket.addEventListener("error", () => {
-      const error = new Error(`Could not reach ${base}. Is HA_URL right?`);
-      if (!settled) rejectConnection(error);
-      rejectPending(error);
+      if (!settled) rejectConnection(new Error(`Could not reach ${base}. Is HA_URL right?`));
+      rejectPending(closed());
     });
     socket.addEventListener("close", () => {
       if (!settled) rejectConnection(new Error(`Could not reach ${base}. Is HA_URL right?`));
-      rejectPending(new Error("Home Assistant closed the connection."));
+      rejectPending(closed());
     });
   });
 }
