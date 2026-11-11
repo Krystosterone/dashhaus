@@ -1,5 +1,5 @@
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
-import { comfortLabel, fmtTemp, lowBattery, normalize, TREND_WORD, trendOf } from "@dashhaus/core/entities/sensor/readings";
+import { comfortLabel, fmtTemp, toCelsius, lowBattery, normalize, TREND_WORD, trendOf } from "@dashhaus/core/entities/sensor/readings";
 import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { TitanCardFrame, TitanDatum, TitanGauge } from "../../shared/ui";
 import type { TitanFootprint } from "../../shared/ui";
@@ -20,7 +20,7 @@ export interface TitanSensorCardProps {
 export function TitanSensorCard({ entity: e, history, footprint = "standard", defaultOpen = false }: TitanSensorCardProps) {
   const unavailable = e.state === "unavailable";
   const t = e.temperature;
-  const comfort = comfortLabel(t, e.humidity, e.outdoor);
+  const comfort = comfortLabel(t != null ? toCelsius(t, e.unit) : undefined, e.humidity, e.outdoor);
   const trend = trendOf(history?.temperature, history?.currentHour ?? 0);
   const curve = history ? normalize(history.temperature) : undefined;
   const range = curve && curve.min != null && curve.max != null ? `${fmtTemp(curve.min)}–${fmtTemp(curve.max)}${e.unit}` : undefined;
