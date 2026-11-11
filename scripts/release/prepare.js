@@ -56,7 +56,7 @@ export function renderRecord({ version, from, notes, diff, repository }) {
     `## API changes since ${from}`,
     "",
     `Read from the packed type declarations (\`npm run release:api\`). A removed entry or export, or a changed`,
-    "declaration, is breaking until a person says otherwise.",
+    "declaration, is breaking unless it is members added to an interface the package hands out and never takes in.",
     "",
     apiMarkdown(diff, from),
     "",

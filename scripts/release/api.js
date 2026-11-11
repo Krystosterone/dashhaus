@@ -10,7 +10,7 @@
  * comment does not. An untyped subpath (a stylesheet, a CLI) is recorded as present.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, realpathSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,7 +54,109 @@ function subpaths(packageDir, manifest) {
 const printer = ts.createPrinter({ removeComments: true });
 
 /**
- * The API of the packages unpacked under `dir`: `{ "<name><subpath>": { typed, exports: { <export>: <declaration> } } }`.
+ * The exported interfaces a consumer passes in, and those the package hands out, by symbol. An input is a parameter, a
+ * prop, a member of an input type, or a generic constraint; an output is a return, a member of a returned type, or a
+ * callback parameter the consumer reads. An interface reached as neither is one no exported value uses, such as a
+ * config type a person builds: it may still break, so it is never read as output-only.
+ * `keyof` is not an input position by itself: `Omit<Props, keyof Handlers>` names `Handlers` to take its keys, never to
+ * pass it. A generic constraint is where the issue says it is: `T extends keyof Keys` puts `Keys` in an input.
+ */
+function interfacePositions(program, checker, modules, packageRoots) {
+  const input = new Set();
+  const output = new Set();
+  const seen = new Map();
+  const localFiles = new Map();
+  const localFile = (file) => {
+    let ours = localFiles.get(file.fileName);
+    if (ours === undefined) {
+      const path = realpathSync(file.fileName);
+      ours = packageRoots.some((root) => path === root || path.startsWith(`${root}/`));
+      localFiles.set(file.fileName, ours);
+    }
+    return ours;
+  };
+  const declaredHere = (symbol) => (symbol?.declarations ?? []).some((declaration) => localFile(declaration.getSourceFile()));
+  const visitSignature = (signature, mode, keyed = false) => {
+    for (const parameter of signature.getTypeParameters() ?? []) {
+      // The resolved constraint can lose the interface a `keyof` named (`keyof Keys` becomes a union of its keys), so
+      // read the declaration's type references too: a generic constraint is an input position.
+      for (const declaration of parameter.symbol?.declarations ?? []) {
+        if (ts.isTypeParameterDeclaration(declaration) && declaration.constraint) visitConstraint(declaration.constraint);
+      }
+      const constraint = parameter.getConstraint();
+      if (constraint) visit(constraint, "input", true);
+    }
+    // A function the package hands out is called by the consumer, so its parameters are passed in. A function the
+    // consumer hands in (a callback, a prop) is implemented by them, so the package passes its parameters and they are
+    // read, not built: a render prop's `live` is a `HaMediaPlayerResult` no consumer ever constructs.
+    const parameters = mode === "input" ? "output" : "input";
+    for (const parameter of signature.getParameters()) visit(checker.getTypeOfSymbol(parameter), parameters, keyed);
+    visit(signature.getReturnType(), mode, keyed);
+  };
+  const visit = (type, mode, keyed = false) => {
+    if (!type) return;
+    let modes = seen.get(type);
+    if (!modes) seen.set(type, (modes = new Set()));
+    const seenAs = `${mode}${keyed ? ":keyed" : ""}`;
+    if (modes.has(seenAs)) return;
+    modes.add(seenAs);
+    const { flags } = type;
+    if (flags & ts.TypeFlags.TypeParameter) {
+      const constraint = type.getConstraint();
+      if (constraint) visit(constraint, "input", true);
+      return;
+    }
+    if (flags & ts.TypeFlags.Index) {
+      if (keyed) visit(type.type, "input", true);
+      return;
+    }
+    if (type.isUnion() || type.isIntersection()) {
+      for (const part of type.types) visit(part, mode, keyed);
+      return;
+    }
+    if (!(flags & ts.TypeFlags.Object)) return;
+    const symbol = type.symbol;
+    const library = symbol?.declarations?.length > 0 && symbol.declarations.every((declaration) => program.isSourceFileDefaultLibrary(declaration.getSourceFile()));
+    const declared = [type.symbol, type.aliasSymbol].filter(Boolean);
+    const external = declared.length > 0 && declared.every((symbol) => (symbol.declarations?.length ?? 0) > 0 && !declaredHere(symbol));
+    if (symbol && symbol.flags & ts.SymbolFlags.Interface) (mode === "input" ? input : output).add(symbol);
+    for (const signature of type.getCallSignatures()) visitSignature(signature, mode, keyed);
+    for (const signature of type.getConstructSignatures()) visitSignature(signature, mode, keyed);
+    for (const info of checker.getIndexInfosOfType(type)) {
+      visit(info.keyType, "input", keyed);
+      visit(info.type, mode, keyed);
+    }
+    if (type.objectFlags & ts.ObjectFlags.Reference && type.typeArguments) {
+      for (const argument of type.typeArguments) visit(argument, mode, keyed);
+    }
+    for (const argument of type.aliasTypeArguments ?? []) visit(argument, mode, keyed);
+    // A type from React or another dependency is not the API read here; its type arguments are (a component's
+    // `FC<Props>` carries `Props`), but walking its whole graph would visit thousands of types to find nothing.
+    if (library || external) return;
+    if (type.objectFlags & ts.ObjectFlags.Interface) for (const base of checker.getBaseTypes(type)) visit(base, mode, keyed);
+    for (const property of checker.getPropertiesOfType(type)) visit(checker.getTypeOfSymbol(property), mode, keyed);
+  };
+  const visitConstraint = (node) => {
+    if (ts.isTypeReferenceNode(node)) {
+      const type = checker.getTypeAtLocation(node);
+      if (type) visit(type, "input", true);
+    }
+    ts.forEachChild(node, visitConstraint);
+  };
+  for (const module of modules) {
+    for (const exported of checker.getExportsOfModule(module)) {
+      const target = exported.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported;
+      // An exported interface or type alias is a type only; its positions are the values that use it, not the export.
+      // Seeding it as a value would read its callback props backwards.
+      if (target.flags & ts.SymbolFlags.Value) visit(checker.getTypeOfSymbol(target), "output");
+    }
+  }
+  return { input, output };
+}
+
+/**
+ * The API of the packages unpacked under `dir`:
+ * `{ "<name><subpath>": { typed, exports: { <export>: <declaration> }, inputs: { <interface>: <appears in an input position> } } }`.
  * `names` are the packages to read, in `publicPackages` order.
  */
 export async function readApi(dir, names = publicPackages.map(({ name }) => name)) {
@@ -83,11 +185,15 @@ export async function readApi(dir, names = publicPackages.map(({ name }) => name
   const source = program.getSourceFile(entry);
   const imports = source.statements.filter(ts.isImportDeclaration);
   const api = {};
-  for (const { key, typed: isTyped } of entries) api[key] = { typed: isTyped, exports: {} };
-  imports.forEach((declaration, i) => {
-    const { key } = typed[i];
-    const moduleSymbol = checker.getSymbolAtLocation(declaration.moduleSpecifier);
+  for (const { key, typed: isTyped } of entries) api[key] = isTyped ? { typed: true, exports: {}, inputs: {}, outputs: {} } : { typed: false, exports: {} };
+  const modules = typed.map(({ key }, i) => {
+    const moduleSymbol = checker.getSymbolAtLocation(imports[i].moduleSpecifier);
     if (!moduleSymbol) throw new Error(`${key}: its declarations did not resolve from the packed tarballs`);
+    return { key, moduleSymbol };
+  });
+  const packageRoots = names.map((name) => join(dir, "node_modules", name)).filter((path) => existsSync(path)).map((path) => realpathSync(path));
+  const positions = interfacePositions(program, checker, modules.map(({ moduleSymbol }) => moduleSymbol), packageRoots);
+  for (const { key, moduleSymbol } of modules) {
     for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
       const target = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
       const text = (target.declarations ?? [])
@@ -96,9 +202,46 @@ export async function readApi(dir, names = publicPackages.map(({ name }) => name
         .replace(/\s+/g, " ")
         .trim();
       api[key].exports[symbol.name] = text || checker.typeToString(checker.getTypeOfSymbol(target));
+      if (target.flags & ts.SymbolFlags.Interface) {
+        api[key].inputs[symbol.name] = positions.input.has(target);
+        api[key].outputs[symbol.name] = positions.output.has(target);
+      }
     }
-  });
+  }
   return api;
+}
+
+/**
+ * How many members an interface declaration gained, when gaining members is the whole change: the same name, type
+ * parameters and heritage, and every member of the old declaration still there, unchanged and in order. `undefined`
+ * for any other change, which stays breaking.
+ */
+function addedInterfaceMembers(before, after) {
+  const parse = (text) => {
+    const source = ts.createSourceFile("api.d.ts", text, ts.ScriptTarget.Latest, true);
+    const node = source.statements[0];
+    return source.statements.length === 1 && ts.isInterfaceDeclaration(node) ? { node, source } : undefined;
+  };
+  const first = parse(before);
+  const last = parse(after);
+  if (!first || !last) return undefined;
+  const header = ({ node, source }) => [
+    ...(node.modifiers ?? []).map((modifier) => printer.printNode(ts.EmitHint.Unspecified, modifier, source)),
+    node.name.getText(source),
+    ...(node.typeParameters ?? []).map((parameter) => printer.printNode(ts.EmitHint.Unspecified, parameter, source)),
+    ...(node.heritageClauses ?? []).map((clause) => printer.printNode(ts.EmitHint.Unspecified, clause, source)),
+  ].join(" ").replace(/\s+/g, " ").trim();
+  if (header(first) !== header(last)) return undefined;
+  const members = ({ node, source }) => node.members.map((member) => printer.printNode(ts.EmitHint.Unspecified, member, source).replace(/\s+/g, " ").trim());
+  const previous = members(first);
+  const next = members(last);
+  let seen = 0;
+  let gained = 0;
+  for (const member of next) {
+    if (seen < previous.length && member === previous[seen]) seen++;
+    else gained++;
+  }
+  return seen === previous.length && gained > 0 ? gained : undefined;
 }
 
 /** What changed from `before` to `after`, and whether any of it can break a consumer. */
@@ -113,12 +256,21 @@ export function diffApi(before, after) {
     if (!previous) continue;
     for (const name of Object.keys(previous)) {
       if (!(name in next)) removed.push({ subpath: key, name });
-      else if (previous[name] !== next[name]) changed.push({ subpath: key, name, before: previous[name], after: next[name] });
+      else if (previous[name] !== next[name]) {
+        // A member added to an interface the package hands out and never takes in still compiles for every consumer.
+        // Everything else breaks, including an interface no value reaches (a config type a person builds) and an API
+        // read before positions were recorded: a missing record is never evidence of safety.
+        const gained = addedInterfaceMembers(previous[name], next[name]);
+        const handedOut = after[key].outputs?.[name] === true;
+        const takenIn = before[key]?.inputs?.[name] !== false || after[key].inputs?.[name] !== false;
+        changed.push({ subpath: key, name, before: previous[name], after: next[name], breaking: gained === undefined || !handedOut || takenIn });
+      }
     }
     for (const name of Object.keys(next)) if (!(name in previous)) added.push({ subpath: key, name });
   }
-  const breaking = removedSubpaths.length > 0 || removed.length > 0 || changed.length > 0;
-  return { removedSubpaths, addedSubpaths, removed, changed, added, breaking, additive: addedSubpaths.length > 0 || added.length > 0 };
+  const breaking = removedSubpaths.length > 0 || removed.length > 0 || changed.some((entry) => entry.breaking);
+  const additive = addedSubpaths.length > 0 || added.length > 0 || changed.some((entry) => !entry.breaking);
+  return { removedSubpaths, addedSubpaths, removed, changed, added, breaking, additive };
 }
 
 /**
@@ -152,7 +304,7 @@ export function apiMarkdown(diff, from) {
   const lines = [];
   for (const key of diff.removedSubpaths) lines.push(`- **Removed entry** \`${key}\``);
   for (const { subpath, name } of diff.removed) lines.push(`- **Removed** \`${name}\` from \`${subpath}\``);
-  for (const { subpath, name } of diff.changed) lines.push(`- **Changed** \`${name}\` in \`${subpath}\``);
+  for (const { subpath, name, breaking } of diff.changed) lines.push(`- **Changed** \`${name}\` in \`${subpath}\`${breaking ? "" : " (members added; the package hands it out and never takes it in, so not breaking)"}`);
   for (const key of diff.addedSubpaths) lines.push(`- Added entry \`${key}\``);
   for (const { subpath, name } of diff.added) lines.push(`- Added \`${name}\` to \`${subpath}\``);
   return lines.length ? lines.join("\n") : `None: every entry and export of ${from} is still there, with the same declaration.`;
