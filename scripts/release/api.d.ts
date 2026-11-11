@@ -5,6 +5,8 @@ export type Api = Record<string, {
   exports: Record<string, string>;
   /** For each exported interface: whether it appears in an input position (a parameter, a prop, a member of an input type or a generic constraint). */
   inputs?: Record<string, boolean>;
+  /** For each exported interface: whether any exported value hands it out (a return, a member of a returned type, a callback's parameter). */
+  outputs?: Record<string, boolean>;
 }>;
 
 export interface ApiDiff {

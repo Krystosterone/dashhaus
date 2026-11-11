@@ -124,8 +124,17 @@ describe("change notes", () => {
   });
 });
 
-const api = (exports: Record<string, Record<string, string>>, inputs: Record<string, Record<string, boolean>> = {}): Api =>
-  Object.fromEntries(Object.entries(exports).map(([key, own]) => [key, { typed: true, exports: own, inputs: inputs[key] ?? {} }]));
+const api = (
+  exports: Record<string, Record<string, string>>,
+  inputs: Record<string, Record<string, boolean>> = {},
+  outputs: Record<string, Record<string, boolean>> = {},
+): Api =>
+  Object.fromEntries(Object.entries(exports).map(([key, own]) => [key, {
+    typed: true,
+    exports: own,
+    inputs: inputs[key] ?? {},
+    outputs: outputs[key] ?? {},
+  }]));
 
 describe("the API comparison", () => {
   it("calls a removed entry, a removed export or a changed declaration breaking, and an addition additive", () => {
@@ -164,22 +173,55 @@ describe("the API comparison", () => {
       },
     });
     const positions = { "@dashhaus/core": { MediaPlayerHandlers: false, HaMediaPlayerResult: false, CardReadSchema: true } };
-    const before = api(declarations("onPlay: () => void;", "noun: string;"), positions);
+    const handedOut = { "@dashhaus/core": { MediaPlayerHandlers: true, HaMediaPlayerResult: true } };
+    const before = api(declarations("onPlay: () => void;", "noun: string;"), positions, handedOut);
 
-    const returned = api(declarations("onPlay: () => void; onStop: () => void;", "noun: string;"), positions);
+    const returned = api(declarations("onPlay: () => void; onStop: () => void;", "noun: string;"), positions, handedOut);
     const returnedDiff = diffApi(before, returned);
     expect(returnedDiff.changed).toEqual([expect.objectContaining({ name: "MediaPlayerHandlers", breaking: false })]);
     expect(returnedDiff).toMatchObject({ breaking: false, additive: true });
-    expect(apiMarkdown(returnedDiff, "0.2.0")).toBe("- **Changed** `MediaPlayerHandlers` in `@dashhaus/core` (members added; consumers only read it, so not breaking)");
+    expect(apiMarkdown(returnedDiff, "0.2.0")).toBe("- **Changed** `MediaPlayerHandlers` in `@dashhaus/core` (members added; the package hands it out and never takes it in, so not breaking)");
 
-    const passedIn = api(declarations("onPlay: () => void;", "noun: string; base: () => void;"), positions);
+    const passedIn = api(declarations("onPlay: () => void;", "noun: string; base: () => void;"), positions, handedOut);
     const passedInDiff = diffApi(before, passedIn);
     expect(passedInDiff.changed).toEqual([expect.objectContaining({ name: "CardReadSchema", breaking: true })]);
     expect(passedInDiff).toMatchObject({ breaking: true, additive: false });
 
     // Only additions are safe: a changed or removed member of a returned-only interface still breaks.
-    const altered = api(declarations("onPlay: (speed: number) => void;", "noun: string;"), positions);
+    const altered = api(declarations("onPlay: (speed: number) => void;", "noun: string;"), positions, handedOut);
     expect(diffApi(before, altered).changed).toEqual([expect.objectContaining({ name: "MediaPlayerHandlers", breaking: true })]);
+
+    // An interface no exported value hands out is breaking too: `DeployConfig` is built by a person in
+    // dashboard.config.mjs, and core's `ActionCardProps` is read by no value (Orb ships its own copy).
+    const typeOnly = (deploy: string, action: string) => ({
+      "@dashhaus/deploy/config": {
+        DeployConfig: `export interface DeployConfig { ${deploy} }`,
+        ActionCardProps: `export interface ActionCardProps<A> { ${action} }`,
+      },
+    });
+    const typeOnlyPositions = { "@dashhaus/deploy/config": { DeployConfig: false, ActionCardProps: false } };
+    const typeBefore = api(typeOnly("files: string[];", "action?: A;"), typeOnlyPositions, typeOnlyPositions);
+    const typeAfter = api(typeOnly("files: string[]; dashboards: string[];", "action?: A; onOpenDetails?: () => void;"), typeOnlyPositions, typeOnlyPositions);
+    expect(diffApi(typeBefore, typeAfter).changed).toEqual([
+      expect.objectContaining({ name: "DeployConfig", breaking: true }),
+      expect.objectContaining({ name: "ActionCardProps", breaking: true }),
+    ]);
+    expect(diffApi(typeBefore, typeAfter)).toMatchObject({ breaking: true, additive: false });
+
+    // A missing record is not evidence of safety: an API read before positions were recorded is breaking.
+    const legacy: Api = {
+      "@dashhaus/core": {
+        typed: true,
+        exports: {
+          MediaPlayerHandlers: "export interface MediaPlayerHandlers { onPlay: () => void; }",
+          useHaMediaPlayer: "export declare function useHaMediaPlayer(id: string): MediaPlayerHandlers;",
+        },
+        outputs: { MediaPlayerHandlers: true },
+      },
+    };
+    const legacyAfter = structuredClone(legacy);
+    legacyAfter["@dashhaus/core"].exports.MediaPlayerHandlers = "export interface MediaPlayerHandlers { onPlay: () => void; onStop: () => void; }";
+    expect(diffApi(legacy, legacyAfter).breaking).toBe(true);
   });
 
   it("suggests the next version the way a caret range reads it", () => {
@@ -246,11 +288,16 @@ describe("the API comparison", () => {
       expect(before["@dashhaus/core/fixtures/*"]).toEqual({ typed: false, exports: {} });
       expect(before["@dashhaus/core"].exports.useHaLight).toBe("export declare function useHaLight(id: string): void;");
       // Input positions: a parameter, a prop (a member of an input type), a method's parameter on a returned type, a
-      // generic constraint. A return, a member of an output type, a callback's parameter and `keyof` are not, so adding
-      // a member there cannot break a consumer.
+      // generic constraint (including through keyof). An output is what an exported value hands out. A return, a member
+      // of an output type, a callback's parameter and plain keyof are not input, so adding a member there cannot break
+      // a consumer.
       expect(before["@dashhaus/core"].inputs).toEqual({
-        Props: true, Nested: true, Result: false, Returned: false, Constraint: true, Keys: false,
+        Props: true, Nested: true, Result: false, Returned: false, Constraint: true, Keys: true,
         ViewerProps: true, Live: false, Actions: false, SeekOptions: true, Source: true, Wrapper: true,
+      });
+      expect(before["@dashhaus/core"].outputs).toEqual({
+        Props: false, Nested: false, Result: true, Returned: true, Constraint: false, Keys: false,
+        ViewerProps: false, Live: true, Actions: true, SeekOptions: false, Source: false, Wrapper: false,
       });
       expect(diffApi(before, reworded).breaking, "a doc comment is not the API").toBe(false);
       expect(diffApi(before, changed).changed.map(({ name }) => name)).toEqual(["useHaLight"]);
@@ -324,6 +371,14 @@ describe("the release record", () => {
     expect(unfinished(renderRecord({ version: "0.3.0", from: "0.2.0", notes, diff: breaking, repository: REPO }))).toHaveLength(3);
     const owned = [...notes, { type: "breaking" as const, body: "gone is gone.", file: "changes/d.md" }];
     expect(unfinished(renderRecord({ version: "0.3.0", from: "0.2.0", notes: owned, diff: breaking, repository: REPO }))).toHaveLength(2);
+    // An interface no exported value reaches is breaking, so the TODO and the suggested version follow it.
+    const positions = { "@dashhaus/deploy/config": { DeployConfig: false } };
+    const typeOnly = diffApi(
+      api({ "@dashhaus/deploy/config": { DeployConfig: "export interface DeployConfig { files: string[]; }" } }, positions, positions),
+      api({ "@dashhaus/deploy/config": { DeployConfig: "export interface DeployConfig { files: string[]; dashboards: string[]; }" } }, positions, positions),
+    );
+    expect(unfinished(renderRecord({ version: "0.7.0", from: "0.6.0", notes, diff: typeOnly, repository: REPO }))).toHaveLength(3);
+    expect(suggestVersion("0.6.0", { breaking: typeOnly.breaking, feature: typeOnly.additive })).toBe("0.7.0");
   });
 });
 
