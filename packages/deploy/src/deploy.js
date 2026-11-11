@@ -153,7 +153,14 @@ async function reconcileDashboards(ha, dashboards, pageTitle, report) {
       continue;
     }
     const { config, made } = await layoutOf(dashboard, ha, pageTitle);
-    await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
+    // A connection lost around the create or the save may leave the dashboard without its layout for good, since the
+    // next run keeps an existing one: say which to delete. Home Assistant may have stored either before the close.
+    const leftBehind = (error) => new Error(`${error?.message ?? String(error)} The "${dashboard.title}" dashboard (/${dashboard.path}) may have been created without its layout: if it is in the sidebar, delete it under Settings → Dashboards, then deploy again.`, { cause: error });
+    try {
+      await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
+    } catch (error) {
+      throw error?.closed ? leftBehind(error) : error;
+    }
     try {
       await ha.send("lovelace/config/save", { url_path: dashboard.path, config });
     } catch (error) {
@@ -166,8 +173,7 @@ async function reconcileDashboards(ha, dashboards, pageTitle, report) {
           if (made) await ha.send("lovelace/dashboards/delete", { dashboard_id: made.id });
         })
         .then(() => true, () => false);
-      if (rolledBack) throw error;
-      throw new Error(`${error?.message ?? String(error)} The "${dashboard.title}" dashboard (/${dashboard.path}) was created without its layout: delete it under Settings → Dashboards, then deploy again.`, { cause: error });
+      throw rolledBack ? error : leftBehind(error);
     }
     report(`  ✓ created with ${made}`);
     results.push({ path: dashboard.path, title: dashboard.title, status: "created" });

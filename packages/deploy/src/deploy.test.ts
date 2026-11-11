@@ -498,9 +498,9 @@ export default {
     expect(ha.closed).toBe(true);
   });
 
-  it("names the dashboard to delete when the connection is lost between creating it and saving its layout", async () => {
+  it.each(["lovelace/dashboards/create", "lovelace/config/save"])("names the dashboard to delete when the connection is lost at %s", async (dropAt) => {
     const directory = await project();
-    const ha = Object.assign(new FakeHomeAssistant(), { dropAt: "lovelace/config/save" });
+    const ha = Object.assign(new FakeHomeAssistant(), { dropAt });
     await expect(deploy({
       configFile: join(directory, "dashboard.config.mjs"),
       env: settings(directory),
@@ -508,7 +508,7 @@ export default {
       report: () => {},
       warn: () => {},
       connect: async () => ha,
-    })).rejects.toThrowError('Home Assistant closed the connection. The "Home A" dashboard (/home-a) was created without its layout: delete it under Settings → Dashboards, then deploy again.');
+    })).rejects.toThrowError('Home Assistant closed the connection. The "Home A" dashboard (/home-a) may have been created without its layout: if it is in the sidebar, delete it under Settings → Dashboards, then deploy again.');
   });
 
   it.skipIf(process.platform === "win32")("copies over ssh without blocking, so the open connection keeps answering Home Assistant", async () => {
@@ -550,9 +550,10 @@ describe("connectHomeAssistant", () => {
       await expect(ha.send("lovelace/dashboards/list")).resolves.toEqual(expect.any(Array));
       await server.close();
       // The first command can't be answered, so it settles once the client has seen the close.
-      await expect(ha.send("lovelace/dashboards/list")).rejects.toThrowError();
+      const lost = { closed: true, message: "Home Assistant closed the connection." };
+      await expect(ha.send("lovelace/dashboards/list")).rejects.toMatchObject(lost);
       // The next one is sent on a closed socket, which drops it: only the client can settle it.
-      await expect(ha.send("lovelace/config/save")).rejects.toThrowError("Home Assistant closed the connection.");
+      await expect(ha.send("lovelace/config/save")).rejects.toMatchObject(lost);
       ha.close();
     } finally {
       await server.close();
