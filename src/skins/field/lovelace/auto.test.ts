@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { areaColumns, areaRows, autoModules, energyModules, groupByArea } from "./auto";
+import { areaColumns, areaName, areaRows, autoModules, energyModules, groupByArea } from "./auto";
 import { parseFieldConfig } from "./config";
 import type { FieldRow, ModuleConfig } from "./config";
+import { areaOrder, outsideArea } from "@dashhaus/core/lovelace/layout";
+import { DEMO_WALL_HOUSE, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
 
 const state = (id: string, name: string, device_class?: string) => ({ entity_id: id, state: "on", attributes: { friendly_name: name, ...(device_class && { device_class }) } });
 
@@ -231,6 +233,17 @@ describe("areaColumns: the wall", () => {
   ];
   const ENERGY = [m("sensor.grid", "numeric")];
   const layout = (rows: FieldRow[]) => rows.map((row) => ({ title: row.title, columns: row.columns, flow: row.flow, stacks: row.stacks, cards: row.cards.map((entry) => [entry.item.entity, entry.column, entry.item.footprint]) }));
+  /** The demo wall house as the wall story reads it: its modules given their area from the registries. */
+  const demoWall = async () => {
+    let states: Parameters<typeof demoWallInput>[0] = {};
+    const stop = createDemoWallHouseTransport(DEMO_WALL_HOUSE).subscribeEntities((entities) => { states = entities; });
+    await Promise.resolve();
+    stop();
+    const input = demoWallInput(states);
+    const withArea = (module: ModuleConfig): ModuleConfig => ({ ...module, area: module.area ?? areaName(input, module.entity) });
+    const modules = autoModules(input).map(withArea);
+    return { modules, energy: energyModules(input, modules).map(withArea), outside: outsideArea(input), order: areaOrder(input) };
+  };
   /** The rows as YAML, the way a person would write them out, for the card's own reader. */
   const yaml = (rows: FieldRow[]) => ({
     rows: rows.map((row) => ({
@@ -251,6 +264,15 @@ describe("areaColumns: the wall", () => {
     const rows = areaColumns([...MODULES, m("fan.purifier", "dyson", "Hall"), m("fan.hall", "fan", "Hall")], [], { outside: "Outside" });
     const hall = rows[0].cards.filter((entry) => entry.item.area === "Hall").map((entry) => [entry.item.entity, entry.item.footprint]);
     expect(hall).toEqual([["climate.hall", "compact"], ["light.hall", "compact"], ["fan.hall", "compact"], ["fan.purifier", "compact"]]);
+  });
+
+  it("puts the demo wall house's Dyson after its ceiling fan, pressed, as its module, with its heater out", async () => {
+    const { modules, energy, outside, order } = await demoWall();
+    const cards = areaColumns(modules, energy, { outside, order }).flatMap((row) => row.cards.map((entry) => entry.item));
+    const living = cards.filter((module) => module.area === "Living room").map((module) => module.entity);
+    expect(cards.find((module) => module.entity === "fan.living_room_hot_cool")).toMatchObject({ kind: "dyson", footprint: "compact" });
+    expect(living.indexOf("fan.living_room_hot_cool")).toBe(living.indexOf("fan.living_room_ceiling") + 1);
+    expect(modules.some((module) => module.entity === "climate.living_room_hot_cool")).toBe(false);
   });
 
   it("puts a column per area by area name, four across, the house's own last in the first row, each column whole modules first", () => {
