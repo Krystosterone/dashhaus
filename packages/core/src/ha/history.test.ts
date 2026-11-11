@@ -528,6 +528,32 @@ describe("today's minutes", () => {
     expect(minutes).toBe(13 * 60);
   });
 
+  it("says what the climate did while it ran, not while it idled or was off", () => {
+    const offOvernight = climateHistoryFromHass(
+      [record("climate.home", "off", "2026-10-19T22:00:00", { hvac_action: "off" }), record("climate.home", "cool", iso(12), { hvac_action: "cooling" })],
+      "climate.home",
+      new Date(2026, 9, 20, 18, 0),
+    );
+    expect(offOvernight.activity).toBe("cooling");
+    const cycling = Array.from({ length: 18 }, (_, h) => [
+      record("climate.home", "heat", iso(h), { hvac_action: "heating" }),
+      record("climate.home", "heat", iso(h, 20), { hvac_action: "idle" }),
+    ]).flat();
+    expect(climateHistoryFromHass(cycling, "climate.home", new Date(2026, 9, 20, 18, 0)).activity).toBe("heating");
+  });
+
+  it("says it was running on a day it never heated or cooled", () => {
+    const idle = climateHistoryFromHass([record("climate.home", "heat", iso(0), { hvac_action: "idle" })], "climate.home", now());
+    expect(idle.activity).toBe("running");
+    expect(idle.activeMinutes).toBe(12 * 60 + 34);
+  });
+
+  it("counts a change under half a minute old as a minute, as the strip draws it on", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", "2026-10-20T12:33:31")], "switch.x", now());
+    expect(result.samples[12]).toBe(1);
+    expect(result.onMinutes).toBe(1);
+  });
+
   it("weighs the climate's activity by how long each lasted, not by its rows", () => {
     const result = climateHistoryFromHass(
       [

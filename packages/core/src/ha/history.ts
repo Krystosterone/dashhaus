@@ -130,7 +130,8 @@ function build(records: readonly HaHistoryRecord[], now: Date, options: BuildOpt
   if (options.on) {
     for (const { record, ms: lasted } of stretches(records, now)) if (options.on(record.state, record.attributes)) ms += lasted;
   }
-  return { samples, currentHour, minutes: Math.round(ms / 60_000) };
+  // Anything on today is at least a minute, so the summary never says "not on" beside an hour the strip draws on.
+  return { samples, currentHour, minutes: ms > 0 ? Math.max(1, Math.round(ms / 60_000)) : 0 };
 }
 
 /* ------------------------------------------------------------------ *
@@ -270,12 +271,12 @@ function climateSample(state: string): HourSample {
   return 1;
 }
 
-/** The `hvac_action` that held longest today; heating or cooling wins a tie, else it was running. */
+/** What the unit did longest today while it ran (idle and off left out); heating or cooling wins a tie, else it was running. */
 function climateActivity(records: readonly HaHistoryRecord[], now: Date): ClimateHistory["activity"] {
   const counts = new Map<string, number>();
   for (const { record, ms } of stretches(records, now)) {
     const action = record.attributes.hvac_action;
-    if (typeof action !== "string" || action === "") continue;
+    if (typeof action !== "string" || action === "" || action === "idle" || action === "off") continue;
     counts.set(action, (counts.get(action) ?? 0) + ms);
   }
   if (counts.size === 0) return "running";
