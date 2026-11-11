@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { JoinedBundle, LeadBundle, TitledBundle } from "../Bundle";
 import { ToggleTile } from "../../cards/toggle/ToggleTile";
 import { LightTile } from "../../cards/light/LightTile";

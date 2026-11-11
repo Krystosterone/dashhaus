@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 
 

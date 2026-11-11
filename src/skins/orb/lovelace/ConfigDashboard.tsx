@@ -66,7 +66,7 @@ function DefaultedSensor({ card, sensor }: { card: Extract<CardConfig, { kind: "
 }
 
 /** Each kind's connected tile: the shared renderer dispatch picks the card's row. */
-const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
+const TILES: CardRenderers<Kind, CardConfig, ReactElement<{ footprint?: CardFootprint }>, [key?: string]> = {
   light: (card, key) => <HaLightTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   climate: (card, key) => <HaClimateTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} />,
   cover: (card, key) => <HaCoverTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
@@ -95,7 +95,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
 };
 
 /** One configured card as its connected tile. */
-function tile(card: CardConfig, key?: string): ReactElement {
+function tile(card: CardConfig, key?: string): ReactElement<{ footprint?: CardFootprint }> {
   return renderCard(TILES, card, key);
 }
 

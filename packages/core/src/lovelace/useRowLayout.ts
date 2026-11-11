@@ -21,7 +21,7 @@ export interface PlacedCell {
 
 export interface RowLayout {
   /** The element whose width decides the tracks: the row's grid. */
-  ref: RefObject<HTMLDivElement>;
+  ref: RefObject<HTMLDivElement | null>;
   tracks: number;
   /** The row's height in units. */
   rows: number;
