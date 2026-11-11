@@ -112,7 +112,7 @@ describe("ConfigDashboard layout", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
     const grid = document.querySelector(".dash-row") as HTMLElement;
     expect(grid.dataset.tracks).toBe("3");
-    expect(grid.style.gridTemplateColumns).toBe("repeat(3, minmax(0, 1fr))");
+    expect(grid.style.gridTemplateColumns).toBe("repeat(3, minmax(0px, 1fr))");
     // The featured hero is four units; the standard card beside it two, moved down to the row's bottom.
     expect([cellOf("Desk").style.gridColumn, cellOf("Desk").style.gridRow]).toEqual(["1 / span 2", "1 / span 4"]);
     expect([cellOf("Pendant").style.gridColumn, cellOf("Pendant").style.gridRow]).toEqual(["3 / span 1", "3 / span 2"]);
