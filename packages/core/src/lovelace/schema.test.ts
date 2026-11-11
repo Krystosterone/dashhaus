@@ -268,6 +268,16 @@ describe("readBody", () => {
     ]);
   });
 
+  it("holds an anchored span to the most columns a row can have when the row leaves its columns out", () => {
+    expect(body({ rows: [{ cards: [
+      { entity: "light.a", column: 1 },
+      { entity: "light.b", column: 2 },
+      { entity: "light.c", column: 10, width: 4 },
+    ] }] }).problems).toEqual([
+      'rows[0].cards[2] (light.c): starts in column 10 and spans 4, past the 12 columns a row can have: use column: 9, or a smaller width',
+    ]);
+  });
+
   it("refuses nested rows, misplaced keys and a card where a row belongs, saying where each goes", () => {
     expect(body({ align: "bottom", rows: ["light.a", { rows: [], width: 2, cards: ["light.b"] }, { title: "Empty" }] }).problems).toEqual([
       'align: lines up one row\'s columns: put it on a row under "rows"',
