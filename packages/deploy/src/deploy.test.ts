@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import { afterEach, describe, expect, it } from "vitest";
 import { connectHomeAssistant, deploy } from "./deploy.js";
@@ -22,8 +22,13 @@ class FakeHomeAssistant implements DeployClient {
   closed = false;
   failResources = false;
   failSaves = 0;
+  /** The command at which Home Assistant goes away: it and every later one fail as a lost connection does. */
+  dropAt = "";
+  dropped = false;
 
   async send(type: string, payload: Record<string, unknown> = {}): Promise<unknown> {
+    if (type === this.dropAt) this.dropped = true;
+    if (this.dropped) throw Object.assign(new Error("Home Assistant closed the connection."), { closed: true });
     const data = payload as {
       url?: string;
       resource_id?: string;
@@ -476,7 +481,66 @@ export default {
     expect(await readdir(join(directory, "www"))).toEqual([]);
     expect(messages.some((message) => message.includes("Copying to"))).toBe(false);
   });
+
+  it("stops at a lost connection while registering, instead of advising YAML mode for every file", async () => {
+    const directory = await project();
+    const ha = Object.assign(new FakeHomeAssistant(), { dropAt: "lovelace/resources" });
+    const warnings: string[] = [];
+    await expect(deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      warn: (message) => warnings.push(message),
+      connect: async () => ha,
+    })).rejects.toThrowError("Home Assistant closed the connection.");
+    expect(warnings).toEqual([]);
+    expect(ha.closed).toBe(true);
+  });
+
+  it("names the dashboard to delete when the connection is lost between creating it and saving its layout", async () => {
+    const directory = await project();
+    const ha = Object.assign(new FakeHomeAssistant(), { dropAt: "lovelace/config/save" });
+    await expect(deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      warn: () => {},
+      connect: async () => ha,
+    })).rejects.toThrowError('Home Assistant closed the connection. The "Home A" dashboard (/home-a) was created without its layout: delete it under Settings → Dashboards, then deploy again.');
+  });
+
+  it.skipIf(process.platform === "win32")("copies over ssh without blocking, so the open connection keeps answering Home Assistant", async () => {
+    const directory = await project();
+    const bin = join(directory, "bin");
+    await mkdir(bin);
+    // A stand-in ssh that takes its time, as one waiting at a prompt does, then runs the remote command here.
+    await writeFile(join(bin, "ssh"), '#!/bin/sh\nfor last; do :; done\nsleep 0.4\nexec sh -c "$last"\n');
+    await chmod(join(bin, "ssh"), 0o755);
+    const path = process.env.PATH;
+    process.env.PATH = `${bin}${delimiter}${path}`;
+    let ticks = 0;
+    const timer = setInterval(() => ticks++, 20);
+    try {
+      await deploy({
+        configFile: join(directory, "dashboard.config.mjs"),
+        env: { ...settings(directory), HA_WWW: `root@homeassistant.local:${join(directory, "remote")}` },
+        skipBuild: true,
+        report: () => {},
+        warn: () => {},
+        connect: async () => { ticks = 0; return new FakeHomeAssistant(); },
+      });
+    } finally {
+      clearInterval(timer);
+      process.env.PATH = path;
+    }
+    expect(await readFile(join(directory, "remote", "orb-dashboard", "orb-dashboard.js"), "utf8")).toBe("console.log('orb');");
+    // A blocked event loop would have let no timer run while ssh slept.
+    expect(ticks).toBeGreaterThanOrEqual(5);
+  });
 });
+
 
 describe("connectHomeAssistant", () => {
   it("rejects a command sent after Home Assistant closes the connection instead of waiting forever", async () => {

@@ -29,6 +29,7 @@ export interface DeployOptions {
   skipBuild?: boolean;
   report?: (message: string) => void;
   warn?: (message: string) => void;
+  /** A command it rejects with an error carrying `closed: true` lost the connection, and stops the deploy. */
   connect?: (url: string, token: string) => Promise<DeployClient>;
   /** The HTTP check that Home Assistant serves the uploaded file; on by default with the real `connect`. */
   fetch?: (url: string, init?: { cache?: string }) => Promise<{ ok: boolean; status: number; arrayBuffer(): Promise<ArrayBuffer> }>;
