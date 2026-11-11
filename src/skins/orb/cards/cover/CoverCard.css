@@ -22,9 +22,6 @@
 .cv-oc-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: scale var(--press) var(--ease-out), background-color 150ms var(--ease-out); }
 .cv-oc-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .cv-oc-b:not(:disabled):active > span { scale: 0.9; }
-.cv-oc-b:disabled { cursor: default; }
-/* A disabled button lies flat. */
-.cv-oc-b:disabled > span { background: transparent; box-shadow: none; color: var(--ink-3); }
 .cv-oc-b:focus-visible { outline: none; }
 .cv-oc-b:focus-visible > span { outline: 2px solid var(--ink); outline-offset: 1px; }
 .cv-oc-v { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 14px; font-weight: 600; }

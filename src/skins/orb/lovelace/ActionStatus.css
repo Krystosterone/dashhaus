@@ -1,4 +1,5 @@
-/* Dashboard-level Home Assistant action recovery. Warn remains a text/icon signal; actions use the shared raised surface.
+/* Dashboard-level Home Assistant action recovery. Warn remains a text/icon signal; actions use the shared raised
+   surface and, with hd-btn, its disabled state.
    The dock is the page's last block, sticky to the bottom of the view: on a long page the row floats over the
    dashboard wherever the failed control was; on a short one it sits under the last card. Last, it moves no card. */
 .ha-action-dock { position: sticky; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 3; }
@@ -23,8 +24,6 @@
 }
 .ha-action-b:active { scale: 0.96; }
 .ha-action-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.ha-action-b:disabled { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default; }
-.ha-action-b:disabled:active { scale: 1; }
 @media (hover: hover) and (pointer: fine) {
   .ha-action-b:not(:disabled):hover { background: color-mix(in oklab, var(--btn) 94%, var(--ink)); }
 }
