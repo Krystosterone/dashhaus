@@ -27,6 +27,12 @@ export const SLAT_POSITIONS = [
   { value: 100, label: "Open" },
 ];
 
+/** Slats that only open and close (`slatsBy` is `ends`): the two choices `onSetTilt` takes. */
+export const SLAT_ENDS = [
+  { value: 0, label: "Closed" },
+  { value: 100, label: "Open" },
+];
+
 /** The warning's word for a door left open: 13 characters at most, so a row keeps it whole. */
 export const LEFT_OPEN_WORD = "Open";
 

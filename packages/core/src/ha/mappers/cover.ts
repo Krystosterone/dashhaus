@@ -56,7 +56,7 @@ export function coverFromHass(raw: HassEntity | undefined, entityId: string, opt
     state,
     deviceClass,
     position: readable && supportsPosition ? percentValue(attributes.current_position) : undefined,
-    tilt: readable && supportsTilt ? percentValue(attributes.current_tilt_position) : undefined,
+    tilt: readable && (supportsTilt || has(COVER_FEATURES.OPEN_TILT) || has(COVER_FEATURES.CLOSE_TILT)) ? percentValue(attributes.current_tilt_position) : undefined,
     supportsPosition,
     supportsStop,
     supportsTilt,

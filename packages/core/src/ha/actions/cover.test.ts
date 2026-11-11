@@ -85,6 +85,19 @@ describe("createCoverHandlers", () => {
     ]);
   });
 
+  it("opens and closes slats that only open and close, and takes no angle for them", async () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const handlers = createCoverHandlers({ callService }, { ...entity, supportsTilt: false, supportsTiltOpen: true, supportsTiltClose: true }, { onError });
+    handlers.onSetTilt?.(100);
+    handlers.onSetTilt?.(0);
+    handlers.onSetTilt?.(50);
+    await Promise.resolve();
+
+    expect(callService.mock.calls.map((call) => (call as unknown as string[])[1])).toEqual(["open_cover_tilt", "close_cover_tilt"]);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "invalid_input" }));
+  });
+
   it("drives a cover Home Assistant reports as unknown", async () => {
     // A Somfy RTS blind on an assumed state: no position, but it opens, closes and stops.
     const rts = coverFromHass({

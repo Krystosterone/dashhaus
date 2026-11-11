@@ -1,6 +1,6 @@
 import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
-import { COVER_ASKS_HINT, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
+import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isAccess, isMoving, openness, slatsBy } from "@dashhaus/core/entities/cover/position";
+import { COVER_ASKS_HINT, SLAT_ENDS, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
@@ -55,6 +55,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const colors = paint(access ? "state" : "energy", unav || access ? 0 : (0.6 * pos) / 100);
 
   const withPos = hasPosition(e);
+  const slats = slatsBy(e);
   const word = coverWord(e);
   // The readout says how far open as a figure where it knows, and the state's word otherwise.
   const figure = !unknown && withPos && pos > 0;
@@ -122,7 +123,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       closeLabel={`Close ${e.name} details`}
       closeFocus={!pending}
       control={slot}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: [CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ") }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: [CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", slats ? "tilt" : null].filter(Boolean).join(", ") }}
     >
       {!unav && (
         <SheetBlock>
@@ -133,7 +134,8 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
           )}
           {asks && !pending && <p className="hd-note">{COVER_ASKS_HINT}</p>}
           {settable && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
-          {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLAT_POSITIONS} value={e.tilt} onChange={onSetTilt} />}
+          {/* Slats set to an angle, or only opened and closed; none chosen while their tilt isn't known (unknown). */}
+          {slats && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={slats === "ends" ? SLAT_ENDS : SLAT_POSITIONS} value={e.tilt ?? null} onChange={onSetTilt} />}
         </SheetBlock>
       )}
       {history && <Today samples={history.samples} currentHour={history.currentHour} summary={e.lastChanged ? `${moving ? (open ? "Open" : "Closed") : word} since ${e.lastChanged}` : ""} />}

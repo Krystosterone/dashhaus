@@ -1,5 +1,6 @@
 import type { CoverEntity } from "../../entities/cover/types";
 import type { HaActionError, HaStore } from "../types";
+import { slatsBy } from "../../entities/cover/position";
 import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
@@ -24,7 +25,11 @@ export interface CoverHandlers {
    * (open).
    */
   onSetPosition?: (position: number) => void;
-  /** Only for a cover with slats. Calls `cover.set_cover_tilt_position`, held between 0 and 100. */
+  /**
+   * Only for a cover with slats (`slatsBy`). Calls `cover.set_cover_tilt_position`, held between 0 and 100; slats that
+   * only open and close take 0 (`close_cover_tilt`) or 100 (`open_cover_tilt`), and any other value reports
+   * `invalid_input`.
+   */
   onSetTilt?: (tilt: number) => void;
 }
 
@@ -62,6 +67,7 @@ export function createCoverHandlers(caller: CoverServiceCaller, entity: CoverEnt
     else if (entity.supportsTilt) run("set_cover_tilt_position", { tilt_position: at });
     else unsupported(`${entity.entityId} does not support ${end === "open" ? "opening" : "closing"}`);
   };
+  const slats = slatsBy(entity);
   const onlyTilts = entity.supportsOpen === false && entity.supportsClose === false && !entity.supportsPosition;
 
   return {
@@ -85,11 +91,16 @@ export function createCoverHandlers(caller: CoverServiceCaller, entity: CoverEnt
         run("set_cover_position", { position: clampPercent(position) });
       }
       : undefined,
-    onSetTilt: entity.supportsTilt
+    onSetTilt: slats
       ? (tilt) => {
         if (!actionable()) return;
         if (!Number.isFinite(tilt)) {
           invalidInput(`${entity.entityId} tilt must be finite`);
+          return;
+        }
+        if (slats === "ends") {
+          if (tilt === 0 || tilt === 100) run(tilt === 100 ? "open_cover_tilt" : "close_cover_tilt");
+          else invalidInput(`${entity.entityId} slats only open and close`);
           return;
         }
         run("set_cover_tilt_position", { tilt_position: clampPercent(tilt) });

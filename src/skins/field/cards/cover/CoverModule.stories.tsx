@@ -61,6 +61,10 @@ type Story = StoryObj<typeof meta>;
 
 /** Open at 70%: the window lit to it, and the fader where it is. */
 export const Open: Story = { name: "Curtains" };
+/** A blind that lifts to a position, and whose slats only open and close: the panel's Slats are two keys. */
+export const Venetian: Story = { name: "Venetian blind", args: { cover: "venetian" } };
+/** Slats and nothing else: Close and Open move the slats, since the cover has no open_cover of its own. */
+export const SlatsOnly: Story = { name: "Slats only", args: { cover: "slats" } };
 /** Closed: 000% in the dim ink, the window unlit. */
 export const Closed: Story = { name: "Shade, closed", args: { cover: "shade" } };
 /** On its way: the fader's legend says where it's going, and the key stops it. */
@@ -140,6 +144,9 @@ export const Details: Story = { args: { defaultOpen: true } };
 
 /** A blind's panel: its slats on the screen's second channel and on their own fader, in the second parameter's blue. */
 export const DetailsSlats: Story = { name: "Details, slats", args: { cover: "blind", defaultOpen: true } };
+
+/** Slats that only open and close: a Closed and an Open key, never a fader for an angle Home Assistant can't set. */
+export const DetailsVenetian: Story = { name: "Details, venetian blind", args: { cover: "venetian", defaultOpen: true } };
 
 /** A garage door's panel: close, stop and open, the one that can't act lying flat, and Close and Open ask first. */
 export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { cover: "garage", defaultOpen: true } };

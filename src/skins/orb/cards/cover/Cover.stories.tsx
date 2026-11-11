@@ -6,7 +6,7 @@ import { COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 const LONG_DOOR = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!;
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const COVERS = ["curtains", "blind", "shade", "moving", "garage", "gate", "unknown", "unavailable"] as const;
+const COVERS = ["curtains", "blind", "venetian", "slats", "shade", "moving", "garage", "gate", "unknown", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Cover",
@@ -41,6 +41,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Curtains: Story = {};
 export const BlindWithTilt: Story = { name: "Blind with tilt", args: { cover: "blind" } };
+/** A blind that lifts to a position, and whose slats only open and close: the sheet's Slats are Closed and Open. */
+export const Venetian: Story = { name: "Venetian blind", args: { cover: "venetian" } };
+/** Slats and nothing else: Close and Open move the slats, since the cover has no open_cover of its own. */
+export const SlatsOnly: Story = { name: "Slats only", args: { cover: "slats" } };
 export const ShadeClosed: Story = { name: "Shade, closed", args: { cover: "shade" } };
 export const Moving: Story = { name: "Moving", args: { cover: "moving" } };
 /** A garage door left open: the warning leads the status line, and the orb and either end of the groove ask first. */
@@ -108,6 +112,8 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { cover: "blind", defaultOpen: true } };
+/** Slats that only open and close: two choices, never an angle Home Assistant can't set. */
+export const DetailsVenetian: Story = { name: "Details, venetian blind", args: { cover: "venetian", defaultOpen: true } };
 /** A garage door's sheet with no question standing: its groove asks, and the line under it says so. */
 export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { cover: "garage", defaultOpen: true } };
 /**

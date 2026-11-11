@@ -31,6 +31,16 @@ export const COVER_SEEDS = {
     entity: { ...base, entityId: "cover.patio_curtains", name: "Patio curtains", area: "Dining room", state: "closing", deviceClass: "curtain", position: 45, lastChanged: "11:54" },
     past: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
   },
+  /** It lifts to a position, and its slats only open and close (`OPEN_TILT`, `CLOSE_TILT`, no tilt position). */
+  venetian: {
+    entity: { ...base, entityId: "cover.kitchen_venetian", name: "Venetian blind", area: "Kitchen", state: "open", deviceClass: "blind", position: 100, tilt: 100, supportsTiltOpen: true, supportsTiltClose: true, supportsTiltStop: true, lastChanged: "08:05" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+  },
+  /** Slats and nothing else (no lift, no `open_cover`): opening it opens them. */
+  slats: {
+    entity: { entityId: "cover.bathroom_louvres", name: "Louvres", area: "Bathroom", state: "closed", deviceClass: "shutter", tilt: 0, supportsPosition: false, supportsOpen: false, supportsClose: false, supportsStop: true, supportsTilt: true, supportsTiltOpen: true, supportsTiltClose: true, supportsTiltStop: true, lastChanged: "07:15" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0],
+  },
   garage: {
     entity: { entityId: "cover.garage_door", name: "Garage door", area: "Garage", state: "open", deviceClass: "garage", supportsPosition: false, supportsStop: true, lastChanged: "10:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0.6],
@@ -97,8 +107,11 @@ export function useDemoCover(seed: CoverSeed) {
     if (entity.state !== "opening" && entity.state !== "closing") return;
     if (target.current == null) return;
     if (!entity.supportsPosition || entity.position == null) {
+      const e0 = entity;
       const t = window.setTimeout(() => {
-        setEntity((e) => ({ ...e, state: target.current! > 0 ? "open" : "closed", lastChanged: stamp }));
+        // A cover that only tilts opens and closes its slats.
+        const onlyTilts = !e0.supportsPosition && e0.supportsOpen === false && e0.supportsClose === false;
+        setEntity((e) => ({ ...e, state: target.current! > 0 ? "open" : "closed", ...(onlyTilts && { tilt: target.current! > 0 ? 100 : 0 }), lastChanged: stamp }));
         target.current = null;
       }, 3000);
       return () => window.clearTimeout(t);

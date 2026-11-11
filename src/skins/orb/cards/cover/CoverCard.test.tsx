@@ -152,4 +152,16 @@ describe("CoverCard", () => {
     expect(onOpenCover).not.toHaveBeenCalled();
     expect(onCloseCover).not.toHaveBeenCalled();
   });
+
+  it("offers slats that only open and close as Closed and Open, and slats whose tilt isn't known with none chosen", () => {
+    const onSetTilt = vi.fn();
+    const { unmount } = draw(COVER_SEEDS.venetian.entity, { variant: "sheet", onSetTilt });
+    const slats = screen.getByRole("group", { name: "Slats" });
+    expect([...slats.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Closed", "Open"]);
+    fireEvent.click(slats.querySelectorAll("button")[0]);
+    expect(onSetTilt).toHaveBeenCalledWith(0);
+    unmount();
+    draw({ ...COVER_SEEDS.blind.entity, state: "unknown", tilt: undefined }, { variant: "sheet", onSetTilt });
+    expect([...screen.getByRole("group", { name: "Slats" }).querySelectorAll("button")].map((b) => b.getAttribute("aria-pressed"))).toEqual(["false", "false", "false"]);
+  });
 });
