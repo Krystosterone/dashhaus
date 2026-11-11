@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { OPEN_IN_HOME_ASSISTANT, VOLUME_STEP_WORDS, artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue, volumeWord } from "./words";
+import { OPEN_IN_HOME_ASSISTANT, VOLUME_STEP_WORDS, artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, nothingPlayingWords, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue, volumeWord } from "./words";
 import { volumeText } from "../volume";
 
 const ALL = { supportsPlay: true, supportsPause: true, supportsTurnOn: true };
@@ -37,6 +37,16 @@ describe("media player words", () => {
     expect(playingFrom({ state: "playing", source: "TV" })).toBe("TV");
     expect(playingFrom({ state: "playing", app: "Spotify", source: "Spotify Connect" })).toBe("Spotify");
     expect(playingFrom({ state: "standby", source: "TV" })).toBeUndefined();
+  });
+
+  it("says what is missing where what is playing would be: a title while it plays, else that nothing does", () => {
+    expect(nothingPlayingWords({ state: "playing" })).toBe("No title");
+    expect(nothingPlayingWords({ state: "buffering" })).toBe("No title");
+    expect(nothingPlayingWords({ state: "paused" })).toBe("No title");
+    expect(nothingPlayingWords({ state: "idle" })).toBe("Nothing playing");
+    expect(nothingPlayingWords({ state: "on" })).toBe("Nothing playing");
+    expect(nothingPlayingWords({ state: "off" })).toBe("Nothing playing");
+    expect(nothingPlayingWords({ state: "other" })).toBe("Nothing playing");
   });
 
   it("presses to pause what plays, play what doesn't, and turn on what is off, where it can", () => {

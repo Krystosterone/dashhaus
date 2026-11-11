@@ -1,11 +1,11 @@
 import { useState } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, qrFailedWords, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
+import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, NO_QR, isGroupedCode, joinWords, lastsWords, madeFact, qrFailedWords, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { GuestWifiIcon } from "./icons";
-import { CardFrame, Confirm, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import { CardFrame, Confirm, FeaturedEmpty, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./GuestWifiCard.css";
 
@@ -27,7 +27,8 @@ const capital = (word: string) => word[0].toUpperCase() + word.slice(1);
 /**
  * A guest Wi-Fi network and what a guest types to use it, a code its page asks for or its password: a reading. A bare
  * icon, the code as a readout with no container, and no glow. The status line names the network to join. Featured,
- * the card carries the network's join QR code, so a guest can scan it from a wall panel; the sheet draws it large,
+ * the card carries the network's join QR code, so a guest can scan it from a wall panel (with none, it says No QR
+ * code in its place); the sheet draws it large,
  * with what the code allows and the two presses its host gives, Refresh and New code (or New password, which asks
  * first, since devices already joined then need it). Neither is on the card: a stray tap on a dashboard never makes
  * codes. A long password shrinks to fit the card and is shown whole, wrapping, in the sheet.
@@ -77,8 +78,12 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
   // One that fails to load draws its frame empty, never the browser's broken picture, and its line says so.
   const qr = ready ? e.qr : undefined;
   const qrFailed = qr != null && failedQr === qr;
+  // A code Home Assistant gives with no QR code: the featured card says so in the QR code's place, with no frame. With
+  // no code at all the slot already says No code, and the line under it where to make one.
+  const noQr = featured && ready && !qr;
   const join = (featured || sheet) && !unav && (
-    <div className="gw-join" data-qr={qr ? "" : undefined} data-failed={qrFailed ? "" : undefined}>
+    <div className="gw-join" data-qr={qr ? "" : undefined} data-failed={qrFailed ? "" : undefined} data-empty={noQr ? "" : undefined}>
+      {noQr && <FeaturedEmpty>{NO_QR}</FeaturedEmpty>}
       {qr && (qrFailed
         ? <span className="gw-qr" aria-hidden="true" />
         : <img className="gw-qr" src={qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} onError={() => setFailedQr(qr)} />)}

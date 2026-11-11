@@ -1,11 +1,11 @@
 import type { VacuumEntity, VacuumHistory } from "@dashhaus/core/entities/vacuum/types";
-import { FAN_SPEED, LOCATE_WORD, RETURN_WORDS, VACUUM_TODAY, batteryFact, fanSpeedLabel, isActive, locateSaid, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSaid, vacuumWarningText, vacuumWord } from "@dashhaus/core/entities/vacuum/words";
+import { FAN_SPEED, LOCATE_WORD, NO_CLEANING_HISTORY, RETURN_WORDS, VACUUM_TODAY, batteryFact, fanSpeedLabel, isActive, locateSaid, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSaid, vacuumWarningText, vacuumWord } from "@dashhaus/core/entities/vacuum/words";
 import { vacuumSeverity } from "@dashhaus/core/entities/vacuum/severity";
 import type { VacuumPress } from "@dashhaus/core/entities/vacuum/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { VacuumIcon } from "./icons";
-import { AlertStatus, CardFrame, ChoiceChips, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
+import { AlertStatus, CardFrame, ChoiceChips, FeaturedEmpty, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./VacuumCard.css";
 
@@ -35,7 +35,7 @@ export interface VacuumCardProps extends CardProps {
  */
 export function VacuumCard({ entity: e, history, variant, footprint, showControl, onStart, onPause, onReturnToBase, onLocate, onFanSpeedChange, onOpenDetails, onClose }: VacuumCardProps) {
   const card = useCard("vc", { variant, footprint, showControl, area: e.area });
-  const { uid, compact, area } = card;
+  const { uid, compact, featured, area } = card;
   const unav = e.state === "unavailable";
   // Its active set, the one every skin's signal follows: cleaning, or on its way home between a clean and the dock.
   const active = isActive(e);
@@ -116,6 +116,8 @@ export function VacuumCard({ entity: e, history, variant, footprint, showControl
           )}
         </SheetBlock>
       )}
+      {/* Featured with no day to draw: one quiet line in its place. Unavailable, the slot says so. */}
+      {featured && !unav && !history && <FeaturedEmpty>{NO_CLEANING_HISTORY}</FeaturedEmpty>}
       {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary(VACUUM_TODAY, history.cleaningMinutes)} />}
     </CardFrame>
   );

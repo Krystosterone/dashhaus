@@ -37,6 +37,19 @@ describe("GuestWifiCard", () => {
     expect(screen.getByText("Join Maple Guests, then enter the code on the page that opens.")).toBeTruthy();
   });
 
+  it("says No QR code in the QR code's place on a featured card given a code without one, and nowhere else", () => {
+    const bare: GuestWifiEntity = { ...entity, network: undefined, qr: undefined };
+    const { container, rerender } = render(<GuestWifiCard entity={bare} footprint="featured" />);
+    expect(container.querySelector(".gw-join .hd-empty")?.textContent).toBe("No QR code");
+    expect(container.querySelector(".gw-how")?.textContent).toMatch(/^Join the network, then enter the code on the page that opens\./);
+    rerender(<GuestWifiCard entity={entity} footprint="featured" />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+    rerender(<GuestWifiCard entity={{ ...bare, state: "none", code: undefined }} footprint="featured" />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+    rerender(<GuestWifiCard entity={bare} variant="sheet" />);
+    expect(container.querySelector(".hd-empty")).toBeNull();
+  });
+
   it("keeps Refresh and New code in the sheet, never on the card", () => {
     const onNewCode = vi.fn(() => Promise.resolve());
     const { rerender } = render(<GuestWifiCard entity={entity} onNewCode={onNewCode} footprint="featured" />);
