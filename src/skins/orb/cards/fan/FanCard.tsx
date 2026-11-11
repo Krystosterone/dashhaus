@@ -1,4 +1,5 @@
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
+import { canSwitchFan } from "@dashhaus/core/entities/fan/power";
 import { percentOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, OSCILLATION, fanAbilities, fanMode, fanWord, presetLabel } from "@dashhaus/core/entities/fan/labels";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -37,6 +38,9 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
+  // A fan that doesn't declare the way a press would switch it (no TURN_OFF, no TURN_ON) draws its icon bare, and its
+  // state in words where the pill would be.
+  const switchable = unav || canSwitchFan(e);
   // A state: on is the accent, with no glow. Moving air is not light, heat or daylight, so a fan never claims the
   // energy bloom (attention-budget skill); the groove's fill and its words say how fast it runs.
   const colors = paint("state", 0);
@@ -63,7 +67,8 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
       card={card}
       name={e.name}
       attrs={{ "data-state": e.state, ...colors }}
-      orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle, children: <FanIcon /> }}
+      orb={switchable ? { label: e.name, pressed: on, intensity: 0.7, onToggle, children: <FanIcon /> } : undefined}
+      glyph={switchable ? undefined : <FanIcon />}
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
@@ -74,6 +79,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
       onClose={onClose}
       control={groove
         ? <SpeedBar id={`${uid}-speed`} label={`${e.name} speed`} percent={on && e.percentage != null ? e.percentage : percentOf(1, count)} count={count} on={on} onChange={onPercentageChange!} />
+        : !switchable ? <p className="hd-st">{word}</p>
         : <TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: fanAbilities(e) }}
     >

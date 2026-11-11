@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
+import { canSwitchFan } from "@dashhaus/core/entities/fan/power";
 import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, fanWord, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -42,6 +43,8 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
   const on = e.state === "on";
+  // A fan that doesn't declare the way a press would switch it (no TURN_OFF, no TURN_ON) keeps its key flat.
+  const stuck = !unav && !canSwitchFan(e);
   const count = e.speedCount ?? 0;
   const speedy = !!(e.supportsSpeed && count >= 2);
   // Off, the fan reports no speed: the fader has no thumb, and a tap or a slide turns it on where it lands.
@@ -68,7 +71,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   const at = speed ?? 1;
   const controls = (where: "m" | "p") => (
     <ModuleRow className="fd-fn-row" solo={!faded}>
-      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? fanWord(e) : undefined}>
+      <Key label={e.name} pressed={on} unavailable={unav || stuck} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? fanWord(e) : undefined}>
         <IconFan />
       </Key>
       {faded && (
@@ -109,7 +112,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
       pict={pict}
       read={read}
       meta={meta}
-      lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconFan /></Key>}
+      lead={<Key label={e.name} pressed={on} unavailable={unav || stuck} onPress={onToggle} onHold={openPanel}><IconFan /></Key>}
       controls={controls}
       aside={aside}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: fanAbilities(e) }}

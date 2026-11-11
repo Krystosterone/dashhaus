@@ -17,7 +17,7 @@ export interface FanMapOptions {
 }
 
 /** Home Assistant `FanEntityFeature` bit values the card reads. */
-export const FAN_FEATURES = { SET_SPEED: 1, OSCILLATE: 2, DIRECTION: 4, PRESET_MODE: 8 } as const;
+export const FAN_FEATURES = { SET_SPEED: 1, OSCILLATE: 2, DIRECTION: 4, PRESET_MODE: 8, TURN_OFF: 16, TURN_ON: 32 } as const;
 
 const DIRECTIONS = new Set<FanDirection>(["forward", "reverse"]);
 
@@ -56,6 +56,8 @@ export function fanFromHass(raw: HassEntity | undefined, entityId: string, optio
     name: options.name ?? stringValue(attributes.friendly_name) ?? entityId,
     area: options.area,
     state,
+    supportsTurnOn: has(FAN_FEATURES.TURN_ON),
+    supportsTurnOff: has(FAN_FEATURES.TURN_OFF),
     supportsSpeed,
     percentage,
     speedCount: supportsSpeed ? speedCountOf(finiteNumber(attributes.percentage_step)) : undefined,

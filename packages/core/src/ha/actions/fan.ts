@@ -4,7 +4,10 @@ import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
 export interface FanHandlers {
-  /** Calls `fan.toggle`. */
+  /**
+   * Calls `fan.turn_off` while it is on, `fan.turn_on` otherwise. A fan that doesn't declare the one it needs
+   * (`TURN_OFF`, `TURN_ON`) reports `unsupported`, rather than send what Home Assistant refuses.
+   */
   onToggle: () => void;
   /**
    * Calls `fan.set_percentage`, rounded to a whole percent from 1 to 100, so it never switches the fan off; setting a
@@ -51,7 +54,9 @@ export function createFanHandlers(caller: Pick<HaStore, "callService">, entity: 
   };
   return {
     onToggle: () => {
-      if (actionable()) run("toggle");
+      if (entity.state === "on") {
+        if (can(entity.supportsTurnOff !== false, "turning off")) run("turn_off");
+      } else if (can(entity.supportsTurnOn !== false, "turning on")) run("turn_on");
     },
     onPercentageChange: (percent) => {
       if (!can(entity.supportsSpeed, "speed")) return;

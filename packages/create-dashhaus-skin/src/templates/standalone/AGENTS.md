@@ -184,6 +184,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/cover/words` | a cover's state in words (`coverWord`), `positionText`, a door left open (`leftOpenText`) |
 | `@dashhaus/core/entities/cover/severity` | `coverSeverity` |
 | `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |
+| `@dashhaus/core/entities/fan/power` | whether a press can switch it from where it is (`canSwitchFan`; a fan that doesn't declare turning off can't, while on) |
 | `@dashhaus/core/entities/dyson/air`, `/dyson/labels` | a Dyson's air readings in Dyson's bands, its filters and warning; its sweeps, airflow and mode in words |
 | `@dashhaus/core/entities/guestWifi/words` | a guest Wi-Fi code's uses and length in words, `spokenCode`, `codeGroups`, `isGroupedCode`, `secretWord`, `joinWords`, `noneWord` |
 | `@dashhaus/core/entities/humidifier/labels` | what the unit is doing in words, `fmtHumidity`, `modeLabel` |

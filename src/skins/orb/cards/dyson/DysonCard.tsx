@@ -1,5 +1,6 @@
 import type { FanDirection } from "@dashhaus/core/entities/fan/types";
 import type { DysonEntity, DysonHistory } from "@dashhaus/core/entities/dyson/types";
+import { canSwitchFan } from "@dashhaus/core/entities/fan/power";
 import { percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { fanWord, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonSeverity, dysonWarning } from "@dashhaus/core/entities/dyson/air";
@@ -62,6 +63,8 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
   const { uid, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
+  // As the fan's: one that doesn't declare the way a press would switch it draws its icon bare.
+  const switchable = unav || canSwitchFan(e);
   // Core ranks its warning; a card with a level never glows, so a heater that warns keeps its colour, not its glow.
   const level = dysonSeverity(e);
   const colors = on && e.heating ? paint("energy", level ? 0 : 0.9) : paint("state", 0);
@@ -119,7 +122,8 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
       name={e.name}
       attrs={{ "data-state": e.state, ...colors }}
       level={level}
-      orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle, children: <DysonIcon /> }}
+      orb={switchable ? { label: e.name, pressed: on, intensity: 0.7, onToggle, children: <DysonIcon /> } : undefined}
+      glyph={switchable ? undefined : <DysonIcon />}
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
@@ -145,6 +149,7 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
             onChange={(s) => onPercentageChange!(percentOf(s, count))}
           />
         )
+        : !switchable ? <p className="hd-st">{word}</p>
         : <TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: dysonAbilities(e) }}
     >

@@ -544,6 +544,8 @@
       "name",
       "area",
       "state",
+      "supportsTurnOn",
+      "supportsTurnOff",
       "supportsSpeed",
       "percentage",
       "speedCount",

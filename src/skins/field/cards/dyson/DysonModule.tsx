@@ -2,6 +2,7 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { FanDirection } from "@dashhaus/core/entities/fan/types";
 import type { DysonEntity, DysonHistory } from "@dashhaus/core/entities/dyson/types";
+import { canSwitchFan } from "@dashhaus/core/entities/fan/power";
 import { percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonWarning } from "@dashhaus/core/entities/dyson/air";
@@ -64,6 +65,8 @@ export function DysonModule({ entity: e, footprint = "standard", history, onTogg
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
   const on = e.state === "on";
+  // As the fan's: one that doesn't declare the way a press would switch it keeps its key flat.
+  const stuck = !unav && !canSwitchFan(e);
   const auto = on && !!e.auto;
   const count = e.speedCount ?? 0;
   const speedy = !!(e.supportsSpeed && count >= 2);
@@ -91,7 +94,7 @@ export function DysonModule({ entity: e, footprint = "standard", history, onTogg
   const at = speed ?? 1;
   const controls = (where: "m" | "p") => (
     <ModuleRow className="fd-dy-row" solo={!faded}>
-      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? (on ? "On" : "Off") : undefined}>
+      <Key label={e.name} pressed={on} unavailable={unav || stuck} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? (on ? "On" : "Off") : undefined}>
         <IconDyson />
       </Key>
       {faded && (
@@ -158,7 +161,7 @@ export function DysonModule({ entity: e, footprint = "standard", history, onTogg
       pict={pict}
       read={read}
       meta={meta}
-      lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconDyson /></Key>}
+      lead={<Key label={e.name} pressed={on} unavailable={unav || stuck} onPress={onToggle} onHold={openPanel}><IconDyson /></Key>}
       controls={controls}
       aside={aside}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: dysonAbilities(e) }}

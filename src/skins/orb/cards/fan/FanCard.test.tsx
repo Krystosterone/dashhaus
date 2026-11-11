@@ -93,4 +93,11 @@ describe("FanCard", () => {
     rerender(<FanCard entity={tower} footprint="compact" onToggle={noop} />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Speed 2");
   });
+
+  it("draws a fan that doesn't declare turning off with its icon bare and its state in words, never a refused press", () => {
+    const { container } = render(<FanCard entity={{ ...extractor, state: "on", supportsTurnOff: false }} onToggle={noop} />);
+    expect(container.querySelector("button.hd-orb")).toBeNull();
+    expect(container.querySelector(".hd-pill")).toBeNull();
+    expect(container.querySelector(".hd-st")?.textContent).toBe("On");
+  });
 });

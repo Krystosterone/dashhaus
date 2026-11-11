@@ -12,6 +12,16 @@ export interface FanEntity {
   /** Where it is: "Bedroom". */
   area?: string;
   state: "on" | "off" | "unavailable";
+  /**
+   * Whether it declares `fan.turn_on` (`FanEntityFeature.TURN_ON`). `false` where it doesn't, so nothing turns it on;
+   * omitted, it does.
+   */
+  supportsTurnOn?: boolean;
+  /**
+   * Whether it declares `fan.turn_off` (`FanEntityFeature.TURN_OFF`). `false` where it doesn't, so nothing turns it off;
+   * omitted, it does.
+   */
+  supportsTurnOff?: boolean;
   /** True when the fan takes a speed (`FanEntityFeature.SET_SPEED`). */
   supportsSpeed?: boolean;
   /** Its speed in percent, 1-100, while it is on and reports one. A fan that is off reports none. */

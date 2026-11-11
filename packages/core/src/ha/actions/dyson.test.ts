@@ -27,7 +27,7 @@ describe("createDysonHandlers", () => {
     handlers.onDirectionChange("reverse");
     handlers.onOscillateChange(false);
     expect(callService.mock.calls).toEqual([
-      ["fan", "toggle", { entity_id: "fan.bedroom" }],
+      ["fan", "turn_off", { entity_id: "fan.bedroom" }],
       ["fan", "set_percentage", { entity_id: "fan.bedroom", percentage: 70 }],
       ["fan", "set_direction", { entity_id: "fan.bedroom", direction: "reverse" }],
       ["fan", "oscillate", { entity_id: "fan.bedroom", oscillating: false }],

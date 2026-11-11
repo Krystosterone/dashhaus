@@ -52,7 +52,7 @@ describe("fanFromHass", () => {
 
   it("reads only what supported_features declares", () => {
     const onOff = fanFromHass(withAttributes({ supported_features: 16 | 32 }), raw.entity_id);
-    expect(onOff).toMatchObject({ supportsSpeed: false, supportsPreset: false, supportsOscillate: false, supportsDirection: false });
+    expect(onOff).toMatchObject({ supportsTurnOn: true, supportsTurnOff: true, supportsSpeed: false, supportsPreset: false, supportsOscillate: false, supportsDirection: false });
     expect(onOff.percentage).toBeUndefined();
     expect(onOff.speedCount).toBeUndefined();
     expect(onOff.presetModes).toBeUndefined();
@@ -60,7 +60,7 @@ describe("fanFromHass", () => {
     expect(onOff.oscillating).toBeUndefined();
     expect(onOff.direction).toBeUndefined();
     const missing = fanFromHass(withAttributes({ supported_features: undefined }), raw.entity_id);
-    expect(missing.supportsSpeed).toBe(false);
+    expect(missing).toMatchObject({ supportsSpeed: false, supportsTurnOn: false, supportsTurnOff: false });
   });
 
   it("has no speed or preset while off, but keeps its swing and direction", () => {
