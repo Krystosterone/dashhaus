@@ -350,6 +350,7 @@
       "supportsTiltOpen",
       "supportsTiltClose",
       "supportsTiltStop",
+      "assumedState",
       "lastChanged",
       "lastSeen"
     ],

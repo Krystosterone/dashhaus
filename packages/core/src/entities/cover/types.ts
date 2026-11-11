@@ -45,6 +45,11 @@ export interface CoverEntity {
   supportsTiltOpen?: boolean;
   supportsTiltClose?: boolean;
   supportsTiltStop?: boolean;
+  /**
+   * Home Assistant assumes where it is rather than hearing it (`assumed_state`: an RF blind, a garage door with no
+   * sensor), so what it shows may be wrong: both ends act, as they do while it is unknown.
+   */
+  assumedState?: boolean;
   lastChanged?: string;
   /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;

@@ -6,7 +6,7 @@ import { COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 const LONG_DOOR = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!;
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const COVERS = ["curtains", "blind", "venetian", "slats", "shade", "moving", "garage", "gate", "unknown", "unavailable"] as const;
+const COVERS = ["curtains", "blind", "venetian", "slats", "shade", "moving", "garage", "gate", "unknown", "assumed", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Cover",
@@ -54,6 +54,8 @@ export const GarageDoor: Story = { name: "Garage door", args: { cover: "garage" 
  * nothing is dashed: it says Unknown, both Close and Open act, and the orb opens it, as Home Assistant's own toggle does.
  */
 export const Unknown: Story = { args: { cover: "unknown" } };
+/** Closed as Home Assistant assumes, never hears: an RF blind may not be where it's shown, so Close acts as well as Open. */
+export const AssumedState: Story = { name: "Assumed state", args: { cover: "assumed" } };
 export const Unavailable: Story = { args: { cover: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (COVER_WORST_CASE): long and compound names, missing areas, values at their limits. */
 export const WorstCase: Story = {

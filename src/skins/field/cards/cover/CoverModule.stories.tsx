@@ -78,6 +78,8 @@ export const GateClosing: Story = { name: "Gate, closing", args: { cover: "gate"
  * but nothing lies flat. The key opens it, as Home Assistant's own toggle does.
  */
 export const Unknown: Story = { args: { cover: "unknown" } };
+/** Closed as Home Assistant assumes, never hears: an RF blind may not be where it's shown, so the panel's Close acts too. */
+export const AssumedState: Story = { name: "Assumed state", args: { cover: "assumed" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { cover: "unavailable" } };
 

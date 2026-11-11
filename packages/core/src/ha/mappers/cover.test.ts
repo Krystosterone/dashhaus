@@ -36,6 +36,11 @@ describe("coverFromHass", () => {
     expect(coverFromHass(raw, raw.entity_id).lastChanged).toBeDefined();
   });
 
+  it("says when Home Assistant only assumes where it is, and nothing otherwise", () => {
+    expect(coverFromHass({ ...raw, attributes: { ...raw.attributes, assumed_state: true } }, raw.entity_id).assumedState).toBe(true);
+    expect(coverFromHass(raw, raw.entity_id)).not.toHaveProperty("assumedState");
+  });
+
   it("reads a cover that only tilts, which stops its slats", () => {
     const slats = coverFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: 16 | 32 | 64 | 128 } }, raw.entity_id);
     expect(slats).toMatchObject({ supportsOpen: false, supportsClose: false, supportsPosition: false, supportsStop: true, supportsTilt: true, supportsTiltOpen: true, supportsTiltClose: true, supportsTiltStop: true });

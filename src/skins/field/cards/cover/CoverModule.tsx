@@ -59,6 +59,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // Reachable, but where it is isn't known (an RF blind, a garage door with no sensor): its screen has no reading, the
   // key opens it as Home Assistant's own toggle does, and every transport key acts.
   const unknown = e.state === "unknown";
+  // Where it is isn't known, or only assumed (an RF blind Home Assistant can't hear back from): every Move key acts.
+  const either = unknown || !!e.assumedState;
   const moving = isMoving(e);
   const pos = Math.round(openness(e));
   const open = !unav && (pos > 0 || e.state === "open");
@@ -154,9 +156,9 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // whose position isn't set here; the slats fader; today.
   const move = (
     <KeyGroup legend="Move">
-      <Key label={`${e.name}, close${asks ? ": asks first" : ""}`} wide caption="Close" unavailable={adrift || (!open && !moving && !unknown)} onPress={asks ? () => ask("close") : onCloseCover}><IconDown /></Key>
-      {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving && !unknown} onPress={onStopCover}><IconStop /></Key>}
-      <Key label={`${e.name}, open${asks ? ": asks first" : ""}`} wide caption="Open" unavailable={adrift || (open && !moving && !unknown)} onPress={asks ? () => ask("open") : onOpenCover}><IconUp /></Key>
+      <Key label={`${e.name}, close${asks ? ": asks first" : ""}`} wide caption="Close" unavailable={adrift || (!open && !moving && !either)} onPress={asks ? () => ask("close") : onCloseCover}><IconDown /></Key>
+      {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving && !either} onPress={onStopCover}><IconStop /></Key>}
+      <Key label={`${e.name}, open${asks ? ": asks first" : ""}`} wide caption="Open" unavailable={adrift || (open && !moving && !either)} onPress={asks ? () => ask("open") : onOpenCover}><IconUp /></Key>
     </KeyGroup>
   );
   const panel = (

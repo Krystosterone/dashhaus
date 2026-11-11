@@ -58,6 +58,14 @@ export const COVER_SEEDS = {
     entity: { entityId: "cover.study_rts_blind", name: "Study blind", area: "Study", state: "unknown", deviceClass: "blind", supportsPosition: false, supportsStop: true, lastChanged: "06:00" },
     past: [0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable", "unavailable", "unavailable"],
   },
+  /**
+   * Closed, as Home Assistant assumes: an RF blind it sends commands to but never hears back from (`assumed_state`).
+   * It may not be where it's shown, so both ends act.
+   */
+  assumed: {
+    entity: { entityId: "cover.nursery_rts_blind", name: "Nursery blind", area: "Nursery", state: "closed", deviceClass: "blind", supportsPosition: false, supportsStop: true, assumedState: true, lastChanged: "07:45" },
+    past: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+  },
   unavailable: {
     entity: { entityId: "cover.skylight", name: "Skylight", area: "Upstairs hall", state: "unavailable", deviceClass: "window", position: 30, supportsPosition: true, supportsStop: false, lastSeen: "08:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.3, "unavailable", "unavailable", "unavailable"],

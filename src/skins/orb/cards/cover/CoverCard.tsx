@@ -46,6 +46,8 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // Reachable, but where it is isn't known (an RF blind, a garage door with no sensor): it is drawn as not open,
   // says Unknown, and both ends of its control act.
   const unknown = e.state === "unknown";
+  // Where it is isn't known, or only assumed (an RF blind Home Assistant can't hear back from): both ends act.
+  const either = unknown || !!e.assumedState;
   const moving = isMoving(e);
   const pos = Math.round(openness(e));
   const open = pos > 0 || e.state === "open";
@@ -98,7 +100,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
     slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
   } else {
     slot = (
-      <OpenCloseControl name={e.name} open={open} moving={moving} either={unknown} asks={asks} flat={adrift || pending != null} text={text} canStop={e.supportsStop}
+      <OpenCloseControl name={e.name} open={open} moving={moving} either={either} asks={asks} flat={adrift || pending != null} text={text} canStop={e.supportsStop}
         onOpen={asks ? () => guard.ask("open") : onOpenCover} onClose={asks ? () => guard.ask("close") : onCloseCover} onStop={onStopCover} />
     );
   }

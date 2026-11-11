@@ -65,6 +65,7 @@ export function coverFromHass(raw: HassEntity | undefined, entityId: string, opt
     supportsTiltOpen: has(COVER_FEATURES.OPEN_TILT),
     supportsTiltClose: has(COVER_FEATURES.CLOSE_TILT),
     supportsTiltStop: has(COVER_FEATURES.STOP_TILT),
+    ...(attributes.assumed_state === true && { assumedState: true }),
     lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
