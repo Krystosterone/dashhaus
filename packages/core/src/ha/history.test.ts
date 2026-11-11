@@ -548,6 +548,12 @@ describe("today's minutes", () => {
     expect(idle.activeMinutes).toBe(12 * 60 + 34);
   });
 
+  it("counts a change at exactly now as a minute, as the strip draws it on", () => {
+    const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", iso(12, 34))], "switch.x", now());
+    expect(result.samples[12]).toBe(1);
+    expect(result.onMinutes).toBe(1);
+  });
+
   it("counts a change under half a minute old as a minute, as the strip draws it on", () => {
     const result = toggleHistoryFromHass([record("switch.x", "off", iso(0)), record("switch.x", "on", "2026-10-20T12:33:31")], "switch.x", now());
     expect(result.samples[12]).toBe(1);
@@ -570,7 +576,9 @@ describe("today's minutes", () => {
 });
 
 describe("a meter's rise today", () => {
-  const rise = (records: HaHistoryRecord[]) => readingHistoryFromHass(records, "sensor.energy", now());
+  const meter = { state_class: "total_increasing" };
+  const rise = (records: HaHistoryRecord[]) =>
+    readingHistoryFromHass(records.map((r) => ({ ...r, attributes: { ...meter, ...r.attributes } })), "sensor.energy", now());
   const say = (records: HaHistoryRecord[]) => numericToday({ unit: "kWh", stateClass: "total_increasing" }, rise(records)).long;
 
   it("rises from the reading in effect at midnight", () => {
@@ -603,6 +611,14 @@ describe("a meter's rise today", () => {
 
   it("skips the hours it was unavailable", () => {
     expect(say([record("sensor.energy", "unavailable", iso(0)), record("sensor.energy", "100", iso(1)), record("sensor.energy", "unknown", iso(2)), record("sensor.energy", "101", iso(3))])).toBe("+1 kWh today");
+  });
+
+  it("reads no rise for a sensor that isn't a meter that only climbs", () => {
+    const of = (stateClass: string, values: string[]) =>
+      readingHistoryFromHass(values.map((v, i) => record("sensor.x", v, iso(i * 6), { state_class: stateClass })), "sensor.x", now()).rise;
+    expect(of("total", ["100", "95", "80"])).toBeUndefined();
+    expect(of("measurement", ["900", "500", "600"])).toBeUndefined();
+    expect(readingHistoryFromHass([record("sensor.x", "100", iso(0)), record("sensor.x", "101", iso(6))], "sensor.x", now()).rise).toBeUndefined();
   });
 
   it("says nothing of a rise before a reading", () => {

@@ -128,11 +128,15 @@ function build(records: readonly HaHistoryRecord[], now: Date, options: BuildOpt
     samples[hour] = record == null ? (options.noData ?? "unavailable") : options.value(record.state, record.attributes);
   }
   let ms = 0;
+  let onNow = false;
   if (options.on) {
     for (const { record, ms: lasted } of stretches(records, now)) if (options.on(record.state, record.attributes)) ms += lasted;
+    const current = states[currentHour];
+    onNow = current != null && options.on(current.state, current.attributes);
   }
-  // Anything on today is at least a minute, so the summary never says "not on" beside an hour the strip draws on.
-  return { samples, currentHour, minutes: ms > 0 ? Math.max(1, Math.round(ms / 60_000)) : 0 };
+  // Anything on today, or on now (a change at this very instant), is at least a minute, so the summary never says
+  // "not on" beside an hour the strip draws on.
+  return { samples, currentHour, minutes: ms > 0 || onNow ? Math.max(1, Math.round(ms / 60_000)) : 0 };
 }
 
 /* ------------------------------------------------------------------ *
@@ -316,12 +320,14 @@ function temperatureAttribute(state: string, attributes: Record<string, unknown>
 }
 
 /**
- * How far a meter rose today: every numeric reading from the one in effect at local midnight (else the day's first)
- * to `now`, through `meterRise`. None before a reading.
+ * How far a meter that only climbs rose today: every numeric reading from the one in effect at local midnight (else
+ * the day's first) to `now`, through `meterRise`. None before a reading, and none unless the latest record says
+ * `state_class: total_increasing`, as Home Assistant's statistics read a reset only on such a meter.
  */
 function todayRise(records: readonly HaHistoryRecord[], now: Date): number | undefined {
   const start = localMidnight(now).getTime();
   const sorted = upTo(records, now);
+  if (sorted.length === 0 || sorted[sorted.length - 1].attributes.state_class !== "total_increasing") return undefined;
   let from = 0;
   while (from + 1 < sorted.length && sorted[from + 1].changed.getTime() <= start) from++;
   const values = sorted.slice(from).map((record) => numericState(record.state)).filter((x): x is number => typeof x === "number");
@@ -351,7 +357,7 @@ export function sensorHistoryFromHass(
   return { temperature, humidity, currentHour: when.getHours() };
 }
 
-/** Today's numeric readings for any one sensor, carried forward hour by hour, and how far it rose today if a meter. */
+/** Today's numeric readings for any one sensor, carried forward hour by hour, and how far it rose today if a meter that only climbs. */
 export function readingHistoryFromHass(records: Records, entityId: string, now?: Date): NumericHistory {
   const when = safeNow(now);
   const own = only(records, entityId);
