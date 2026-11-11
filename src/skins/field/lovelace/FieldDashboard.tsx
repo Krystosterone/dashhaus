@@ -134,6 +134,12 @@ export const FIELD_TRACKS: Record<FieldFootprint, TrackPolicy> = {
   compact: { gap: 8, min: 300, preferred: 300, max: 4 },
 };
 
+/**
+ * A row of column stacks that holds a compact row: each stack at least the row's 300 px, at the stacks' 12 px gap, so
+ * its names stay whole (a wall's three areas across at 1280 px, two on an 800 px portrait panel).
+ */
+const STACKED_ROWS: TrackPolicy = { ...FIELD_TRACKS.compact, gap: FIELD_TRACKS.standard.gap };
+
 interface RowProps { row: FieldRow; id?: string; legend: boolean; label: string | null; footprint: FieldFootprint }
 
 /**
@@ -144,7 +150,8 @@ interface RowProps { row: FieldRow; id?: string; legend: boolean; label: string 
 function Row({ row, id, legend, label, footprint }: RowProps) {
   const own = (item: ModuleConfig) => item.footprint ?? footprint;
   const grid = row.stacks ? "standard" : own(row.cards[0]?.item ?? ({} as ModuleConfig));
-  const layout = useRowLayout(row, FIELD_TRACKS[grid]);
+  const stacksRows = row.stacks && row.cards.some((entry) => own(entry.item) === "compact");
+  const layout = useRowLayout(row, stacksRows ? STACKED_ROWS : FIELD_TRACKS[grid]);
   const drawn = (item: ModuleConfig, i: number) => <LiveModule key={`${i}:${item.entity}`} item={item} footprint={footprint} />;
   // The area each column names (a wall, spec/deploy.md → The wall layout), from each module's own `area`.
   const areas = columnAreas(row, (item) => item.area);

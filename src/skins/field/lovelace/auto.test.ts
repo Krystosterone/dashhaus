@@ -257,7 +257,7 @@ describe("areaColumns: the wall", () => {
   it("puts the columns in Home Assistant's area order where it is given, the areas it doesn't name after them by name", () => {
     const rows = areaColumns(MODULES, [], { outside: "Outside", order: ["Outside", "Kitchen", "Nursery"] });
     const areas = rows.slice(0, 2).map((row) => [...new Set(row.cards.map((entry) => entry.item.area ?? "house"))]);
-    expect(areas).toEqual([["Outside", "Kitchen", "Attic", "house"], ["Hall", "Office"]]);
+    expect(areas).toEqual([["Outside", "Kitchen", "house"], ["Attic", "Hall", "Office"]]);
   });
 
   it("takes a Dyson in its area's column as a row, pressed, after the plain fans", () => {
@@ -275,23 +275,23 @@ describe("areaColumns: the wall", () => {
     expect(modules.some((module) => module.entity === "climate.living_room_hot_cool")).toBe(false);
   });
 
-  it("puts a column per area by area name, four across, the house's own last in the first row, each column whole modules first", () => {
+  it("puts a column per area by area name, three across, the house's own last in the first row, each column whole modules first", () => {
     expect(layout(areaColumns(MODULES, [], { outside: "Outside" }))).toEqual([
       {
-        title: undefined, columns: 4, flow: "normal", stacks: true,
+        title: undefined, columns: 3, flow: "normal", stacks: true,
         cards: [
           ["light.attic", 1, "compact"],
           ["climate.hall", 2, "compact"], ["light.hall", 2, "compact"],
-          // The kitchen's leak is read, so it leads its column; its light and its lock are pressed, so rows under it.
-          ["binary_sensor.leak", 3, "standard"], ["light.kitchen", 3, "compact"], ["lock.back", 3, "compact"],
-          ["calendar.family", 4, "standard"], ["input_boolean.guest", 4, "compact"], ["alarm_control_panel.house", 4, "compact"],
+          ["calendar.family", 3, "standard"], ["input_boolean.guest", 3, "compact"], ["alarm_control_panel.house", 3, "compact"],
         ],
       },
       {
-        title: undefined, columns: 4, flow: "normal", stacks: true,
+        title: undefined, columns: 3, flow: "normal", stacks: true,
         cards: [
-          ["sensor.office", 1, "standard"],
-          ["weather.home", 2, "standard"], ["sun.sun", 2, "standard"], ["light.porch", 2, "compact"],
+          // The kitchen's leak is read, so it leads its column; its light and its lock are pressed, so rows under it.
+          ["binary_sensor.leak", 1, "standard"], ["light.kitchen", 1, "compact"], ["lock.back", 1, "compact"],
+          ["sensor.office", 2, "standard"],
+          ["weather.home", 3, "standard"], ["sun.sun", 3, "standard"], ["light.porch", 3, "compact"],
         ],
       },
     ]);
@@ -301,7 +301,7 @@ describe("areaColumns: the wall", () => {
     const joined = areaColumns(MODULES, [], { outside: "Outside" }).flatMap((row) => row.cards.map((entry) => entry.item));
     expect(joined.filter((item) => item.kind === "weather" || item.kind === "sun").map((item) => item.area)).toEqual(["Outside", "Outside"]);
     const alone = areaColumns(MODULES).flatMap((row) => row.cards).filter((entry) => entry.item.kind === "weather" || entry.item.kind === "sun");
-    expect(alone.map((entry) => [entry.column, entry.item.area])).toEqual([[4, undefined], [4, undefined]]);
+    expect(alone.map((entry) => [entry.column, entry.item.area])).toEqual([[3, undefined], [3, undefined]]);
   });
 
   it("reads back through the card's own reader: mixed rows stack, rows of one footprint are a dense grid", () => {

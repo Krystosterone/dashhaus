@@ -72,3 +72,30 @@ describe("FieldDashboard sensors listed on their own", () => {
     expect(moduleOf("Office").classList.contains("fd-nm")).toBe(true);
   });
 });
+
+describe("FieldDashboard column stacks", () => {
+  const row = (footprint: "standard" | "compact") => ({
+    rows: [{
+      columns: 4,
+      cards: [1, 2, 3, 4].flatMap((column) => [
+        { entity: "media_player.kitchen", column, footprint: "standard" },
+        { entity: "media_player.kitchen", column, footprint },
+      ]),
+    }],
+  });
+  // Field's page at its widest: 1240 px, less its 16 px each side.
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width: 1208 } as DOMRect);
+    return () => vi.restoreAllMocks();
+  });
+
+  it("keeps a compact row's 300 px track where the stacks hold one, so its name stays whole: three across", async () => {
+    draw(row("compact"));
+    await waitFor(() => expect(document.querySelector(".fd-dash-grid")?.getAttribute("data-tracks")).toBe("3"));
+  });
+
+  it("takes a module's 260 px track where they hold whole modules only: four across", async () => {
+    draw(row("standard"));
+    await waitFor(() => expect(document.querySelector(".fd-dash-grid")?.getAttribute("data-tracks")).toBe("4"));
+  });
+});

@@ -352,9 +352,10 @@ export const Composition: Story = { name: "Composition", render: () => <Yaml yam
  */
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <AutomaticHouse /> };
 /**
- * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, in Home Assistant's order (here by name), four across, each under its
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, in Home Assistant's order (here by name), three across, each under its
  * legend, so its plates leave their own area out; each column leads with what is read whole and takes its rows under
- * it; the house's own alarm, modes, guest Wi-Fi and calendars end the first row, and Outside wraps under it.
+ * it; the house's own alarm, modes, guest Wi-Fi and calendars end the first row, and the nursery and Outside wrap under
+ * it, its rows' names whole at a step up.
  */
 export const AutomaticWall: Story = { name: "Automatic layout, wall panel", render: () => <WallHouse label="Wall panel" /> };
 /**
@@ -370,7 +371,7 @@ export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall pan
  */
 export const AutomaticWallOrdered: Story = { name: "Automatic layout, wall panel, in Home Assistant's order", render: () => <WallHouse house={DEMO_WALL_HOUSE_ORDERED} label="Wall panel, in Home Assistant's order" /> };
 /**
- * The same wall on an 800 × 1280 portrait panel: two of a module's 260 px tracks fit, so the columns wrap two by two in
+ * The same wall on an 800 × 1280 portrait panel: two of a row's 300 px tracks fit, so the columns wrap two by two in
  * area order, each still one area under its legend.
  */
 export const AutomaticWallPortrait: Story = { name: "Automatic layout, wall panel, portrait", render: () => <WallHouse label="Wall panel, portrait" width={800} height={1280} /> };
