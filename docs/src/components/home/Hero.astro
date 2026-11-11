@@ -10,6 +10,7 @@
  */
 import Default from "@astrojs/starlight/components/Hero.astro";
 import LiveStory from "../LiveStory.astro";
+import Version from "../Version.astro";
 import { SKINS as ALL, skinOf } from "../../lib/skins";
 
 const { entry } = Astro.locals.starlightRoute;
@@ -64,6 +65,11 @@ const note = page ? `It runs live on a demo house: press, slide and scroll it.` 
             ))}
           </ul>
           <p class="note">{note}</p>
+          {!page && (
+            <p class="release">
+              Latest release <Version />. <a href={`${base}/releases/`}>Release notes</a>
+            </p>
+          )}
         </div>
 
         <div class="stage" data-skin-stage data-active={SKINS[0].skin} data-count={SKINS.length}>
@@ -246,6 +252,16 @@ const note = page ? `It runs live on a demo house: press, slide and scroll it.` 
     margin: 1.5rem 0 0;
     font-size: 1rem;
     color: var(--sl-color-gray-2);
+  }
+
+  .release {
+    margin: 0.5rem 0 0;
+    font-size: 0.9375rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .release a {
+    color: inherit;
   }
 
   /* The stage: each phone on its skin's shape, the shapes cropped by the hero's right and bottom edges. */
@@ -458,6 +474,11 @@ const note = page ? `It runs live on a demo house: press, slide and scroll it.` 
       order: 5;
       margin: 0 0 2rem;
     }
+
+    .release {
+      order: 6;
+      margin: 0 0 2rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -475,7 +496,7 @@ const note = page ? `It runs live on a demo house: press, slide and scroll it.` 
    * rather than in each section, so the sections stay readable without script.
    */
   const GROUPS = [
-    ".home-hero h1, .home-hero .lede, .home-hero .paths li, .home-hero .note",
+    ".home-hero h1, .home-hero .lede, .home-hero .paths li, .home-hero .note, .home-hero .release",
     ".home-hero .phone",
     ".install h2, .install .lead > p, .install .links, .install .steps li",
     ".kinds h2, .kinds .picture, .kinds h3, .kinds li",
