@@ -109,7 +109,7 @@ interface CardBase {
   showControl?: boolean;
   /** False skips the Today history read. */
   history: boolean;
-  /** Nothing chose its card but its domain (`CardShape.defaulted`): a `sensor.*` listed on its own may draw the numeric card. */
+  /** Nothing chose its card but its domain (`ReadCard.defaulted`): a `sensor.*` listed on its own may draw the numeric card. */
   defaulted?: true;
 }
 
@@ -203,48 +203,48 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   light: {},
   climate: {
     keys: ["unit"],
-    options: (read, raw, at) => ({ unit: readUnit(read, raw, at) }),
+    readOptions: (read, raw, at) => ({ unit: readUnit(read, raw, at) }),
   },
   sensor: {
     keys: ["humidity", "battery", "outdoor", "unit"],
-    options: (read, raw, at) => ({ ...readSensorOptions(read, raw, at), unit: readUnit(read, raw, at) }),
+    readOptions: (read, raw, at) => ({ ...readSensorOptions(read, raw, at), unit: readUnit(read, raw, at) }),
   },
   weather: {
     keys: ["aqi", "aqi_scale", "sun", "forecasts"],
-    options: readWeatherOptions,
+    readOptions: readWeatherOptions,
   },
   cover: {
     keys: ["device_class"],
-    options: (read, raw, at) => ({ deviceClass: read.choice(raw, "device_class", at, COVER_CLASSES) }),
+    readOptions: (read, raw, at) => ({ deviceClass: read.choice(raw, "device_class", at, COVER_CLASSES) }),
   },
   toggle: {
     keys: ["icon", "description"],
-    options: (read, raw, at) => ({
+    readOptions: (read, raw, at) => ({
       icon: read.choice(raw, "icon", at, TOGGLE_ICONS),
       description: read.string(raw, "description", at),
     }),
   },
   alarm: {
     keys: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
-    options: readAlarmOptions,
+    readOptions: readAlarmOptions,
   },
   owlet: {
     keys: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"],
-    options: (read, raw, at) => readOwletOptions(read, raw, at, OWLET_ALERTS),
+    readOptions: (read, raw, at) => readOwletOptions(read, raw, at, OWLET_ALERTS),
   },
   humidifier: {},
   sound: {
     keys: ["volume"],
-    options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }),
+    readOptions: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }),
   },
   lock: {
     keys: ["battery"],
-    options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
+    readOptions: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
   fan: {},
   guestWifi: {
     keys: ["access", "network", "qr", "new_code", "refresh"],
-    options: (read, raw, at) => ({
+    readOptions: (read, raw, at) => ({
       access: read.choice(raw, "access", at, ["code", "password"] as const),
       network: read.string(raw, "network", at),
       qr: read.optionalEntity(raw, "qr", at, ["image"]),
@@ -254,20 +254,20 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   },
   binarySensor: {
     keys: ["battery"],
-    options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
+    readOptions: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
-  camera: { keys: ["still", "refresh"], options: readCameraOptions },
+  camera: { keys: ["still", "refresh"], readOptions: readCameraOptions },
   mediaPlayer: {},
-  numeric: { keys: ["unit", "warn_above", "warn_below"], options: readNumericOptions },
+  numeric: { keys: ["unit", "warn_above", "warn_below"], readOptions: readNumericOptions },
   vacuum: {},
   calendar: {
     keys: ["calendars", "days", "events"],
-    options: readCalendarOptions,
+    readOptions: readCalendarOptions,
   },
   sun: {},
   dyson: {
     keys: ["companions"],
-    options: readDysonOptions,
+    readOptions: readDysonOptions,
   },
   // new-card: kind specs
 };
@@ -339,7 +339,7 @@ export { DashboardConfigError, suggest };
 
 class Reader extends YamlReader {
   /** The shared layout, with orb's cards and bundles and its twelve columns. */
-  readonly layout: LayoutSchema<ItemConfig> = { noun: "card", maxColumns: MAX_COLUMNS, item: (_read, value, path) => this.item(value, path) };
+  readonly layout: LayoutSchema<ItemConfig> = { noun: "card", maxColumns: MAX_COLUMNS, readItem: (_read, value, path) => this.item(value, path) };
 
   card(value: unknown, path: string): CardConfig | undefined {
     return readCard(this, CARD_SCHEMA, value, path);

@@ -53,7 +53,7 @@ export function parseFuturaConfig(value: unknown): FuturaConfig {
   const layout: LayoutSchema<CardConfig> = {
     noun: "Card",
     maxColumns: MAX_ACROSS,
-    item: (read, item, path) => readCard(read, CARD_SCHEMA, item, path),
+    readItem: (read, item, path) => readCard(read, CARD_SCHEMA, item, path),
     footprints: { mix: "uniform", of: (card) => card.footprint ?? footprint },
   };
   const rows = readBody(reader, layout, raw);

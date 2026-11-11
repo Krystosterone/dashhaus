@@ -104,7 +104,7 @@ const schema = {
       domains: ["light"],
       id: /^light\\.candle_/,
       keys: ["color"],
-      options: (read, raw, at) => ({ color: readColor(read, raw, at, ["amber"]) }),
+      readOptions: (read, raw, at) => ({ color: readColor(read, raw, at, ["amber"]) }),
     },
   },
   base: (read, raw, at) => ({ name: read.string(raw, "name", at) }),

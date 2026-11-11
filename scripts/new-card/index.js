@@ -198,7 +198,7 @@ const sharesDomain = domain in domainKind;
 edit(lovelace, after(markers.kinds, `  | "${name}"\n`));
 edit(lovelace, after(sharesDomain ? markers.sharedKinds : markers.domainKinds, sharesDomain ? `  ${name}: { domains: ["${domain}"] },` : `  ${domain}: "${name}",`));
 edit(lovelace, after(markers.cardConfigs, `  | { kind: "${name}"${reading ? "; unit?: string" : ""} }`));
-edit(lovelace, after(markers.kindSpecs, reading ? `  ${name}: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },` : `  ${name}: {},`));
+edit(lovelace, after(markers.kindSpecs, reading ? `  ${name}: { keys: ["unit"], readOptions: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },` : `  ${name}: {},`));
 const renderer = seams.orb.renderer;
 edit(renderer, after(markers.tileImports, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";
 `)));

@@ -50,7 +50,7 @@ export interface ModuleConfig {
   footprint?: FieldFootprint;
   /** False skips the Today history read. */
   history?: boolean;
-  /** Nothing chose its card but its domain (`CardShape.defaulted`): a `sensor.*` listed on its own may draw the numeric module. */
+  /** Nothing chose its card but its domain (`ReadCard.defaulted`): a `sensor.*` listed on its own may draw the numeric module. */
   defaulted?: true;
   /** A climate entity's or a sensor's temperatures in this unit, whatever Home Assistant's is. */
   unit?: "°C" | "°F";
@@ -260,7 +260,7 @@ const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: strin
 
 /** Field's kind table: the domains above, plus the keys and options each card takes. */
 const KINDS = (Object.keys(FIELD_KINDS) as FieldKind[]).reduce((table, kind) => {
-  table[kind] = { ...FIELD_KINDS[kind], keys: KIND_KEYS[kind], options: KIND_OPTIONS[kind] };
+  table[kind] = { ...FIELD_KINDS[kind], keys: KIND_KEYS[kind], readOptions: KIND_OPTIONS[kind] };
   return table;
 }, {} as Record<FieldKind, CardKindSpec>);
 
@@ -340,7 +340,7 @@ class FieldReader extends Reader {
     this.layout = {
       noun: "module",
       maxColumns: MAX_ACROSS,
-      item: (_read, value, path) => this.module(value, path),
+      readItem: (_read, value, path) => this.module(value, path),
       footprints: { mix: "stacks", of: (module) => module.footprint ?? footprint() },
     };
   }

@@ -3,7 +3,7 @@ import { isRoomReading, useHaSelector } from "../index";
 /*
  * Which card a `sensor.*` listed on its own draws (spec/deploy.md → The format): one a Lovelace card's YAML lists with
  * no `card:`, no id pattern and none of the sensor card's own keys, so the reader left the choice to the card as it
- * draws (`CardShape.defaulted`, `@dashhaus/core/lovelace/schema`). The rule reads only what the entity declares, never
+ * draws (`ReadCard.defaulted`, `@dashhaus/core/lovelace/schema`). The rule reads only what the entity declares, never
  * its value, so a reading that goes unavailable keeps its card; a skin with no numeric card ignores it.
  */
 
