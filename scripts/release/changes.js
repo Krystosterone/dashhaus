@@ -38,6 +38,7 @@ const BUILT_FROM = [
   "scripts/resources.js",
   "scripts/build-packages.js",
   "scripts/release/manifest.js",
+  "scripts/release/pack.js",
 ];
 
 /**

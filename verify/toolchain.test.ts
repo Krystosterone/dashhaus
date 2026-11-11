@@ -148,7 +148,13 @@ describe("the pinned npm", () => {
       expect(job.includes("pages: write"), `${name} ${name === "deploy" ? "deploys" : "never deploys"} to Pages`).toBe(name === "deploy");
       expect(/secrets\.CLOUDFLARE_/.test(job), `${name} ${name === "preview" ? "holds" : "never holds"} the preview's secrets`).toBe(name === "preview");
     }
-    expect(jobs.preview, "a fork's pull request, or no secrets yet, still builds the site").toContain("if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''");
+    expect(jobs.preview, "a fork's pull request, or no secrets yet, still builds the site").toContain("HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}");
+    // Like the Release workflow's, the secrets reach only the step that uses them: never the install's lifecycle scripts.
+    const [head, ...steps] = jobs.preview.split(/^(?= {6}- )/m);
+    expect(head.split("\n").filter((line) => line.includes("secrets.")), "the job's env says only whether they are set").toEqual([expect.stringMatching(/^ {6}HAS_CF: /)]);
+    const holding = steps.filter((step) => step.includes("secrets.CLOUDFLARE_"));
+    expect(holding.map((step) => /name: (.+)/.exec(step)?.[1]), "only the upload holds the preview's secrets").toEqual(["Upload the preview"]);
+    expect(holding[0], "and runs only when they are set").toContain("if: env.HAS_CF == 'true'");
     expect(jobs.preview, "wrangler is pinned").toMatch(/WRANGLER: wrangler@\d+\.\d+\.\d+$/m);
   });
 });

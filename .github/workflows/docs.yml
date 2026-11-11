@@ -42,8 +42,9 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # Whether the upload can run; the secrets themselves reach only the upload step, never the install's lifecycle
+      # scripts or the build.
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
       # The Cloudflare Pages project; created on the first upload, with main as its production branch.
       PROJECT: dashhaus
       # Pinned, like every action here; npx fetches it only for the upload.
@@ -67,8 +68,10 @@ jobs:
           echo "BASE=$base" >> "$GITHUB_ENV"
       - name: Upload the preview
         id: upload
-        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        if: env.HAS_CF == 'true'
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
           COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler.jsonl
