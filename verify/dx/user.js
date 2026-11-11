@@ -19,7 +19,7 @@ import assert from "node:assert/strict";
 import { realpathSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
-import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
+import { HOUSE_AREAS, startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import {
   clean,
   createReport,
@@ -54,6 +54,8 @@ const SKINS = [
 ];
 /** A wall panel's dashboard, as the skin's page sets it up: Add dashboard → the skin, then these two options. */
 const WALL = { layout: "wall", viewing: "far" };
+/** The fake house's areas, in Home Assistant's order: the order both walls head their columns in. */
+const AREAS = HOUSE_AREAS.map((area) => area.name);
 
 const app = await makeApp("user");
 let server;
@@ -168,13 +170,13 @@ try {
             // stopped on draws its config error. Otherwise the wall draws (the locators pierce the card's shadow root).
             const drawn = page.locator(`${entry.card} ${entry.wallDraws}`);
             await drawn.first().waitFor({ state: "visible", timeout: 10000 });
-            return { view, text: await page.locator(entry.card).locator(".hd-config-error").allInnerTexts(), headings: path === wall ? await page.locator(`${entry.card} ${entry.areaHeading}`).allInnerTexts() : [] };
+            return { view, text: await page.locator(entry.card).locator(".hd-config-error").allInnerTexts(), headings: path === wall ? await page.locator(`${entry.card} ${entry.areaHeading}`).allTextContents() : [] };
           });
           assert.deepEqual(shown.view, view, `/${path} must draw ${entry.name}'s card`);
           if (path === wall) {
             assert.deepEqual(shown.text, [], `/${path} must not refuse its config`);
-            assert.ok(shown.headings.length >= 2, `/${path} must head a column per area: ${shown.headings.join(", ")}`);
             headings = shown.headings.map((name) => name.trim());
+            assert.deepEqual(headings, AREAS, `/${path} must head one column per area, in Home Assistant's order (${AREAS.join(", ")}): ${headings.join(", ")}`);
           }
           if (screenshotDir) console.log(`  screenshot: ${await screenshotDashboard(`${HA_URL}/${path}`, join(screenshotDir, `user-${path}.png`))}`);
         }
