@@ -64,8 +64,8 @@ the minutes that adds up to. Pass `history` to supply your own, or `loadHistory=
 
 `binarySensorSeverity` ranks what a sensor's state may claim, the same in every skin: smoke, gas and carbon monoxide
 are an alarm, a leak urgent, a garage door left open and a low battery advisory. `alertText` says the warning in a few
-words (`Smoke alarm`, `Open since 18:30`), and `alertSentence` says it whole for a screen reader. An open door is a
-state, not a warning, however long it lasts.
+words (`Smoke alarm`, `Open since 18:30`), and `alertSaid` says it whole for a screen reader without the card's name,
+so a skin can put the name first. An open door is a state, not a warning, however long it lasts.
 
 <Example file="entities/binarySensor/Warnings.tsx" />
 

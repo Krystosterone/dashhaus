@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { AlarmAction, AlarmEntity, AlarmHistory, AlarmMode, AlarmResult } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, mmss, modeChoices, needsCode } from "@dashhaus/core/entities/alarm/modes";
 import { alarmSeverity } from "@dashhaus/core/entities/alarm/severity";
-import { alarmWarning, openSentence, warningLine } from "@dashhaus/core/entities/alarm/words";
+import { alarmCodeFor, alarmWarning, openSentence, warningLine } from "@dashhaus/core/entities/alarm/words";
 import { fmtAgo } from "@dashhaus/core/entities/format";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useNow } from "@dashhaus/core/hooks";
@@ -193,7 +193,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
         )}
         <Keypad
           key={guard.pendingKey}
-          prompt={pending.kind === "disarm" ? (e.state === "arming" ? "Code to cancel arming" : "Code to disarm") : `Code to arm ${MODE_LABEL[pending.mode].toLowerCase()}`}
+          prompt={`Code to ${alarmCodeFor(pending, e)}`}
           text={e.codeFormat === "text"}
           onSubmit={guard.submit}
           onCancel={guard.close}

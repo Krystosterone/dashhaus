@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CoverEntity } from "./types";
-import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskDetail, coverAskWaiting, coverQuestion, coverWord, isOpen, leftOpenSentence, leftOpenText, positionText } from "./words";
+import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskDetail, coverAskWaiting, coverQuestion, coverWord, isOpen, leftOpenText, positionText } from "./words";
 import { coverSeverity } from "./severity";
 
 const cover = (over: Partial<CoverEntity>): CoverEntity => ({ entityId: "cover.garage", name: "Garage door", state: "closed", deviceClass: "garage", supportsPosition: false, supportsStop: true, ...over });
@@ -28,7 +28,6 @@ describe("cover words", () => {
     expect(LEFT_OPEN_WORD).toBe("Open");
     expect(leftOpenText("18:30")).toBe("Open since 18:30");
     expect(leftOpenText()).toBe("Open");
-    expect(leftOpenSentence("Garage door", "18:30")).toBe("Garage door has been open since 18:30");
   });
 });
 

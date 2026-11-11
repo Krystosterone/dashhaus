@@ -41,12 +41,6 @@ interface Guarded { action: string; asks: boolean; code?: boolean; when?: Record
 type Entity = Record<string, unknown> & { name: string; state: string };
 const domains = JSON.parse(readFileSync(join(process.cwd(), skinTemplates.package, "src/domains.json"), "utf8")) as Record<string, { guarded: Guarded[] }>;
 
-/**
- * Guest Wi-Fi's New password asks first in both skins (a new password ends the old one for every device already in),
- * but `GUEST_WIFI_ACTIONS` doesn't declare it yet, so it is held here as if it did.
- */
-const UNDECLARED: Record<string, Guarded[]> = { guestWifi: [{ action: "onNewCode", asks: true, when: { access: ["password"] } }] };
-
 /** Each domain's seeds, every handler its cards take (the card's prop name for the domain's handler), and its seeds' read-only flag. */
 const DOMAINS: Record<string, { seeds: { entity: Entity; readOnly?: boolean }[]; handlers: Record<string, string> }> = {
   alarm: { seeds: [...Object.values(ALARM_SEEDS), ...ALARM_WORST_CASE], handlers: { onArm: "onArm", onDisarm: "onDisarm" } },
@@ -70,7 +64,7 @@ const SKINS: Record<string, Skin> = {
   field: { mark: /: asks first$/, question: ".fd-cf", keypad: ".fd-pad", footprints: ["compact", "standard"], cards: drawn(fieldSkin, "Module") },
 };
 
-const guardedOf = (domain: string) => [...(domains[domain]?.guarded ?? []), ...(UNDECLARED[domain] ?? [])];
+const guardedOf = (domain: string) => domains[domain]?.guarded ?? [];
 const asksFor = (g: Guarded, e: Entity) => g.asks && Object.entries(g.when ?? {}).every(([field, values]) => values.includes(String(e[field])));
 /** What a press may never do for this entity: an action that asks for it, or one that takes a code it wants. */
 const neverOnePress = (domain: string, e: Entity) => guardedOf(domain).filter((g) => asksFor(g, e) || (g.code && !!e.codeFormat));

@@ -36,9 +36,6 @@ export const LEFT_OPEN_WORD = "Open";
  */
 export const leftOpenText = (lastChanged?: string) => `${LEFT_OPEN_WORD}${lastChanged ? ` since ${lastChanged}` : ""}`;
 
-/** A door left open said in full, for a screen reader: "Garage door has been open since 18:30". */
-export const leftOpenSentence = (name: string, lastChanged?: string) => `${name} has been open${lastChanged ? ` since ${lastChanged}` : ""}`;
-
 const VERB: Record<CoverAction, string> = { open: "Open", close: "Close" };
 
 /** The question a garage door, door or gate asks before it moves (`coverAsksFirst`): "Close Garage door?". */

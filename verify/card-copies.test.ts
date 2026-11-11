@@ -32,10 +32,6 @@ const skinsDir = join(root, "src/skins");
  * listed here with its reason, never left to pass unseen.
  */
 const KNOWN: Record<string, string> = {
-  "orb: css { background: transparent; box-shadow: none; color: var(--ink-3) } in cover (.cv-oc-b:disabled > span) and shared/card.css (.hd-step-b:disabled > span)":
-    "the cover's open and close ends are the stepper's (hd-step-b) but for its hover, which they don't have: drawing them on hd-step-b gives them it, a design call",
-  "orb: css { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default } in climate (.cw-fine-b:disabled) and shared/card.css (.hd-pill:disabled)":
-    "a disabled button lies flat (spec/orb.md → One UI language), on the climate's round fine-step buttons and the shared pill alike; the climate's are a 40 px circle of their own, not a pill, so they keep their rule until orb's buttons share one disabled state",
   "glasshouse: css { display: grid; gap: 4px; min-width: 0 } in lock (.glasshouse-lock-copy) and shared/ui.css (.glasshouse-stat)":
     "a study, as its agent built it: the lock's state and caption are stacked as a stat's label and figure are; a stack of the study's own would hold both",
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { inWords } from "../format";
-import { batteryFact, fanSpeedLabel, fanSpeedSaid, isActive, locateSaid, pressHint, pressKeyWord, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSaid, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "./words";
+import { batteryFact, fanSpeedLabel, fanSpeedSaid, isActive, locateSaid, pressHint, pressKeyWord, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSaid, vacuumWarningText, vacuumWord } from "./words";
 import type { VacuumEntity } from "./types";
 
 const all = { supportsStart: true, supportsPause: true, supportsReturn: true } as const;
@@ -62,7 +62,6 @@ describe("vacuum words", () => {
     const e: VacuumEntity = { entityId: "vacuum.x", name: "Robot vacuum", state: "error", error: "Main brush jammed", battery: 9 };
     expect(vacuumWarning(e)).toBe("Error");
     expect(vacuumWarningText(e)).toBe("Error · Main brush jammed");
-    expect(vacuumWarningSentence(e)).toBe("Robot vacuum has stopped with an error: main brush jammed");
     expect(vacuumWarningSaid(e)).toBe("Stopped with an error: main brush jammed");
     expect(vacuumWarningSaid({ ...e, error: undefined })).toBe("Stopped with an error");
     expect(vacuumWarningSaid({ state: "idle", battery: 9 })).toBe("Battery 9%, needs charging");
@@ -72,7 +71,6 @@ describe("vacuum words", () => {
     expect(vacuumWarning({ state: "other", battery: 9 })).toBe("Battery 9%");
     expect(vacuumWarning({ state: "cleaning", battery: 9 })).toBeUndefined();
     expect(vacuumWarning({ state: "returning", battery: 9 })).toBeUndefined();
-    expect(vacuumWarningSentence({ name: "Robot vacuum", state: "cleaning", battery: 9 })).toBeUndefined();
     expect(vacuumWarning({ state: "docked", battery: 9 })).toBeUndefined();
     expect(vacuumWarning({ state: "idle", battery: 9, charging: true })).toBeUndefined();
     expect(vacuumWarning({ state: "idle", battery: 16 })).toBeUndefined();

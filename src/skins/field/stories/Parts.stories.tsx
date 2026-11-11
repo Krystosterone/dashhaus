@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
-import { LOCK_WAITING, lockAskAction, lockAskDetail, lockQuestion } from "@dashhaus/core/entities/lock/words";
+import { LOCK_WAITING, lockAskAction, lockAskDetail, lockCodeFor, lockQuestion } from "@dashhaus/core/entities/lock/words";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
@@ -272,7 +272,7 @@ function AllParts() {
         <State label="The question" width={300}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} icon={<IconLock open />} onConfirm={() => {}} onCancel={() => {}} /></State>
         <State label="Waiting for the answer" width={300}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} icon={<IconLock open />} busy waiting={LOCK_WAITING} onConfirm={() => {}} onCancel={() => {}} /></State>
         <State label="Didn't go through" width={300}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} icon={<IconLock open />} error={ACTION_FAILED} onConfirm={() => {}} onCancel={() => {}} /></State>
-        <State label="The keypad (1234)" width={300}><Keypad prompt="Code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
+        <State label="The keypad (1234)" width={300}><Keypad prompt={`Code to ${lockCodeFor("unlock")}`} onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 
       <Part name="Legend and warning" rule="A printed label with its rule, for a group of keys or a meter. A warning is an outlined marker before its words: field has no warning colour. What follows its word (WarnWords: what set it off, a count) gives way first, so a clip never cuts a word that fits.">

@@ -5,6 +5,7 @@ import { autoDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { roomSensors } from "@dashhaus/core/lovelace";
+import { DEMO_WALL_HOUSE, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
 
 const state = (entity_id: string, attributes: Record<string, unknown> = {}): AutoState => ({ entity_id, state: "on", attributes });
 const states = Object.fromEntries([
@@ -352,6 +353,14 @@ describe("autoDashboard, layout: wall", () => {
   };
   const wall = (input: Parameters<typeof autoDashboard>[0]) => autoDashboard(input, "Home", { layout: "wall" });
   const ENERGY = { energy_sources: [{ type: "grid", stat_rate: "sensor.grid" }] };
+  /** The demo wall house's states and registries, as the wall stories read them. */
+  const demoWall = async () => {
+    let states: Parameters<typeof demoWallInput>[0] = {};
+    const stop = createDemoWallHouseTransport(DEMO_WALL_HOUSE).subscribeEntities((entities) => { states = entities; });
+    await Promise.resolve();
+    stop();
+    return demoWallInput(states);
+  };
 
   it("leaves the default layout as it was: no option, or no layout, is the titled bands", () => {
     expect(autoDashboard(input, "Home", {})).toEqual(autoDashboard(input));
@@ -494,6 +503,15 @@ describe("autoDashboard, layout: wall", () => {
     expect(cards.some((c) => (typeof c === "string" ? c : c.entity) === "climate.living_room")).toBe(false);
     const read = parseDashboardConfig(card).rows!.flatMap((row) => row.cards).find((entry) => "entity" in entry.item && entry.item.entity === "fan.living_room");
     expect(read?.item.kind).toBe("dyson");
+  });
+
+  it("puts the demo wall house's Dyson after its ceiling fan, pressed, as the dyson card, with its heater out", async () => {
+    const cards = (wall(await demoWall()).rows as { cards: (string | Record<string, unknown>)[] }[]).flatMap((row) => row.cards);
+    const entities = cards.map((card) => (typeof card === "string" ? card : String(card.entity)));
+    const dyson = cards.find((card): card is Record<string, unknown> => typeof card === "object" && card.entity === "fan.living_room_hot_cool");
+    expect(dyson).toMatchObject({ entity: "fan.living_room_hot_cool", footprint: "compact", card: "dyson" });
+    expect(entities.indexOf("fan.living_room_hot_cool")).toBe(entities.indexOf("fan.living_room_ceiling") + 1);
+    expect(entities).not.toContain("climate.living_room_hot_cool");
   });
 
   it("stays an automatic wall when there is nothing to place", () => {

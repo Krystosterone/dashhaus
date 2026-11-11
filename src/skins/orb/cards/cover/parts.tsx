@@ -55,11 +55,11 @@ export function OpenCloseControl({ name, open, moving, either = false, asks = fa
   const more = asks ? "…" : "";
   return (
     <div className="hd-step" data-open={open || undefined} role="group" aria-label={name}>
-      <button type="button" className="cv-oc-b" aria-label={`Close ${name}${more}`} disabled={flat || (!open && !moving && !either)} onClick={onClose}><span><IconDown /></span></button>
+      <button type="button" className="hd-btn cv-oc-b" aria-label={`Close ${name}${more}`} disabled={flat || (!open && !moving && !either)} onClick={onClose}><span><IconDown /></span></button>
       {moving && canStop
         ? <button type="button" className="cv-oc-stop" onClick={onStop}><i aria-hidden="true" />Stop</button>
         : <span className="cv-oc-v" aria-live="polite">{text}</span>}
-      <button type="button" className="cv-oc-b" aria-label={`Open ${name}${more}`} disabled={flat || (open && !moving && !either)} onClick={onOpen}><span><IconUp /></span></button>
+      <button type="button" className="hd-btn cv-oc-b" aria-label={`Open ${name}${more}`} disabled={flat || (open && !moving && !either)} onClick={onOpen}><span><IconUp /></span></button>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
 import { alarmSeverity } from "@dashhaus/core/entities/alarm/severity";
-import { alarmWarning, openSentence, warningLine } from "@dashhaus/core/entities/alarm/words";
+import { alarmCodeFor, alarmWarning, openSentence, warningLine } from "@dashhaus/core/entities/alarm/words";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -105,8 +105,6 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
         {!sheet && onOpenDetails && <AlarmStatus mode={armedMode ?? "off"} onOpen={() => onOpenDetails()} />}
       </>;
 
-  const promptFor = (a: AlarmAction) => (a.kind === "disarm" ? `Enter the code to ${e.state === "arming" ? "cancel arming" : "disarm"}` : `Enter the code to arm ${MODE_LABEL[a.mode].toLowerCase()}`);
-
   // The compact value appears under the name, or in place of a hidden control.
   const subText = warningText ?? word;
   return (
@@ -143,7 +141,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
             <p className="hd-note"><span className="hd-warn">{openSentence(open)}</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (
-            <Keypad key={guard.pendingKey} prompt={promptFor(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
+            <Keypad key={guard.pendingKey} prompt={`Enter the code to ${alarmCodeFor(pending, e)}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
           )}
         </SheetBlock>
       )}
