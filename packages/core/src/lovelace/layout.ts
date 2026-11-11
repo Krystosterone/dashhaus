@@ -122,7 +122,32 @@ export function placeSection<S extends { title: string; cards: C[] }, C>(section
 export function deviceCompanion({ states, entities = {} }: RoomSensorInput, entity: string, cls: string, domain = "sensor"): string | undefined {
   const device = entities[entity]?.device_id;
   if (!device) return undefined;
-  return Object.keys(states).find((id) => id !== entity && id.startsWith(`${domain}.`) && !entities[id]?.hidden && entities[id]?.device_id === device && deviceClass(states[id]) === cls);
+  return devicesIndex(states, entities).get(device)?.find((id) => id !== entity && id.startsWith(`${domain}.`) && !entities[id]?.hidden && deviceClass(states[id]) === cls);
+}
+
+/** Each `states`/`entities` pair's device → entity ids, in `states`' key order, built once per layout. */
+const deviceIndexes = new WeakMap<RoomSensorInput["states"], WeakMap<Record<string, AutoEntityEntry>, Map<string, string[]>>>();
+
+/**
+ * Every device's entity ids, in `states`' own key order, so a companion lookup reads one device's entities and not the
+ * whole house. Kept per pair of objects: `hass` replaces `states` and `entities` on a change rather than editing them.
+ */
+function devicesIndex(states: RoomSensorInput["states"], entities: Record<string, AutoEntityEntry>): Map<string, string[]> {
+  let byEntities = deviceIndexes.get(states);
+  if (!byEntities) deviceIndexes.set(states, (byEntities = new WeakMap()));
+  let index = byEntities.get(entities);
+  if (!index) {
+    index = new Map();
+    for (const id of Object.keys(states)) {
+      const device = entities[id]?.device_id;
+      if (!device) continue;
+      const list = index.get(device);
+      if (list) list.push(id);
+      else index.set(device, [id]);
+    }
+    byEntities.set(entities, index);
+  }
+  return index;
 }
 
 /** The filter-life sensors `dyson_local` names after a Dyson's fan; one of them, with its night-mode switch, is a Dyson. */
