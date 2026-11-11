@@ -144,6 +144,19 @@ describe("LovelaceDashboardElement's lifecycle", () => {
     expect(transports.filter((made) => made.connection === connection)).toHaveLength(1);
   });
 
+  it("keeps drawing, on the same subscription, when Lovelace moves it to another parent", async () => {
+    const connection = {} as Connection;
+    const card = await mountStatus(connection);
+    const transport = transports.find((made) => made.connection === connection)!;
+    const parent = document.createElement("div");
+    document.body.append(parent);
+
+    await act(async () => parent.append(card));
+    await settle();
+    expect(card.shadowRoot!.textContent).toBe("connected idle");
+    expect(transport).toMatchObject({ subscribed: 1, unsubscribed: 0 });
+  });
+
   it("swaps to a new store on a new connection, subscribing it and letting the old one go", async () => {
     const first = {} as Connection;
     const card = await mountStatus(first);

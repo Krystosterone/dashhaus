@@ -7,10 +7,15 @@ import { serviceRunner } from "./run";
 export interface AlarmHandlers {
   /**
    * Calls `alarm_control_panel.alarm_arm_<mode>` (`home`, `away`, `night`, `vacation`, `custom_bypass`) with the code
-   * when given. A mode the panel doesn't support rejects with `unsupported`.
+   * when given. A mode the panel doesn't support rejects with `unsupported`, unsent.
    */
   onArm: (mode: AlarmMode, code?: string) => Promise<boolean>;
-  /** Calls `alarm_control_panel.alarm_disarm` with the code when given. */
+  /**
+   * Calls `alarm_control_panel.alarm_disarm` with the code when given. Like arming, it is sent even while the model
+   * says unavailable: the model folds Home Assistant's `unknown` into it, and a panel with no known state (an MQTT
+   * panel with nothing retained) still takes a disarm, which is the call never to refuse. Home Assistant answers for an
+   * entity that is really unavailable.
+   */
   onDisarm: (code?: string) => Promise<boolean>;
 }
 
@@ -37,16 +42,11 @@ const ARM_SERVICE: Record<AlarmMode, string> = {
  * (the keypad shakes): Home Assistant's sanitized `invalid_code` translation key, since a bare
  * `service_validation_error` is ambiguous without the raw message and must say the call did not go through. Anything
  * else is reported through `onError` and rejects with the sanitized `HaActionError`, as does arming in a mode the
- * panel doesn't support, or any call while it is unavailable, which are refused before transport.
+ * panel doesn't support, which is refused before transport. Nothing is refused for the alarm's state (`onDisarm`).
  */
 export function createAlarmHandlers(caller: Pick<HaStore, "callService">, entity: AlarmEntity, options: AlarmHandlerOptions = {}): AlarmHandlers {
   const domain = "alarm_control_panel";
   const { attempt, report } = serviceRunner(caller, domain, entity, options.onError);
-  const refuse = (message: string) => {
-    const error = new HaActionError("unsupported", message, { domain, entityId: entity.entityId });
-    report(error);
-    return Promise.reject(error);
-  };
   const call = async (service: string, code?: string): Promise<boolean> => {
     const error = await attempt(service, code ? { code } : {});
     if (!error) return true;
@@ -57,10 +57,13 @@ export function createAlarmHandlers(caller: Pick<HaStore, "callService">, entity
 
   return {
     onArm: (mode, code) => {
-      if (entity.state === "unavailable") return refuse(`${entity.entityId} is unavailable`);
-      if (!entity.modes.includes(mode)) return refuse(`${entity.entityId} does not support arming ${mode}`);
+      if (!entity.modes.includes(mode)) {
+        const error = new HaActionError("unsupported", `${entity.entityId} does not support arming ${mode}`, { domain, entityId: entity.entityId });
+        report(error);
+        return Promise.reject(error);
+      }
       return call(ARM_SERVICE[mode], code);
     },
-    onDisarm: (code) => (entity.state === "unavailable" ? refuse(`${entity.entityId} is unavailable`) : call("alarm_disarm", code)),
+    onDisarm: (code) => call("alarm_disarm", code),
   };
 }

@@ -1,6 +1,6 @@
 import type { HassEntity } from "../types";
 import type { HourCycle } from "../../entities/clock";
-import { finiteNumber, stringList, stringValue } from "../util";
+import { distinctStrings, finiteNumber, stringList, stringValue, temperatureUnit } from "../util";
 import { fanFromHass } from "./fan";
 import { DYSON_POLLUTANTS } from "../../entities/dyson/air";
 import { DYSON_LOCAL_ANGLES, DYSON_SWEEPS, sweepLabel, sweepOf } from "../../entities/dyson/labels";
@@ -90,10 +90,6 @@ function onDysonScale(pollutant: DysonPollutant, value: number | null, unit: str
 const readable = (raw: HassEntity | undefined) => raw != null && raw.state !== "unavailable" && raw.state !== "unknown";
 /** A sensor's number, or null while it is there with none (unknown, unavailable, blank). */
 const reading = (raw: HassEntity) => (readable(raw) ? finiteNumber(Number(raw.state)) ?? null : null);
-const tempUnit = (raw: HassEntity | undefined): "°C" | "°F" | undefined => {
-  const unit = stringValue(raw?.attributes?.unit_of_measurement);
-  return unit === "°F" ? "°F" : unit === "°C" ? "°C" : undefined;
-};
 
 /**
  * hass-dyson's angles, from its sliders: its centre and width where it has them (its ends go stale while a named sweep
@@ -168,7 +164,7 @@ export function dysonFromHass(raw: HassEntity | undefined, entityId: string, opt
 
   // The range: hass-dyson's angle sliders, else a select's own options, else ha-dyson's fan angles.
   const select = companions.oscillationMode;
-  const selectModes = select ? [...new Set(stringList(select.attributes?.options).filter(Boolean))] : [];
+  const selectModes = select ? distinctStrings(select.attributes?.options) ?? [] : [];
   const numbers = sliderAngles(companions);
   const low = numbers?.low ?? finiteNumber(attributes.angle_low);
   const high = numbers?.high ?? finiteNumber(attributes.angle_high);
@@ -198,7 +194,7 @@ export function dysonFromHass(raw: HassEntity | undefined, entityId: string, opt
   const heatLive = supportsHeat && live && readable(heat);
   const temperature = companions.temperature && readable(companions.temperature) ? reading(companions.temperature) ?? undefined : undefined;
   const humidity = companions.humidity && readable(companions.humidity) ? reading(companions.humidity) ?? undefined : undefined;
-  const temperatureUnit = tempUnit(companions.temperature);
+  const unit = temperatureUnit(companions.temperature?.attributes?.unit_of_measurement);
 
   return {
     ...fan,
@@ -220,9 +216,9 @@ export function dysonFromHass(raw: HassEntity | undefined, entityId: string, opt
       heatMin: finiteNumber(heat!.attributes?.min_temp) ?? 1,
       heatMax: finiteNumber(heat!.attributes?.max_temp) ?? 37,
       heatStep: finiteNumber(heat!.attributes?.target_temp_step) ?? 1,
-      heatUnit: temperatureUnit ?? "°C",
+      heatUnit: unit ?? "°C",
     }),
-    ...(temperature != null && { temperature, ...(temperatureUnit && { temperatureUnit }) }),
+    ...(temperature != null && { temperature, ...(unit && { temperatureUnit: unit }) }),
     ...(humidity != null && { humidity }),
     air: live ? air : [],
     filters: live ? filters : [],

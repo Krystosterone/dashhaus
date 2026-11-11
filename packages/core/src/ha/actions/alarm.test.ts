@@ -75,16 +75,16 @@ describe("createAlarmHandlers", () => {
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
   });
 
-  it("refuses to arm or disarm while unavailable, before transport", async () => {
+  it("still sends a disarm or an arm while the model says unavailable, which may be Home Assistant's unknown", async () => {
     const callService = vi.fn(async () => undefined);
     const onError = vi.fn();
     const handlers = createAlarmHandlers(caller(callService), { ...entity, state: "unavailable" }, { onError });
 
-    await expect(handlers.onArm("away", "1234")).rejects.toThrow("alarm_control_panel.main is unavailable");
-    await expect(handlers.onDisarm("1234")).rejects.toThrow("alarm_control_panel.main is unavailable");
-    expect(callService).not.toHaveBeenCalled();
-    expect(onError).toHaveBeenCalledTimes(2);
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
+    await expect(handlers.onDisarm("1234")).resolves.toBe(true);
+    await expect(handlers.onArm("away", "1234")).resolves.toBe(true);
+    expect(callService).toHaveBeenCalledWith("alarm_control_panel", "alarm_disarm", { entity_id: "alarm_control_panel.main", code: "1234" });
+    expect(callService).toHaveBeenCalledTimes(2);
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it("never passes the code into error handling or logging", async () => {

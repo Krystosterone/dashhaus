@@ -118,6 +118,8 @@ export function placeSection<S extends { title: string; cards: C[] }, C>(section
  * The first `domain` entity (by default a `sensor.*`) of one device class on the same device as `entity`: a room
  * sensor's humidity, a lock's or a door sensor's battery. Companions may be diagnostic entities (batteries usually
  * are); only hidden ones, and the entity itself, are left out. Nothing when the entity has no device in the registry.
+ * `states` and `entities` are read as snapshots, the way `hass` hands them out: each pair's devices are indexed once and
+ * kept for as long as the objects live, so pass new objects for a changed house rather than editing them in place.
  */
 export function deviceCompanion({ states, entities = {} }: RoomSensorInput, entity: string, cls: string, domain = "sensor"): string | undefined {
   const device = entities[entity]?.device_id;
