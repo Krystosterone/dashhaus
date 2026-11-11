@@ -15,8 +15,8 @@
  * - a guard's words are core's (`@dashhaus/core/entities/guard`, the domain's `coverQuestion`, `lockAskDetail`…): no
  *   card, nor the Parts page, passes its question part (`Confirm`) a question, a meaning, a yes, a waiting line or a failure of its own
  *   words, only core's with the skin's end punctuation; no card or part writes `Try again` itself;
- * - a keypad's code prompt is core's verb phrase (`lockCodeFor`, `alarmCodeFor`) in the skin's own frame (`Enter the
- *   code to`, `Code to`): no card or the Parts page writes the phrase itself;
+ * - a keypad's code prompt is core's verb phrase (`lockCodeFor`, `alarmCodeFor`, or core's `codeFor` for a generated
+ *   card) in the skin's own frame (`Enter the code to`, `Code to`): no card or the Parts page writes the phrase itself;
  * - what asks first is said in core's words too: no card writes a sentence ending `asks first.` (the hint,
  *   `COVER_ASKS_HINT`, `lockAsksHint`), only the skin's mark on a control's name (Field's `: asks first`).
  *
@@ -143,7 +143,7 @@ describe("what every card says", () => {
         if (!found) { own.push(`${where(path, text, keypad.index!)} → prompt: missing`); continue; }
         const { value, at } = propValue(text, keypad.index!, found, found[1]);
         // The verb is a core call; a helper of the card's own could hold it where this can't see it.
-        if (!/\b(?:lockCodeFor|alarmCodeFor)\s*\(/.test(value)) {
+        if (!/\b(?:lockCodeFor|alarmCodeFor|codeFor)\s*\(/.test(value)) {
           own.push(`${where(path, text, at)} → prompt: no core word`);
           continue;
         }
@@ -155,7 +155,7 @@ describe("what every card says", () => {
         }
       }
     }
-    expect(own, "a keypad's verb phrase is core's (lockCodeFor, alarmCodeFor), in the skin's own frame").toEqual([]);
+    expect(own, "a keypad's verb phrase is core's (lockCodeFor, alarmCodeFor, codeFor), in the skin's own frame").toEqual([]);
   });
 
   it("says what asks first in core's words, never a hint sentence of a card's own", () => {

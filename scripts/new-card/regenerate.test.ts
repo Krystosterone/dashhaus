@@ -93,6 +93,7 @@ describe("new-card from a domain's description", () => {
     expect(lock.status, lock.output).toBe(0);
     const lockCard = readFileSync(join(copy, "src/skins/orb/cards/lock/LockCard.tsx"), "utf8");
     expect(lockCard).toContain("useGuardedAction<LockAction>");
+    expect(lockCard).toContain("lockCodeFor(guard.pending)");
     expect(lockCard).toMatch(/control=\{<TogglePill [^\n]*guard\.attempt\("lock"\)/);
     expect(lockCard).toMatch(/<SheetBlock>[\s\S]*<Keypad [\s\S]*<Confirm [\s\S]*guard\.ask\("unlock"\)[\s\S]*guard\.ask\("open"\)[\s\S]*<\/SheetBlock>/);
     expect(lockCard).toContain("extends ActionCardProps<LockAction>");
@@ -101,7 +102,7 @@ describe("new-card from a domain's description", () => {
     expect(typecheck.status, typecheck.output).toBe(0);
     const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts",
       "src/skins/orb/cards/fan", "src/skins/orb/ha/HaFanTile.test.tsx", "src/skins/orb/cards/lock", "src/skins/orb/ha/HaLockTile.test.tsx", "src/skins/field/cards/fan", "src/skins/field/ha/HaFanModule.test.tsx",
-      "verify/orb-conformance.test.ts", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "verify/card-copies.test.ts"]);
+      "verify/orb-conformance.test.ts", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "verify/card-copies.test.ts", "verify/card-words.test.ts"]);
     expect(tests.status, tests.output).toBe(0);
     const lint = await run(copy, "npx", ["eslint", "src/skins/orb/cards/fan", "src/skins/orb/cards/lock", "src/skins/orb/ha", "src/skins/field/cards/fan", "src/skins/field/ha"]);
     expect(lint.status, lint.output).toBe(0);
