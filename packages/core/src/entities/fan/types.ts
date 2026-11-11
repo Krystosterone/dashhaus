@@ -11,7 +11,23 @@ export interface FanEntity {
   name: string;
   /** Where it is: "Bedroom". */
   area?: string;
-  state: "on" | "off" | "unavailable";
+  /**
+   * `unknown` is reachable but not yet reported (an RF or IR ceiling fan before its first command): it can still be
+   * switched, both ways (`eitherWay`, `entities/assumed.ts`), and is never drawn as off or unavailable.
+   */
+  state: "on" | "off" | "unknown" | "unavailable";
+  /** Home Assistant only assumes it is on or off (`assumed_state`: an RF or IR fan), so both presses are offered. */
+  assumedState?: boolean;
+  /**
+   * Whether it declares `fan.turn_on` (`FanEntityFeature.TURN_ON`). `false` where it doesn't, so nothing turns it on;
+   * omitted, it does.
+   */
+  supportsTurnOn?: boolean;
+  /**
+   * Whether it declares `fan.turn_off` (`FanEntityFeature.TURN_OFF`). `false` where it doesn't, so nothing turns it off;
+   * omitted, it does.
+   */
+  supportsTurnOff?: boolean;
   /** True when the fan takes a speed (`FanEntityFeature.SET_SPEED`). */
   supportsSpeed?: boolean;
   /** Its speed in percent, 1-100, while it is on and reports one. A fan that is off reports none. */

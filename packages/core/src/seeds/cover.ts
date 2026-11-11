@@ -31,6 +31,16 @@ export const COVER_SEEDS = {
     entity: { ...base, entityId: "cover.patio_curtains", name: "Patio curtains", area: "Dining room", state: "closing", deviceClass: "curtain", position: 45, lastChanged: "11:54" },
     past: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
   },
+  /** It lifts to a position, and its slats only open and close (`OPEN_TILT`, `CLOSE_TILT`, no tilt position). */
+  venetian: {
+    entity: { ...base, entityId: "cover.kitchen_venetian", name: "Venetian blind", area: "Kitchen", state: "open", deviceClass: "blind", position: 100, tilt: 100, supportsTiltOpen: true, supportsTiltClose: true, supportsTiltStop: true, lastChanged: "08:05" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+  },
+  /** Slats and nothing else (no lift, no `open_cover`): opening it opens them. */
+  slats: {
+    entity: { entityId: "cover.bathroom_louvres", name: "Louvres", area: "Bathroom", state: "closed", deviceClass: "shutter", tilt: 0, supportsPosition: false, supportsOpen: false, supportsClose: false, supportsStop: true, supportsTilt: true, supportsTiltOpen: true, supportsTiltClose: true, supportsTiltStop: true, lastChanged: "07:15" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0],
+  },
   garage: {
     entity: { entityId: "cover.garage_door", name: "Garage door", area: "Garage", state: "open", deviceClass: "garage", supportsPosition: false, supportsStop: true, lastChanged: "10:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0.6],
@@ -47,6 +57,14 @@ export const COVER_SEEDS = {
   unknown: {
     entity: { entityId: "cover.study_rts_blind", name: "Study blind", area: "Study", state: "unknown", deviceClass: "blind", supportsPosition: false, supportsStop: true, lastChanged: "06:00" },
     past: [0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable", "unavailable", "unavailable"],
+  },
+  /**
+   * Closed, as Home Assistant assumes: an RF blind it sends commands to but never hears back from (`assumed_state`).
+   * It may not be where it's shown, so both ends act.
+   */
+  assumed: {
+    entity: { entityId: "cover.nursery_rts_blind", name: "Nursery blind", area: "Nursery", state: "closed", deviceClass: "blind", supportsPosition: false, supportsStop: true, assumedState: true, lastChanged: "07:45" },
+    past: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
   },
   unavailable: {
     entity: { entityId: "cover.skylight", name: "Skylight", area: "Upstairs hall", state: "unavailable", deviceClass: "window", position: 30, supportsPosition: true, supportsStop: false, lastSeen: "08:20" },
@@ -97,8 +115,11 @@ export function useDemoCover(seed: CoverSeed) {
     if (entity.state !== "opening" && entity.state !== "closing") return;
     if (target.current == null) return;
     if (!entity.supportsPosition || entity.position == null) {
+      const e0 = entity;
       const t = window.setTimeout(() => {
-        setEntity((e) => ({ ...e, state: target.current! > 0 ? "open" : "closed", lastChanged: stamp }));
+        // A cover that only tilts opens and closes its slats.
+        const onlyTilts = !e0.supportsPosition && e0.supportsOpen === false && e0.supportsClose === false;
+        setEntity((e) => ({ ...e, state: target.current! > 0 ? "open" : "closed", ...(onlyTilts && { tilt: target.current! > 0 ? 100 : 0 }), lastChanged: stamp }));
         target.current = null;
       }, 3000);
       return () => window.clearTimeout(t);

@@ -9,7 +9,7 @@ export const presetLabel = (preset: string) => preset.charAt(0).toUpperCase() + 
  * else On; Off; or Unavailable while it is.
  */
 export const fanWord = (e: Pick<FanEntity, "state">, speed?: string | null) =>
-  e.state === "unavailable" ? "Unavailable" : e.state !== "on" ? "Off" : speed ?? "On";
+  e.state === "unavailable" ? "Unavailable" : e.state === "unknown" ? "Unknown" : e.state !== "on" ? "Off" : speed ?? "On";
 
 /** Oscillation's two choices, as the sheet's chips name them. */
 export const OSCILLATION = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;

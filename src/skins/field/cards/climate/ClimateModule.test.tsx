@@ -159,4 +159,11 @@ describe("ClimateModule", () => {
     render(<ClimateModule entity={off} defaultOpen onToggle={vi.fn()} onTargetChange={vi.fn()} />);
     expect(within(screen.getByRole("dialog")).queryByText("Room")).toBeNull();
   });
+
+  it("lays a unit no press can switch (a heat-only thermostat) flat, saying its mode rather than a press it would refuse", () => {
+    draw(CLIMATE_SEEDS.heatOnly.entity);
+    const key = screen.getByRole("button", { name: "Radiators, Heat" });
+    expect(key.getAttribute("aria-disabled")).toBe("true");
+  });
 });
+

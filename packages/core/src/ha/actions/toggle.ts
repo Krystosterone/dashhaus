@@ -1,5 +1,6 @@
 import type { ToggleEntity } from "../../entities/toggle/types";
 import type { HaActionError, HaStore } from "../types";
+import { eitherWay } from "../../entities/assumed";
 import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
@@ -16,11 +17,20 @@ export interface ToggleHandlers {
    * `unsupported`.
    */
   onToggle: () => void;
+  /**
+   * Only for an entity whose state Home Assistant only assumes, or doesn't know yet (`eitherWay`): calls `turn_on`,
+   * whatever it shows, since what it shows may be wrong.
+   */
+  onTurnOn?: () => void;
+  /** As `onTurnOn`, with `turn_off`. */
+  onTurnOff?: () => void;
 }
 
 /** What each handler is, for a card drawing toggle without knowing it (`ActionKind`). */
 export const TOGGLE_ACTIONS = {
   onToggle: { takes: "nothing" },
+  onTurnOn: { takes: "nothing", either: true },
+  onTurnOff: { takes: "nothing", either: true },
 } as const satisfies ActionKinds<ToggleHandlers>;
 
 export interface ToggleHandlerOptions {
@@ -32,24 +42,26 @@ export interface ToggleHandlerOptions {
  * domains; the entity id's own domain picks which one is called.
  *
  * Native Home Assistant has no timed-on ("turn on for N minutes") service for input_boolean or switch:
- * both only expose `toggle`. The card's durations feature is a host-side timer hook, so `onTurnOnFor`
+ * both expose only `toggle`, `turn_on` and `turn_off`. The card's durations feature is a host-side timer hook, so `onTurnOnFor`
  * is intentionally absent here and stays host-owned.
  */
 export function createToggleHandlers(caller: ToggleServiceCaller, entity: ToggleEntity, options: ToggleHandlerOptions = {}): ToggleHandlers {
   const domain = entity.entityId.slice(0, entity.entityId.indexOf("."));
   const { run, unsupported } = serviceRunner(caller, domain, entity, options.onError);
 
+  const send = (service: string) => {
+    if (!DOMAINS.includes(domain)) {
+      unsupported(`${entity.entityId} is not an input_boolean or a switch`);
+      return;
+    }
+    if (entity.state === "unavailable") {
+      unsupported(`${entity.entityId} is unavailable`);
+      return;
+    }
+    run(service);
+  };
   return {
-    onToggle: () => {
-      if (!DOMAINS.includes(domain)) {
-        unsupported(`${entity.entityId} is not an input_boolean or a switch`);
-        return;
-      }
-      if (entity.state === "unavailable") {
-        unsupported(`${entity.entityId} is unavailable`);
-        return;
-      }
-      run("toggle");
-    },
+    onToggle: () => send("toggle"),
+    ...(eitherWay(entity) && { onTurnOn: () => send("turn_on"), onTurnOff: () => send("turn_off") }),
   };
 }

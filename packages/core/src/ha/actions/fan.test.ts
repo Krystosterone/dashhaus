@@ -35,7 +35,7 @@ describe("createFanHandlers", () => {
     handlers.onDirectionChange("reverse");
     await Promise.resolve();
     expect(callService.mock.calls).toEqual([
-      ["fan", "toggle", { entity_id: "fan.bedroom" }],
+      ["fan", "turn_off", { entity_id: "fan.bedroom" }],
       ["fan", "set_percentage", { entity_id: "fan.bedroom", percentage: 33 }],
       ["fan", "set_preset_mode", { entity_id: "fan.bedroom", preset_mode: "sleep" }],
       ["fan", "oscillate", { entity_id: "fan.bedroom", oscillating: true }],
@@ -65,7 +65,17 @@ describe("createFanHandlers", () => {
     expect(onError).toHaveBeenCalledTimes(4);
     for (const [error] of onError.mock.calls) expect(error).toMatchObject({ code: "unsupported", domain: "fan", entityId: "fan.bedroom" });
     handlers.onToggle();
-    expect(callService).toHaveBeenCalledWith("fan", "toggle", { entity_id: "fan.bedroom" });
+    expect(callService).toHaveBeenCalledWith("fan", "turn_off", { entity_id: "fan.bedroom" });
+  });
+
+  it("turns it on and off only the ways it declares, never with a toggle that needs both", () => {
+    const off = setup({ ...onOff, state: "off" });
+    off.handlers.onToggle();
+    expect(off.callService).toHaveBeenCalledWith("fan", "turn_on", { entity_id: "fan.bedroom" });
+    const stuck = setup({ ...onOff, supportsTurnOff: false });
+    stuck.handlers.onToggle();
+    expect(stuck.callService).not.toHaveBeenCalled();
+    expect(stuck.onError.mock.calls[0][0]).toMatchObject({ code: "unsupported" });
   });
 
   it("refuses input the fan can't take", () => {
@@ -94,5 +104,13 @@ describe("createFanHandlers", () => {
     const callService = vi.fn(async () => { throw new Error("denied"); });
     createFanHandlers({ callService }, entity, { onError }).onPercentageChange(50);
     await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "service_failed", domain: "fan", service: "set_percentage" })));
+  });
+
+  it("turns on and off apart only a fan whose state is assumed or unknown, and that declares both", () => {
+    expect(setup().handlers.onTurnOn).toBeUndefined();
+    const rf = setup({ ...onOff, state: "unknown", supportsTurnOn: true, supportsTurnOff: true });
+    rf.handlers.onTurnOff?.();
+    expect(rf.callService).toHaveBeenCalledWith("fan", "turn_off", { entity_id: "fan.bedroom" });
+    expect(setup({ ...onOff, assumedState: true, supportsTurnOff: false }).handlers.onTurnOn).toBeUndefined();
   });
 });

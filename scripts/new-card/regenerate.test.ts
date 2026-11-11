@@ -86,6 +86,8 @@ describe("new-card from a domain's description", () => {
     expect(module).toContain("controls={controls}");
     for (const legend of ["Preset mode", "Direction", "Oscillating"]) expect(module).toContain(`<KeyGroup legend="${legend}"`);
     expect(module).not.toContain("Left out");
+    // Its turn-on and turn-off, given only while its state is assumed (`either`), are no keys of their own.
+    expect(module).not.toContain("onTurnOn?.()");
 
     // The lock in orb: lock is the slot's pill, unlock and open ask first in the sheet, and each is answered on the
     // sheet's question, or its keypad where the lock wants a code. Nothing asks for a hand-drawn card.

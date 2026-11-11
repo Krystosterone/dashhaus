@@ -90,4 +90,17 @@ describe("createLightHandlers", () => {
     expect(onError).toHaveBeenNthCalledWith(1, expect.objectContaining({ code: "invalid_input" }));
     expect(onError).toHaveBeenNthCalledWith(2, expect.objectContaining({ code: "invalid_input" }));
   });
+
+  it("turns on and off apart only a light whose state is assumed or unknown", async () => {
+    const callService = vi.fn(async () => undefined);
+    expect(createLightHandlers({ callService }, entity).onTurnOff).toBeUndefined();
+    createLightHandlers({ callService }, { ...entity, assumedState: true }).onTurnOn?.();
+    createLightHandlers({ callService }, { ...entity, state: "unknown" }).onTurnOff?.();
+    await Promise.resolve();
+
+    expect(callService.mock.calls).toEqual([
+      ["light", "turn_on", { entity_id: "light.living_room" }],
+      ["light", "turn_off", { entity_id: "light.living_room" }],
+    ]);
+  });
 });

@@ -44,6 +44,7 @@ export function declaredActions(source, Name, CONST) {
   const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{(.*)\},?(?:\s*\/\/.*)?$/gm)].map(([, action, kind]) => [action, {
     takes: kind.match(/takes: "(\w+)"/)?.[1],
     asks: /asks: true/.test(kind),
+    ...(/either: true/.test(kind) && { either: true }),
     ...(/asks: true/.test(kind) && when(kind) && { when: when(kind) }),
     // A value said as what it is: the entity field it lives in, and a level's range or a choice's options.
     ...(/takes: "(level|choice|switch)"/.test(kind) && { field: kind.match(/\bfield: "(\w+)"/)?.[1] }),
@@ -98,8 +99,9 @@ export function describeDomain(name) {
   const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
   const declared = exists(actionsPath) ? declaredActions(read(actionsPath), Name, CONST) : [];
   // A tap: a button. Asks first, or takes a code: through the skin's question and keypad, and one that asks only for
-  // some entities (`when`) asks for those and runs at once for the rest. A value: left out.
-  const actions = declared.filter(({ takes, asks }) => takes === "nothing" && !asks).map(({ action }) => action);
+  // some entities (`when`) asks for those and runs at once for the rest. A value: left out. The turn-on and turn-off an
+  // assumed or unknown entity is given (`either`): left out, since the card's own press already switches it.
+  const actions = declared.filter(({ takes, asks, either }) => takes === "nothing" && !asks && !either).map(({ action }) => action);
   const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks, when }) => ({ action, asks, code: takes === "code", ...(when && { when }) }));
   // A level, a choice or a switch: drawn on a skin's own parts where it has them (orb's and field's), else left out.
   // A level that runs on by itself (a track's position) is left out: a part that holds a level still would show where

@@ -8,6 +8,11 @@ export interface MediaPlayerHandlers {
   onPlay: () => void;
   /** Calls `media_player.media_pause`. A player without `PAUSE` reports `unsupported`. */
   onPause: () => void;
+  /**
+   * Calls `media_player.media_stop`. A player without `STOP` reports `unsupported`. Optional only so a host's own
+   * handlers needn't add it; `createMediaPlayerHandlers` always gives it.
+   */
+  onStop?: () => void;
   /** Calls `media_player.media_previous_track`. A player without `PREVIOUS_TRACK` reports `unsupported`. */
   onPrevious: () => void;
   /** Calls `media_player.media_next_track`. A player without `NEXT_TRACK` reports `unsupported`. */
@@ -47,6 +52,7 @@ export interface MediaPlayerHandlers {
 export const MEDIA_PLAYER_ACTIONS = {
   onPlay: { takes: "nothing" },
   onPause: { takes: "nothing" },
+  onStop: { takes: "nothing" },
   onPrevious: { takes: "nothing" },
   onNext: { takes: "nothing" },
   onTurnOn: { takes: "nothing" },
@@ -84,6 +90,9 @@ export function createMediaPlayerHandlers(caller: Pick<HaStore, "callService">, 
     },
     onPause: () => {
       if (can(entity.supportsPause, "pause")) run("media_pause");
+    },
+    onStop: () => {
+      if (can(entity.supportsStop, "stop")) run("media_stop");
     },
     onPrevious: () => {
       if (can(entity.supportsPrevious, "previous track")) run("media_previous_track");

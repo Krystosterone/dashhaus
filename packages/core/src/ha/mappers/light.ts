@@ -60,6 +60,7 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
     name: options.name ?? friendlyName ?? entityId,
     area: options.area,
     state,
+    ...(attributes.assumed_state === true && { assumedState: true }),
     supportsBrightness,
     brightness,
     supportsColorTemp,

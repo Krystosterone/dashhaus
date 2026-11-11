@@ -19,6 +19,7 @@ const raw = {
     preset_modes: ["home", "away", "sleep"],
     fan_mode: "auto",
     fan_modes: ["auto", "low", "high"],
+    supported_features: 1 | 8 | 16 | 128 | 256,
   },
   last_changed: "2026-10-19T10:00:00Z",
   last_updated: "2026-10-19T10:00:02Z",
@@ -46,6 +47,12 @@ describe("climateFromHass", () => {
       fanModes: ["auto", "low", "high"],
     });
     expect(climateFromHass(raw, raw.entity_id).lastChanged).toBeDefined();
+  });
+
+  it("reads whether it declares climate.turn_on and climate.turn_off", () => {
+    expect(climateFromHass(raw, raw.entity_id)).toMatchObject({ supportsTurnOn: true, supportsTurnOff: true });
+    const heatOnly = climateFromHass({ ...raw, attributes: { ...raw.attributes, hvac_modes: ["heat"], supported_features: 1 } }, raw.entity_id);
+    expect(heatOnly).toMatchObject({ supportsTurnOn: false, supportsTurnOff: false, hvacModes: ["heat"] });
   });
 
   it("maps heat/cool range attributes and Fahrenheit units", () => {

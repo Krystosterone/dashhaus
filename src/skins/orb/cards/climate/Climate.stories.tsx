@@ -3,7 +3,7 @@ import { DemoClimateTile as DemoTile } from "./demo/DemoClimateTile";
 import { CLIMATE_WORST_CASE } from "@dashhaus/core/seeds/climate";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const UNITS = ["heating", "cooling", "range", "dry", "fan", "off", "unavailable"] as const;
+const UNITS = ["heating", "cooling", "range", "dry", "fan", "off", "heatOnly", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Climate",
@@ -36,6 +36,8 @@ export const Heating: Story = {};
 export const CoolingIdle: Story = { name: "Cooling, idle", args: { unit: "cooling" } };
 export const HeatCoolRange: Story = { name: "Heat/cool range", args: { unit: "range" } };
 export const Off: Story = { args: { unit: "off" } };
+/** One mode and no off (a boiler's thermostat): its mode icon stands bare, since no press can switch it; only its target is set. */
+export const HeatOnly: Story = { name: "Heat only", args: { unit: "heatOnly" } };
 export const Unavailable: Story = { args: { unit: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (CLIMATE_WORST_CASE): long and compound names, missing areas, values at their limits. */
 export const WorstCase: Story = {

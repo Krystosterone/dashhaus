@@ -20,7 +20,7 @@ const meta = {
   argTypes: {
     light: {
       control: "select",
-      options: ["dimmable", "dimmableOff", "dimmableNoWarmth", "whiteAndColour", "noReading", "onOff", "unknown", "unavailable"],
+      options: ["dimmable", "dimmableOff", "dimmableNoWarmth", "whiteAndColour", "noReading", "onOff", "unknown", "assumed", "unavailable"],
       description: "Example light",
     },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
@@ -49,6 +49,8 @@ export const OnOffOnly: Story = { name: "On / off only", args: { light: "onOff" 
  * state). Not unavailable, so nothing is dashed: it says Unknown, and the bulb and the bar still switch and dim it.
  */
 export const Unknown: Story = { args: { light: "unknown" } };
+/** An RF lamp Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the sheet. */
+export const AssumedState: Story = { name: "Assumed state", args: { light: "assumed" } };
 export const Unavailable: Story = { args: { light: "unavailable" } };
 
 /** Realistic worst-case data from the demo seeds (LIGHT_WORST_CASE): long and compound names, missing areas, values at their limits. */
@@ -69,7 +71,7 @@ export const AllStates: Story = {
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {(["dimmable", "nightLight", "whiteAndColour", "dimmableOff", "onOff", "noReading", "unknown", "unavailable"] as const).map((light) => (
+      {(["dimmable", "nightLight", "whiteAndColour", "dimmableOff", "onOff", "noReading", "unknown", "assumed", "unavailable"] as const).map((light) => (
         <DemoTile key={light} light={light} width={width} footprint={footprint} />
       ))}
     </div>
@@ -144,6 +146,8 @@ export const DetailsColour: Story = {
   args: { light: "nightLight", defaultOpen: true },
 };
 
+/** Its state assumed: Turn Off and On, either sent whatever it shows, since what it shows may be wrong. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { light: "assumed", defaultOpen: true } };
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { light: "unavailable", defaultOpen: true } };
 

@@ -25,9 +25,9 @@ const COVER_STATES = new Set<CoverEntity["state"]>(["open", "opening", "closed",
 const COVER_CLASSES = new Set<CoverClass>(["curtain", "blind", "shade", "shutter", "awning", "window", "garage", "door", "gate"]);
 
 /** Home Assistant `CoverEntityFeature` bit values the card reads. */
-const SUPPORTS_POSITION = 4;
-const SUPPORTS_STOP = 8;
-const SUPPORTS_TILT = 128;
+export const COVER_FEATURES = {
+  OPEN: 1, CLOSE: 2, SET_POSITION: 4, STOP: 8, OPEN_TILT: 16, CLOSE_TILT: 32, STOP_TILT: 64, SET_TILT_POSITION: 128,
+} as const;
 
 /** Map one raw Home Assistant cover state to the existing presentational model. */
 export function coverFromHass(raw: HassEntity | undefined, entityId: string, options: CoverMapOptions = {}): CoverEntity {
@@ -41,9 +41,12 @@ export function coverFromHass(raw: HassEntity | undefined, entityId: string, opt
   const rawClass = stringValue(attributes.device_class);
   const deviceClass: CoverClass = rawClass != null && COVER_CLASSES.has(rawClass as CoverClass) ? rawClass as CoverClass : "shade";
   const features = finiteNumber(attributes.supported_features) ?? 0;
-  const supportsPosition = (features & SUPPORTS_POSITION) !== 0;
-  const supportsStop = (features & SUPPORTS_STOP) !== 0;
-  const supportsTilt = (features & SUPPORTS_TILT) !== 0;
+  const has = (bit: number) => (features & bit) !== 0;
+  const supportsPosition = has(COVER_FEATURES.SET_POSITION);
+  const supportsTilt = has(COVER_FEATURES.SET_TILT_POSITION);
+  // A cover that only tilts (venetian slats with no lift) stops its slats.
+  const onlyTilts = !has(COVER_FEATURES.OPEN) && !has(COVER_FEATURES.CLOSE) && !supportsPosition;
+  const supportsStop = has(COVER_FEATURES.STOP) || (onlyTilts && has(COVER_FEATURES.STOP_TILT));
   const friendlyName = stringValue(attributes.friendly_name);
 
   return {
@@ -53,10 +56,16 @@ export function coverFromHass(raw: HassEntity | undefined, entityId: string, opt
     state,
     deviceClass,
     position: readable && supportsPosition ? percentValue(attributes.current_position) : undefined,
-    tilt: readable && supportsTilt ? percentValue(attributes.current_tilt_position) : undefined,
+    tilt: readable && (supportsTilt || has(COVER_FEATURES.OPEN_TILT) || has(COVER_FEATURES.CLOSE_TILT)) ? percentValue(attributes.current_tilt_position) : undefined,
     supportsPosition,
     supportsStop,
     supportsTilt,
+    supportsOpen: has(COVER_FEATURES.OPEN),
+    supportsClose: has(COVER_FEATURES.CLOSE),
+    supportsTiltOpen: has(COVER_FEATURES.OPEN_TILT),
+    supportsTiltClose: has(COVER_FEATURES.CLOSE_TILT),
+    supportsTiltStop: has(COVER_FEATURES.STOP_TILT),
+    ...(attributes.assumed_state === true && { assumedState: true }),
     lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };

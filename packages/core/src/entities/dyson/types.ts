@@ -30,7 +30,9 @@ export interface DysonFilter {
  * only Auto and Normal. Each companion is read only where its entity is there, so a model without heat, an
  * oscillation range or a formaldehyde sensor draws without it.
  */
-export interface DysonEntity extends Omit<FanEntity, "supportsPreset" | "presetModes" | "presetMode"> {
+export interface DysonEntity extends Omit<FanEntity, "supportsPreset" | "presetModes" | "presetMode" | "state" | "assumedState"> {
+  /** On or off; a Dyson's `unknown`, like a missing one, is unavailable: it reports every state it is in. */
+  state: "on" | "off" | "unavailable";
   /** True when the fan takes Dyson's Auto mode (an `Auto` preset). */
   supportsAuto?: boolean;
   /** True while it runs in Auto, choosing its own speed. Home Assistant reports no speed then. */

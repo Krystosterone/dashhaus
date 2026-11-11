@@ -26,7 +26,7 @@ describe("HaDysonTile", () => {
       fireEvent.click(screen.getByRole("button", { name: "Purifier" }));
       await Promise.resolve();
     });
-    expect(fake.callService).toHaveBeenCalledWith("fan", "toggle", { entity_id: "fan.bedroom" });
+    expect(fake.callService).toHaveBeenCalledWith("fan", "turn_off", { entity_id: "fan.bedroom" });
   });
 
   it("switches a companion on its own entity, from the sheet", async () => {

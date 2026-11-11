@@ -23,6 +23,13 @@ export const isAccess = (kind: CoverClass) => kind === "garage" || kind === "doo
  */
 export const coverAsksFirst = (e: Pick<CoverEntity, "deviceClass">) => isAccess(e.deviceClass);
 
+/**
+ * How its slats are set, where it has them: to a tilt position (`SET_TILT_POSITION`), or only opened and closed on their
+ * own services (`OPEN_TILT` and `CLOSE_TILT`, `ends`). None for a cover without slats.
+ */
+export const slatsBy = (e: Pick<CoverEntity, "supportsTilt" | "supportsTiltOpen" | "supportsTiltClose">): "position" | "ends" | undefined =>
+  e.supportsTilt ? "position" : e.supportsTiltOpen && e.supportsTiltClose ? "ends" : undefined;
+
 /** Quick positions, closed to open. */
 export const QUICK_POSITIONS = [
   { value: 0, label: "Closed" },

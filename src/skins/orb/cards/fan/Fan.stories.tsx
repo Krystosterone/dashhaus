@@ -3,7 +3,7 @@ import { DemoFanTile as DemoTile } from "./demo/DemoFanTile";
 import { FAN_WORST_CASE } from "@dashhaus/core/seeds/fan";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["on", "ceiling", "off", "onOff", "unavailable", "long"] as const;
+const SEEDS = ["on", "ceiling", "off", "onOff", "unknown", "assumed", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/Fan",
@@ -40,6 +40,10 @@ export const Off: Story = { args: { seed: "off" } };
 export const Ceiling: Story = { args: { seed: "ceiling" } };
 /** A fan without speeds (an extractor): the slot is the On/Off pill. */
 export const OnOffOnly: Story = { name: "On / off only", args: { seed: "onOff" } };
+/** An IR fan before its first command: it says Unknown, never Off, and a press turns it on. */
+export const Unknown: Story = { args: { seed: "unknown" } };
+/** An RF ceiling fan Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the sheet. */
+export const AssumedState: Story = { name: "Assumed state", args: { seed: "assumed" } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (FAN_WORST_CASE): long names, values at their limits. */
 export const WorstCase: Story = {
@@ -100,6 +104,8 @@ export const Compact: Story = {
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
 /** A ceiling fan's sheet: its direction, and no presets or oscillation it doesn't have. */
 export const DetailsCeiling: Story = { name: "Details, ceiling", args: { seed: "ceiling", defaultOpen: true } };
+/** Its state assumed: Turn Off and On, either sent whatever it shows, since what it shows may be wrong. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { seed: "assumed", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",

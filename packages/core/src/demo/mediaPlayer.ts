@@ -98,6 +98,11 @@ export function mediaPlayerServices(): DemoServices {
       supports(entity.attributes.supported_features, 1, "pause");
       return settle(entity, "paused");
     },
+    "media_player.media_stop": ({ entity }) => {
+      live(entity.state);
+      supports(entity.attributes.supported_features, 4096, "stop");
+      return settle(entity, "idle");
+    },
     "media_player.media_previous_track": ({ entity }) => {
       live(entity.state);
       supports(entity.attributes.supported_features, 16, "skip back");

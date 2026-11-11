@@ -5,6 +5,7 @@ import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entitie
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { MediaPlayerIcon } from "./icons";
 import { Progress, SeekGroove } from "./parts";
 import { CardFrame, ChoiceChips, LevelBar, Picture, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
@@ -19,6 +20,8 @@ export interface MediaPlayerCardProps extends CardProps {
   onPlay?: () => void;
   /** Pause: the orb and the pill, while it plays. */
   onPause?: () => void;
+  /** Stops it, what a press does while it plays for a player that stops but doesn't pause (`mediaPress`). */
+  onStop?: () => void;
   /** Sheet: skip back. */
   onPrevious?: () => void;
   /** Sheet: skip on. */
@@ -67,7 +70,7 @@ const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as
  * to its own player (browsing media, grouping), and today's playing. Its artwork is data, never a signal: no glow,
  * never in a row, never inside the orb.
  */
-export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, quiet, onOpenMore, onOpenDetails, onClose }: MediaPlayerCardProps) {
+export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onStop, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, quiet, onOpenMore, onOpenDetails, onClose }: MediaPlayerCardProps) {
   const card = useCard("mp", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, featured, area } = card;
   const unav = e.state === "unavailable";
@@ -78,8 +81,8 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   const word = mediaPlayerWord(e);
 
   // The one press, where the player supports it and the card was given its handler.
-  const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, turnOn: onTurnOn, turnOff: onTurnOff };
-  const viewOnly = !onPlay && !onPause && !onTurnOn && !onTurnOff;
+  const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, stop: onStop, turnOn: onTurnOn, turnOff: onTurnOff };
+  const viewOnly = !onPlay && !onPause && !onStop && !onTurnOn && !onTurnOff;
   const wanted = mediaPress(e);
   const press = wanted && handlers[wanted] ? wanted : null;
   const verb = press ? pressWord(press) : undefined;
@@ -123,7 +126,9 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   const can = {
     previous: loaded && e.supportsPrevious && !!onPrevious,
     next: loaded && e.supportsNext && !!onNext,
-    off: !unav && !isOff(e) && e.supportsTurnOff && !!onTurnOff && press !== "turnOff",
+    // On and off apart, whatever it shows, while Home Assistant only assumes its state (an IR TV): in place of Turn off.
+    either: eitherWay(e) && e.supportsTurnOn && e.supportsTurnOff && !!onTurnOn && !!onTurnOff,
+    off: !unav && !isOff(e) && !eitherWay(e) && e.supportsTurnOff && !!onTurnOff && press !== "turnOff",
     volume: loaded && e.supportsVolume && e.volume != null && !!onVolumeChange,
     // A player that steps its volume rather than sets it: Down and Up, each one step, in place of the groove.
     steps: loaded && volumeBySteps(e) && !!onVolumeUp && !!onVolumeDown,
@@ -168,7 +173,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
           </div>
         </div>
       )}
-      {(seek || can.previous || can.next || can.off || can.volume || can.steps || can.mute || can.source || can.more) && (
+      {(seek || can.previous || can.next || can.off || can.either || can.volume || can.steps || can.mute || can.source || can.more) && (
         <SheetBlock>
           {seek && <SeekGroove id={`${uid}-pos`} label={`${e.name} ${POSITION.toLowerCase()}`} seek={seek} />}
           {(can.previous || can.next) && (
@@ -211,6 +216,10 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
             <ChoiceChips id={`${uid}-s`} label="Source" options={e.sources!.map((s) => ({ value: s, label: s }))} value={e.source} onChange={onSourceChange!} />
           )}
           {can.off && <div className="hd-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>{pressWord("turnOff")}</TogglePill></div>}
+          {can.either && <>
+            <p className="hd-note">{eitherWayHint(e)}</p>
+            <ChoiceChips id={`${uid}-w`} label={EITHER_WAY_LEGEND} options={[...EITHER_WAY]} value={null} onChange={(v) => (v === "on" ? onTurnOn : onTurnOff)?.()} />
+          </>}
           {/* Last, a raised pill that acts once: it leaves the skin's look for Home Assistant's own player. */}
           {can.more && <div className="hd-acts"><TogglePill label={openInHomeAssistantSaid(e.name)} onToggle={onOpenMore!}>{OPEN_IN_HOME_ASSISTANT}</TogglePill></div>}
         </SheetBlock>

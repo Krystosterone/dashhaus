@@ -53,6 +53,51 @@ describe("createCoverHandlers", () => {
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
   });
 
+  it("opens and closes a cover by the first way it declares, never a service it lacks", async () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const raw = (supported_features: number) => coverFromHass({
+      entity_id: "cover.slats", state: "closed", attributes: { device_class: "blind", supported_features },
+      last_changed: "2026-10-19T10:00:00Z", last_updated: "2026-10-19T10:00:00Z",
+    }, "cover.slats");
+    // Position only; slats that tilt on their own services and stop; slats with a tilt position only; nothing at all.
+    for (const features of [4, 16 | 32 | 64, 128, 0]) {
+      const handlers = createCoverHandlers({ callService }, raw(features), { onError });
+      handlers.onOpenCover();
+      handlers.onCloseCover();
+      handlers.onStopCover();
+    }
+    await Promise.resolve();
+
+    const sent = callService.mock.calls.map((call) => call as unknown as [string, string, Record<string, unknown>]);
+    expect(sent.map(([, service, data]) => [service, data.position ?? data.tilt_position])).toEqual([
+      ["set_cover_position", 100], ["set_cover_position", 0],
+      ["open_cover_tilt", undefined], ["close_cover_tilt", undefined], ["stop_cover_tilt", undefined],
+      ["set_cover_tilt_position", 100], ["set_cover_tilt_position", 0],
+    ]);
+    // Position only can't stop; slats with a tilt position only can't; nothing at all can do none of the three.
+    expect(onError.mock.calls.map(([error]) => (error as { message: string }).message)).toEqual([
+      "cover.slats does not support stopping",
+      "cover.slats does not support stopping",
+      "cover.slats does not support opening",
+      "cover.slats does not support closing",
+      "cover.slats does not support stopping",
+    ]);
+  });
+
+  it("opens and closes slats that only open and close, and takes no angle for them", async () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const handlers = createCoverHandlers({ callService }, { ...entity, supportsTilt: false, supportsTiltOpen: true, supportsTiltClose: true }, { onError });
+    handlers.onSetTilt?.(100);
+    handlers.onSetTilt?.(0);
+    handlers.onSetTilt?.(50);
+    await Promise.resolve();
+
+    expect(callService.mock.calls.map((call) => (call as unknown as string[])[1])).toEqual(["open_cover_tilt", "close_cover_tilt"]);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "invalid_input" }));
+  });
+
   it("drives a cover Home Assistant reports as unknown", async () => {
     // A Somfy RTS blind on an assumed state: no position, but it opens, closes and stops.
     const rts = coverFromHass({

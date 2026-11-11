@@ -64,6 +64,10 @@ export const Off: Story = { args: { fan: "off" } };
 export const Ceiling: Story = { args: { fan: "ceiling" } };
 /** A fan without speeds (an extractor): one wide key with its state word, no fader. */
 export const OnOffOnly: Story = { name: "On / off only", args: { fan: "onOff" } };
+/** An IR fan before its first command: it says Unknown, never Off, and a press turns it on. */
+export const Unknown: Story = { args: { fan: "unknown" } };
+/** An RF ceiling fan Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the panel. */
+export const AssumedState: Story = { name: "Assumed state", args: { fan: "assumed" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { fan: "unavailable" } };
 
@@ -131,6 +135,8 @@ export const Details: Story = { args: { defaultOpen: true } };
 /** A ceiling fan's panel: its direction on the screen's second channel and on two keys. */
 export const DetailsCeiling: Story = { name: "Details, ceiling", args: { fan: "ceiling", defaultOpen: true } };
 
+/** Its state assumed: Turn Off and On, either sent whatever it shows, since what it shows may be wrong. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { fan: "assumed", defaultOpen: true } };
 /** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { fan: "unavailable", defaultOpen: true } };
 

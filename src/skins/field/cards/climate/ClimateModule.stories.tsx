@@ -49,6 +49,8 @@ export const AutoRange: Story = { name: "Heat/cool range", args: { climate: "ran
 export const Off: Story = { args: { climate: "off" } };
 export const Dry: Story = { args: { climate: "dry" } };
 export const FanOnly: Story = { name: "Fan only", args: { climate: "fan" } };
+/** One mode and no off (a boiler's thermostat): its key lies flat and says its mode, since no press can switch it. */
+export const HeatOnly: Story = { name: "Heat only", args: { climate: "heatOnly" } };
 export const Unavailable: Story = { args: { climate: "unavailable" } };
 /** Every slot at its widest: the worst-case seeds. */
 export const WorstCase: Story = {

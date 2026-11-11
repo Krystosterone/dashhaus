@@ -3,7 +3,7 @@ import { DemoToggleTile as DemoTile } from "./demo/DemoToggleTile";
 import { TOGGLE_WORST_CASE } from "@dashhaus/core/seeds/toggle";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const MODES = ["dnd", "quiet", "guest", "away", "unavailable"] as const;
+const MODES = ["dnd", "quiet", "guest", "away", "unknown", "assumed", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Toggle",
@@ -36,6 +36,10 @@ type Story = StoryObj<typeof meta>;
 export const DoNotDisturb: Story = { name: "Do Not Disturb, on for an hour" };
 export const QuietOff: Story = { name: "Quiet mode, off", args: { mode: "quiet" } };
 export const GuestOn: Story = { name: "Guest mode, on until turned off", args: { mode: "guest" } };
+/** A template switch before its first command: it says Unknown, never Off, and the orb turns it on. */
+export const Unknown: Story = { args: { mode: "unknown" } };
+/** An RF plug Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the sheet. */
+export const AssumedState: Story = { name: "Assumed state", args: { mode: "assumed" } };
 export const Unavailable: Story = { args: { mode: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (TOGGLE_WORST_CASE): long and compound names, missing areas, values at their limits. */
 export const WorstCase: Story = {
@@ -112,6 +116,8 @@ export const CompactGrid: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
+/** Its state assumed: Turn Off and On, either of which is sent whatever it shows, since what it shows may be wrong. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { mode: "assumed", defaultOpen: true } };
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { mode: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {

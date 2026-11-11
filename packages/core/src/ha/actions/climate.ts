@@ -1,12 +1,17 @@
 import type { ClimateEntity, HvacMode } from "../../entities/climate/types";
 import type { HaActionError, HaStore } from "../types";
+import { onMode } from "../../entities/climate/power";
 import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
  type ClimateServiceCaller = Pick<HaStore, "callService">;
 
 export interface ClimateHandlers {
-  /** Calls `climate.turn_on` when the unit is off, `climate.turn_off` otherwise. */
+  /**
+   * Turns the unit on while it is off, and off otherwise, as it says it can: `climate.turn_on` and `climate.turn_off`
+   * where it declares them, else `climate.set_hvac_mode`, into its first mode that isn't off or into `off`. A unit with
+   * neither way (a heat-only thermostat, to turn off) reports `unsupported` (`canTurnOn`, `canTurnOff`).
+   */
   onToggle: () => void;
   /**
    * Calls `climate.set_temperature` with `temperature`. A value outside `minTemp` to `maxTemp` reports
@@ -62,7 +67,15 @@ export function createClimateHandlers(caller: ClimateServiceCaller, entity: Clim
 
   return {
     onToggle: () => {
-      if (actionable()) run(entity.state === "off" ? "turn_on" : "turn_off");
+      if (!actionable()) return;
+      if (entity.state === "off") {
+        const mode = onMode(entity);
+        if (entity.supportsTurnOn !== false) run("turn_on");
+        else if (mode) run("set_hvac_mode", { hvac_mode: mode });
+        else unsupported(`${entity.entityId} can't be turned on`);
+      } else if (entity.supportsTurnOff !== false) run("turn_off");
+      else if (entity.hvacModes.includes("off")) run("set_hvac_mode", { hvac_mode: "off" });
+      else unsupported(`${entity.entityId} can't be turned off`);
     },
     onTargetChange: (temperature) => {
       if (!actionable() || !validTemperature(temperature)) return;

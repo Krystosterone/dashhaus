@@ -10,6 +10,7 @@ import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
+import { EITHER_WAY, EITHER_WAY_LEGEND, eitherWay, eitherWayHint } from "@dashhaus/core/entities/assumed";
 import { IconMediaPlayer, IconMute, IconNext, IconOpenOut, IconPower, IconPrevious, MEDIA_PLAYER_PICT } from "./icons";
 import { ScreenClock, ScreenProgress } from "./parts";
 import "./MediaPlayerModule.css";
@@ -23,6 +24,8 @@ export interface MediaPlayerModuleProps {
   onPlay?: () => void;
   /** Pause: the first key, while it plays. */
   onPause?: () => void;
+  /** Stops it, what a press does while it plays for a player that stops but doesn't pause (`mediaPress`). */
+  onStop?: () => void;
   /** Skip back: the panel's Previous key. */
   onPrevious?: () => void;
   /** Skip on: the Next key, in the row and the panel. */
@@ -79,7 +82,7 @@ const FIGURE: Partial<Record<MediaPlayerEntity["state"], string>> = { playing: "
  * volume), Mute, the source, Power, inside Home Assistant a key to its own player (browsing media, grouping), and today's
  * playing.
  */
-export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, onOpenMore, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
+export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onStop, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, onOpenMore, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
@@ -92,7 +95,7 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   // Why the volume doesn't sound now (Muted, Paused, Idle), or nothing while it does.
   const quietVolume = volumeReason(e);
 
-  const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, turnOn: onTurnOn, turnOff: onTurnOff };
+  const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, stop: onStop, turnOn: onTurnOn, turnOff: onTurnOff };
   const wanted = mediaPress(e);
   const press = wanted && handlers[wanted] ? wanted : null;
 
@@ -259,7 +262,15 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
           </Key>
         </KeyGroup>
       )}
-      {power && (
+      {/* While Home Assistant only assumes its state (an IR TV), on and off apart, whatever the screen shows. */}
+      {power && eitherWay(e) && e.supportsTurnOn && e.supportsTurnOff && onTurnOn && onTurnOff ? (
+        <div className="fd-block">
+          <KeyGroup legend={EITHER_WAY_LEGEND} columns={2}>
+            {EITHER_WAY.map((w) => <Key key={w.value} label={`${e.name}, turn ${w.label.toLowerCase()}`} wide caption={w.label} onPress={w.value === "on" ? onTurnOn : onTurnOff}>{null}</Key>)}
+          </KeyGroup>
+          <p className="fd-hint">{eitherWayHint(e)}</p>
+        </div>
+      ) : power && (
         <KeyGroup legend="Power" columns={2}>
           <Key label="Power" pressed={on} unavailable={unav || (on ? !(e.supportsTurnOff && onTurnOff) : !(e.supportsTurnOn && onTurnOn))} wide caption={unav ? undefined : on ? "On" : "Off"} onPress={() => (on ? onTurnOff?.() : onTurnOn?.())}>
             <IconPower />

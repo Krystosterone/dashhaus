@@ -257,4 +257,24 @@ describe("CoverModule", () => {
     expect(onCloseCover).not.toHaveBeenCalled();
   });
 
+
+  it("sets slats that only open and close on two keys, never a fader for an angle", () => {
+    const { container, onSetTilt } = draw("venetian", "standard", { defaultOpen: true });
+    expect(container.ownerDocument.querySelector('input[aria-label="Venetian blind slats"]')).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Venetian blind slats, closed" }));
+    expect(onSetTilt).toHaveBeenCalledWith(0);
+  });
+
+  it("keeps the slats' fader while their tilt isn't known, with no thumb", () => {
+    draw({ ...COVER_SEEDS.blind.entity, state: "unknown", tilt: undefined }, "standard", { defaultOpen: true });
+    expect(screen.getByRole("slider", { name: "Blind slats" }).getAttribute("aria-valuetext")).toBe("Unknown");
+  });
+
+  it("keeps every Move key live on a cover whose state Home Assistant only assumes", () => {
+    const { onCloseCover } = draw("assumed", "standard", { defaultOpen: true });
+    const close = screen.getByRole("button", { name: "Nursery blind, close" });
+    expect(close.getAttribute("aria-disabled")).toBeNull();
+    fireEvent.click(close);
+    expect(onCloseCover).toHaveBeenCalledOnce();
+  });
 });

@@ -174,4 +174,10 @@ describe("lightFromHass", () => {
       else process.env.TZ = previousTimezone;
     }
   });
+
+  it("says when Home Assistant only assumes its state, and nothing otherwise", () => {
+    const raw = { entity_id: "light.rf", state: "on", attributes: { supported_color_modes: ["onoff"], assumed_state: true }, last_changed: "2026-10-19T10:00:00Z", last_updated: "2026-10-19T10:00:00Z" };
+    expect(lightFromHass(raw, raw.entity_id).assumedState).toBe(true);
+    expect(lightFromHass({ ...raw, attributes: { supported_color_modes: ["onoff"] } }, raw.entity_id)).not.toHaveProperty("assumedState");
+  });
 });

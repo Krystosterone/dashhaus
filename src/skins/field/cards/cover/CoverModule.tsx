@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
-import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
+import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isMoving, openness, slatsBy, snapEnds } from "@dashhaus/core/entities/cover/position";
+import { COVER_ASKS_HINT, LEFT_OPEN_WORD, SLAT_ENDS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -59,6 +59,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // Reachable, but where it is isn't known (an RF blind, a garage door with no sensor): its screen has no reading, the
   // key opens it as Home Assistant's own toggle does, and every transport key acts.
   const unknown = e.state === "unknown";
+  // Where it is isn't known, or only assumed (an RF blind Home Assistant can't hear back from): every Move key acts.
+  const either = unknown || !!e.assumedState;
   const moving = isMoving(e);
   const pos = Math.round(openness(e));
   const open = !unav && (pos > 0 || e.state === "open");
@@ -142,7 +144,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // The panel's content: the screen, with a blind's slats on its second channel; the controls; quick positions, or
   // close, stop and open for a cover with no position or a garage door, door or gate; the slats fader; today; and
   // facts. While a question stands, the question alone under the screen.
-  const tilt = !unav && e.supportsTilt && e.tilt != null ? Math.round(e.tilt) : undefined;
+  const slats = unav ? undefined : slatsBy(e);
+  const tilt = slats && e.tilt != null ? Math.round(e.tilt) : undefined;
   const today = history && (unav ? "Unavailable" : e.lastChanged ? `${moving ? (open ? "Open" : "Closed") : word} since ${e.lastChanged}` : undefined);
 
   const aside = tilt != null ? (
@@ -153,9 +156,9 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // whose position isn't set here; the slats fader; today.
   const move = (
     <KeyGroup legend="Move">
-      <Key label={`${e.name}, close${asks ? ": asks first" : ""}`} wide caption="Close" unavailable={adrift || (!open && !moving && !unknown)} onPress={asks ? () => ask("close") : onCloseCover}><IconDown /></Key>
-      {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving && !unknown} onPress={onStopCover}><IconStop /></Key>}
-      <Key label={`${e.name}, open${asks ? ": asks first" : ""}`} wide caption="Open" unavailable={adrift || (open && !moving && !unknown)} onPress={asks ? () => ask("open") : onOpenCover}><IconUp /></Key>
+      <Key label={`${e.name}, close${asks ? ": asks first" : ""}`} wide caption="Close" unavailable={adrift || (!open && !moving && !either)} onPress={asks ? () => ask("close") : onCloseCover}><IconDown /></Key>
+      {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving && !either} onPress={onStopCover}><IconStop /></Key>}
+      <Key label={`${e.name}, open${asks ? ": asks first" : ""}`} wide caption="Open" unavailable={adrift || (open && !moving && !either)} onPress={asks ? () => ask("open") : onOpenCover}><IconUp /></Key>
     </KeyGroup>
   );
   const panel = (
@@ -172,19 +175,27 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       {!unav && asks && <div className="fd-block">{move}<p className="fd-hint">{COVER_ASKS_HINT}</p></div>}
       {!unav && !asks && !withPos && move}
 
-      {tilt != null && onSetTilt && (
+      {/* Slats set to an angle on a fader, with no thumb while their tilt isn't known (unknown); slats that only open
+          and close, a key for each, the one they're at chosen. */}
+      {slats === "position" && onSetTilt && (
         <Fader
           id={`${uid}-t`}
           label={`${e.name} slats`}
           legend="Slats"
-          value={tilt}
+          value={tilt ?? 0}
           min={0}
           max={100}
           lit
+          empty={tilt == null}
           param="b"
-          valueText={`${tilt} percent open`}
+          valueText={tilt == null ? "Unknown" : `${tilt} percent open`}
           onChange={onSetTilt}
         />
+      )}
+      {slats === "ends" && onSetTilt && (
+        <KeyGroup legend="Slats" columns={2}>
+          {SLAT_ENDS.map((end) => <Key key={end.value} label={`${e.name} slats, ${end.label.toLowerCase()}`} wide caption={end.label} chosen={end.value === tilt} onPress={() => onSetTilt(end.value)}>{null}</Key>)}
+        </KeyGroup>
       )}
 
       {history && <Today summary={today} label="Open by hour today." tone={withPos ? "a" : "neutral"} samples={history.samples} currentHour={history.currentHour} />}
@@ -217,7 +228,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       row={controls("m")}
       controls={pending ? undefined : controls}
       aside={aside}
-      facts={pending ? undefined : { start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}` }}
+      facts={pending ? undefined : { start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", slats ? "tilt" : null].filter(Boolean).join(", ")}` }}
     >
       {pending ? (
         <Confirm key={pending}

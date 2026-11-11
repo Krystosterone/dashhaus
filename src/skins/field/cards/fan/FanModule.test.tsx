@@ -83,4 +83,12 @@ describe("FanModule", () => {
   it("leads a compact row with its key", () => {
     expect(draw(FAN_SEEDS.on.entity, { footprint: "compact" }).container.querySelector(".fd-module > .fd-key")).not.toBeNull();
   });
+
+  it("lays a fan flat whose press it doesn't declare (no TURN_OFF while on)", () => {
+    const { onToggle } = draw({ ...FAN_SEEDS.onOff.entity, state: "on", supportsTurnOff: false });
+    const key = screen.getAllByRole("button", { name: FAN_SEEDS.onOff.entity.name })[0];
+    expect(key.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(key);
+    expect(onToggle).not.toHaveBeenCalled();
+  });
 });

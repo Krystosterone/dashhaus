@@ -15,6 +15,16 @@ export interface ClimateEntity {
   area?: string;
   state: HvacMode | "unavailable";
   hvacModes: HvacMode[];
+  /**
+   * Whether it declares `climate.turn_on` (`ClimateEntityFeature.TURN_ON`). `false` where it doesn't, so it is turned on
+   * into a mode instead (`canTurnOn`, `entities/climate/power.ts`); omitted, it does.
+   */
+  supportsTurnOn?: boolean;
+  /**
+   * Whether it declares `climate.turn_off` (`ClimateEntityFeature.TURN_OFF`). `false` where it doesn't, so it is turned
+   * off into its `off` mode, or, with none, not at all (`canTurnOff`); omitted, it does.
+   */
+  supportsTurnOff?: boolean;
   hvacAction?: HvacAction;
   /** The room's temperature as the thermostat reads it, once it has. */
   currentTemperature?: number;

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
 import { TARGET_WORD, climateFacts, roomTemperatureBlank } from "@dashhaus/core/entities/climate/words";
+import { canSwitch, onMode } from "@dashhaus/core/entities/climate/power";
 import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Steps, Today, useDetails, KeyGroup, choices, Temperature, ModuleRow, Channel } from "../../shared/ui";
@@ -45,12 +46,14 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
   const unavailable = e.state === "unavailable";
   const mode: HvacMode = e.state === "unavailable" ? "off" : e.state;
   const on = !unavailable && mode !== "off";
+  // A unit that can't be switched from where it is (a heat-only thermostat has no off) keeps its key flat.
+  const switchable = canSwitch(e);
   const action = e.hvacAction ?? (on ? "idle" : "off");
   const target = targetCopy(e, mode);
   const hasRange = on && mode === "heat_cool" && e.targetLow != null && e.targetHigh != null && onRangeChange != null;
   const hasSingle = on && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
   const openPanel = details.openDetails;
-  const lastMode = e.hvacModes.find((candidate) => candidate !== "off") ?? "heat";
+  const lastMode = onMode(e) ?? "heat";
   const pictMode = on ? mode : lastMode;
 
   const focus = hasRange ? (e.targetLow! + e.targetHigh!) / 2 : hasSingle ? e.targetTemperature! : e.currentTemperature;
@@ -83,13 +86,13 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
   const controls = (where: "m" | "p") => {
     const adjustable = hasSingle || hasRange;
     // The key says what pressing it does; the screen says the mode it runs in.
-    const caption = unavailable ? undefined : on ? "Turn off" : "Turn on";
+    const caption = unavailable ? undefined : !switchable ? MODE_META[mode].label : on ? "Turn off" : "Turn on";
     return (
       <ModuleRow className="fd-cl-row" solo={!adjustable}>
         <Key
-          label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`}
+          label={`${e.name}, ${unavailable ? "unavailable" : !switchable ? MODE_META[mode].label : on ? "turn off" : "turn on"}`}
           led={on}
-          unavailable={unavailable}
+          unavailable={unavailable || !switchable}
           onPress={onToggle}
           onHold={openPanel}
           wide={!adjustable}
@@ -130,7 +133,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
     );
   };
 
-  const targetPictMode = on ? mode : (e.hvacModes.find((candidate) => candidate !== "off") ?? "heat");
+  const targetPictMode = on ? mode : lastMode;
   const aside = unavailable ? (
     <Channel sub="Unavailable"><Blank places={4} label="Unavailable" /></Channel>
   ) : !on ? (

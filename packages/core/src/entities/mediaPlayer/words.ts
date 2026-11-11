@@ -73,18 +73,19 @@ export function playingFrom(e: Pick<MediaPlayerEntity, "state" | "app" | "source
  * can't do that, but turns off (a TV showing an input), turns off, as a light's press does. Null when it can do none
  * of these, or is unavailable: the card then shows its state with nothing to press.
  */
-export type MediaPress = "play" | "pause" | "turnOn" | "turnOff";
+export type MediaPress = "play" | "pause" | "stop" | "turnOn" | "turnOff";
 
-export function mediaPress(e: Pick<MediaPlayerEntity, "state" | "supportsPlay" | "supportsPause" | "supportsTurnOn" | "supportsTurnOff">): MediaPress | null {
+export function mediaPress(e: Pick<MediaPlayerEntity, "state" | "supportsPlay" | "supportsPause" | "supportsStop" | "supportsTurnOn" | "supportsTurnOff">): MediaPress | null {
   if (e.state === "unavailable") return null;
   if (isOff(e)) return e.supportsTurnOn ? "turnOn" : null;
-  const play = isPlaying(e) ? (e.supportsPause ? "pause" : null) : e.supportsPlay ? "play" : null;
+  // Playing, it pauses, else stops (a radio stream that can't hold its place), as Home Assistant's own player does.
+  const play = isPlaying(e) ? (e.supportsPause ? "pause" : e.supportsStop ? "stop" : null) : e.supportsPlay ? "play" : null;
   return play ?? (e.supportsTurnOff ? "turnOff" : null);
 }
 
-const PRESS_WORDS: Record<MediaPress, string> = { play: "Play", pause: "Pause", turnOn: "Turn on", turnOff: "Turn off" };
+const PRESS_WORDS: Record<MediaPress, string> = { play: "Play", pause: "Pause", stop: "Stop", turnOn: "Turn on", turnOff: "Turn off" };
 
-/** The press in words, as a key or a pill prints it: "Play", "Pause", "Turn on", "Turn off". */
+/** The press in words, as a key or a pill prints it: "Play", "Pause", "Stop", "Turn on", "Turn off". */
 export const pressWord = (press: MediaPress): string => PRESS_WORDS[press];
 
 /** Its volume in words, for a status line or a meta line: "Volume 45%", "Muted"; nothing where it doesn't say. */

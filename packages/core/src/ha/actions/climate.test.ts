@@ -57,6 +57,26 @@ describe("createClimateHandlers", () => {
     expect(callService).toHaveBeenCalledWith("climate", "turn_on", { entity_id: "climate.living_room" });
   });
 
+  it("turns a unit that declares no turn_on or turn_off on and off by its modes", async () => {
+    const callService = vi.fn(async () => undefined);
+    const modes = { ...entity, supportsTurnOn: false, supportsTurnOff: false, hvacModes: ["off", "heat", "cool"] as ClimateEntity["hvacModes"] };
+    createClimateHandlers({ callService }, modes).onToggle();
+    createClimateHandlers({ callService }, { ...modes, state: "off" }).onToggle();
+    await Promise.resolve();
+
+    expect(callService).toHaveBeenNthCalledWith(1, "climate", "set_hvac_mode", { entity_id: "climate.living_room", hvac_mode: "off" });
+    expect(callService).toHaveBeenNthCalledWith(2, "climate", "set_hvac_mode", { entity_id: "climate.living_room", hvac_mode: "heat" });
+  });
+
+  it("never sends a turn_off a heat-only thermostat would refuse", () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    createClimateHandlers({ callService }, { ...entity, supportsTurnOff: false, hvacModes: ["heat"] }, { onError }).onToggle();
+
+    expect(callService).not.toHaveBeenCalled();
+    expect(onError.mock.calls[0][0]).toMatchObject({ code: "unsupported" });
+  });
+
   it("gates unsupported capabilities and unavailable entities", () => {
     const callService = vi.fn(async () => undefined);
     const onError = vi.fn();

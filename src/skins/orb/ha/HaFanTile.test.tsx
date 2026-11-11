@@ -23,7 +23,7 @@ describe("HaFanTile", () => {
       fireEvent.click(screen.getByRole("button", { name: "Bedroom" }));
       await Promise.resolve();
     });
-    expect(fake.callService).toHaveBeenCalledWith("fan", "toggle", { entity_id: "fan.bedroom" });
+    expect(fake.callService).toHaveBeenCalledWith("fan", "turn_off", { entity_id: "fan.bedroom" });
   });
 
   it("sends the groove's speed as the percentage Home Assistant takes", async () => {

@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ClimateEntity } from "@dashhaus/core/entities/climate/types";
 import { CLIMATE_SEEDS } from "@dashhaus/core/seeds/climate";
@@ -15,5 +15,14 @@ describe("ClimateCard", () => {
   it("says No reading yet in the room temperature's place before its first, and nothing where it never reports one", () => {
     expect(status({ ...heating, currentTemperature: undefined })).toBe("No reading yet · Heating");
     expect(status({ ...heating, currentTemperature: undefined, reportsCurrentTemperature: false })).toBe("Heating");
+  });
+
+  it("draws a unit no press can switch (a heat-only thermostat) with its mode icon bare, never a press it would refuse", () => {
+    const onToggle = vi.fn();
+    const { container } = render(<ClimateCard entity={CLIMATE_SEEDS.heatOnly.entity} onToggle={onToggle} onTargetChange={vi.fn()} />);
+    expect(container.querySelector("button.hd-orb")).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Radiators, / })).toBeNull();
+    // Its target is still set.
+    expect(screen.getByRole("group", { name: "Radiators target temperature" })).toBeTruthy();
   });
 });

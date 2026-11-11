@@ -79,6 +79,8 @@ export const Buffering: Story = { args: { mediaPlayer: "buffering" } };
 export const Muted: Story = { args: { mediaPlayer: "muted" } };
 /** A radio stream: no duration, so no rule along the screen's foot, never a guessed one; no artwork, so the pictogram. */
 export const Stream: Story = { args: { mediaPlayer: "stream" } };
+/** A web radio that stops but can't pause: while it plays, the first key says Stop, never Turn off. */
+export const StopsNoPause: Story = { name: "Stops, no pause", args: { mediaPlayer: "stops" } };
 export const Idle: Story = { args: { mediaPlayer: "idle" } };
 /** A TV that is on with nothing it reports as playing: ON, and its source on the meta line. */
 export const On: Story = { args: { mediaPlayer: "on" } };
@@ -108,6 +110,8 @@ export const TwelveHourClock: Story = {
   ),
 };
 
+/** An IR TV Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the panel. */
+export const AssumedState: Story = { name: "Assumed state", args: { mediaPlayer: "assumed" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { mediaPlayer: "unavailable" } };
 
@@ -195,6 +199,8 @@ export const DetailsSources: Story = { name: "Details, sources", args: { mediaPl
  */
 export const DetailsInHomeAssistant: Story = { name: "Details, in Home Assistant", args: { defaultOpen: true, more: true } };
 
+/** Its state assumed: Turn Off and On in place of the power press, either sent whatever it shows. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { mediaPlayer: "assumed", defaultOpen: true } };
 /** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { mediaPlayer: "unavailable", defaultOpen: true } };
 

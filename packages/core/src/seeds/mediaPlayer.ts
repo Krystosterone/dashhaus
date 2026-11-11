@@ -68,6 +68,25 @@ export const MEDIA_PLAYER_SEEDS = {
     },
     past: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
   },
+  /** A web radio that stops but can't hold its place (`STOP`, no `PAUSE`): a press stops it, as Home Assistant's player does. */
+  stops: {
+    entity: {
+      entityId: "media_player.workshop_radio", name: "Workshop radio", area: "Workshop", state: "playing", ...full(), supportsPause: false, supportsStop: true,
+      title: "CBC Radio One", source: "Radio", volume: 50, lastChanged: "08:15",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+  },
+  /**
+   * An IR TV Home Assistant sends to but never hears back from (`assumed_state`): it shows on, and may not be. It turns
+   * on and off, steps its volume and mutes.
+   */
+  assumed: {
+    entity: {
+      entityId: "media_player.bedroom_tv", name: "Bedroom TV", area: "Bedroom", state: "on", assumedState: true,
+      supportsTurnOn: true, supportsTurnOff: true, supportsVolumeStep: true, supportsMute: true, lastChanged: "21:40",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  },
   /** On with nothing loaded: a press plays. */
   idle: {
     entity: { entityId: "media_player.hall", name: "Hall speaker", area: "Hall", state: "idle", ...full(), source: "Spotify", volume: 25, lastChanged: "09:05" },
@@ -226,6 +245,7 @@ export function useDemoMediaPlayer(seed: MediaPlayerSeed) {
     history,
     onPlay: () => change((e) => e.supportsPlay, go("playing")),
     onPause: () => change((e) => e.supportsPause, go("paused")),
+    onStop: () => change((e) => e.supportsStop, go("idle")),
     onPrevious: () => change((e) => e.supportsPrevious, (e, at) => ((e.position ?? 0) > 3 ? { ...e, position: 0, positionAt: at } : skip(-1)(e, at))),
     onNext: () => change((e) => e.supportsNext, skip(1)),
     onTurnOn: () => change((e) => e.supportsTurnOn, go("idle")),

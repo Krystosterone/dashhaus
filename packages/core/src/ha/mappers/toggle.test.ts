@@ -26,12 +26,16 @@ describe("toggleFromHass", () => {
     expect(toggleFromHass({ ...raw, state: "off" }, raw.entity_id).state).toBe("off");
   });
 
-  it("keeps unknown, unavailable, and missing entities unavailable", () => {
-    const unknown = toggleFromHass({ ...raw, state: "unknown" }, raw.entity_id);
+  it("keeps unknown apart, and says when Home Assistant only assumes its state", () => {
+    expect(toggleFromHass({ ...raw, state: "unknown" }, raw.entity_id).state).toBe("unknown");
+    expect(toggleFromHass({ ...raw, attributes: { assumed_state: true } }, raw.entity_id).assumedState).toBe(true);
+    expect(toggleFromHass(raw, raw.entity_id)).not.toHaveProperty("assumedState");
+  });
+
+  it("keeps unavailable and missing entities unavailable", () => {
     const unavailable = toggleFromHass({ ...raw, state: "unavailable" }, raw.entity_id);
     const missing = toggleFromHass(undefined, "switch.missing", { name: "Missing" });
 
-    expect(unknown.state).toBe("unavailable");
     expect(unavailable.state).toBe("unavailable");
     expect(missing).toMatchObject({ entityId: "switch.missing", name: "Missing", state: "unavailable" });
     expect(missing.lastSeen).toBeUndefined();

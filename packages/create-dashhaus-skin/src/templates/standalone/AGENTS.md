@@ -156,6 +156,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | --- | --- |
 | `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo`, `fmtPlayTime` (a player's clock), `inWords` (an integration's own state in words) |
 | `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText`; a blank figure's two phrases, `NO_READING_YET` (declared, not sent yet) and `NOT_REPORTED` (not declared, where a fixed place must hold something) |
+| `@dashhaus/core/entities/assumed` | an entity whose state Home Assistant only assumes or doesn't know yet: whether to offer on and off apart (`eitherWay`; the handlers give their turn-on and turn-off only then), why (`eitherWayHint`), and their words (`EITHER_WAY_LEGEND`, `EITHER_WAY`) |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
 | `@dashhaus/core/entities/picture` | what a card says about its picture (a still, artwork): `PICTURE_WORDS`, `stillFrom`, `pictureTime` |
@@ -179,10 +180,12 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/sun/drawing` | `sunPathDrawing`: today's path as pieces of line (the day so far, the day to come, the night), the horizon and the sun, as fractions of a drawing |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/climate/words` | what a target does (`TARGET_WORD`), what a missing room temperature says (`roomTemperatureBlank`), and its small print (`climateFacts`) |
+| `@dashhaus/core/entities/climate/power` | whether a press can switch it from where it is (`canSwitch`; a heat-only thermostat can't), and the mode it turns on in (`onMode`) |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
 | `@dashhaus/core/entities/cover/words` | a cover's state in words (`coverWord`), `positionText`, a door left open (`leftOpenText`) |
 | `@dashhaus/core/entities/cover/severity` | `coverSeverity` |
 | `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |
+| `@dashhaus/core/entities/fan/power` | whether a press can switch it from where it is (`canSwitchFan`; a fan that doesn't declare turning off can't, while on) |
 | `@dashhaus/core/entities/dyson/air`, `/dyson/labels` | a Dyson's air readings in Dyson's bands, its filters and warning; its sweeps, airflow and mode in words |
 | `@dashhaus/core/entities/guestWifi/words` | a guest Wi-Fi code's uses and length in words, `spokenCode`, `codeGroups`, `isGroupedCode`, `secretWord`, `joinWords`, `noneWord` |
 | `@dashhaus/core/entities/humidifier/labels` | what the unit is doing in words, `fmtHumidity`, `modeLabel` |

@@ -52,6 +52,8 @@ export const Colour: Story = { args: { light: "nightLight" } };
 export const OnOffOnly: Story = { name: "On / off only", args: { light: "onOff" } };
 /** Reachable but not reported yet: blank segments and Unknown, but the key and fader still switch and dim it. */
 export const Unknown: Story = { args: { light: "unknown" } };
+/** An RF lamp Home Assistant never hears back from: drawn as it is assumed to be, with on and off apart in the panel. */
+export const AssumedState: Story = { name: "Assumed state", args: { light: "assumed" } };
 /** Blank segments on the screen, the key and fader lie flat. */
 export const Unavailable: Story = { args: { light: "unavailable" } };
 /** Every slot at its widest: the worst-case seeds, a long name and area at full brightness and the coolest white first. */
@@ -124,6 +126,8 @@ export const DetailsColour: Story = { name: "Details, colour", args: { light: "n
 /** A lamp with both: warmth and colour. Choosing one replaces the other on the screen, as Home Assistant reports it. */
 export const DetailsWhiteAndColour: Story = { name: "Details, white and colour", args: { light: "whiteAndColour", defaultOpen: true } };
 
+/** Its state assumed: Turn Off and On keys, either sent whatever it shows, since what it shows may be wrong. */
+export const DetailsAssumedState: Story = { name: "Details, assumed state", args: { light: "assumed", defaultOpen: true } };
 /** Unavailable: blank screen, every control flat, the unavailable hour dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { light: "unavailable", defaultOpen: true } };
 

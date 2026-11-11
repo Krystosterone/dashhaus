@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { eitherWay } from "../entities/assumed";
 import type { HourSample } from "../entities/history";
 import type { FanDirection, FanEntity, FanHistory } from "../entities/fan/types";
 
@@ -34,6 +35,16 @@ export const FAN_SEEDS = {
     entity: { entityId: "fan.bathroom_extractor", name: "Extractor", area: "Bathroom", state: "off", supportsSpeed: false, lastChanged: "07:40" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.4, 0, 0, 0],
   },
+  /** An RF ceiling fan Home Assistant sends to but never hears back from (`assumed_state`): it shows off, and may not be. */
+  assumed: {
+    entity: { entityId: "fan.guest_ceiling", name: "Guest ceiling fan", area: "Guest room", state: "off", assumedState: true, supportsSpeed: true, speedCount: 3, lastChanged: "08:40" },
+    past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+  },
+  /** An IR fan before its first command: reachable, but it hasn't said whether it runs. */
+  unknown: {
+    entity: { entityId: "fan.attic", name: "Attic fan", area: "Attic", state: "unknown", supportsSpeed: false, lastChanged: "06:00" },
+    past: [0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable", "unavailable", "unavailable"],
+  },
   unavailable: {
     entity: { entityId: "fan.garage", name: "Garage fan", area: "Garage", state: "unavailable", supportsSpeed: true, speedCount: 100, lastSeen: "08:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable"],
@@ -67,7 +78,8 @@ export function useDemoFan(seed: FanSeed) {
   const [last, setLast] = useState(seed.entity.percentage ?? 100);
   const history = useMemo<FanHistory>(() => {
     const on = entity.state === "on";
-    const now: HourSample = entity.state === "unavailable" ? "unavailable" : on ? 0.9 : 0;
+    // Home Assistant's history reads an unknown hour as one with no reading.
+    const now: HourSample = entity.state === "unavailable" || entity.state === "unknown" ? "unavailable" : on ? 0.9 : 0;
     const samples: HourSample[] = [...seed.past, now, ...Array(24 - seed.past.length - 1).fill(null)];
     const pastMin = seed.past.reduce<number>((a, x) => a + (typeof x === "number" ? Math.round(x * 60) : 0), 0);
     return { samples, currentHour: NOW.hour, onMinutes: pastMin + (on ? NOW.minute : 0) };
@@ -88,5 +100,10 @@ export function useDemoFan(seed: FanSeed) {
     onPresetChange: (presetMode: string) => update({ state: "on", presetMode, percentage: entity.percentage ?? (entity.supportsSpeed ? last : undefined) }),
     onOscillateChange: (oscillating: boolean) => update({ oscillating }),
     onDirectionChange: (direction: FanDirection) => update({ direction }),
+    // As the handlers give them: only while its state is assumed or unknown.
+    ...(eitherWay(entity) && {
+      onTurnOn: () => update({ state: "on", percentage: entity.supportsSpeed ? last : undefined }),
+      onTurnOff: () => update({ state: "off" }),
+    }),
   };
 }

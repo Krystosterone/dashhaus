@@ -4,7 +4,7 @@ import type { DemoServices } from "./transport";
 
 const stamp = "2026-10-19T11:20:00Z";
 
-/** Full capability seed: position, tilt, and all three feature flags (4 | 8 | 128). */
+/** Full capability seed: open, close, position, stop and tilt (1 | 2 | 4 | 8 | 128). */
 const coverInitial: HassEntities = {
   "cover.living_room": {
     entity_id: "cover.living_room",
@@ -14,7 +14,7 @@ const coverInitial: HassEntities = {
       device_class: "blind",
       current_position: 100,
       current_tilt_position: 50,
-      supported_features: 4 | 8 | 128,
+      supported_features: 1 | 2 | 4 | 8 | 128,
     },
     last_changed: stamp,
     last_updated: stamp,
@@ -31,6 +31,10 @@ export const COVER_SERVICES: DemoServices = {
     ? { state: data.position === 0 ? "closed" : "open", attributes: { current_position: data.position } }
     : {},
   "cover.set_cover_tilt_position": ({ data }) => typeof data.tilt_position === "number" ? { attributes: { current_tilt_position: data.tilt_position } } : {},
+  // Slats on their own services: a cover that only tilts reads open or closed by them.
+  "cover.open_cover_tilt": () => ({ state: "open", attributes: { current_tilt_position: 100 } }),
+  "cover.close_cover_tilt": () => ({ state: "closed", attributes: { current_tilt_position: 0 } }),
+  "cover.stop_cover_tilt": ({ entity }) => ({ state: entity.state }),
 };
 
 /** Storybook-only cover transport using the same store and service path as a host transport. */
