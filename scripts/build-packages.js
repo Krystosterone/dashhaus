@@ -72,13 +72,13 @@ export async function buildPackages(outRoot = root) {
     if (outRoot !== root && pkg.cross?.length) {
       const paths = {};
       for (const name of pkg.cross) {
-        paths[`@dashhaus/${name}`] = [`packages/${name}/dist/index.d.ts`];
-        paths[`@dashhaus/${name}/*`] = [`packages/${name}/dist/*`];
+        paths[`@dashhaus/${name}`] = [`./packages/${name}/dist/index.d.ts`];
+        paths[`@dashhaus/${name}/*`] = [`./packages/${name}/dist/*`];
       }
       project = join(outRoot, `${pkg.dir.replaceAll("/", "-")}.tsconfig.json`);
       await writeFile(project, `${JSON.stringify({
         extends: join(dir, "tsconfig.build.json"),
-        compilerOptions: { baseUrl: ".", typeRoots: [join(root, "node_modules", "@types")], paths },
+        compilerOptions: { typeRoots: [join(root, "node_modules", "@types")], paths },
       }, null, 2)}\n`);
     }
     execFileSync(process.execPath, [tsc, "-p", project, "--outDir", dist, "--pretty", "false"], { cwd: root, stdio: "inherit" });
