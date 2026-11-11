@@ -43,15 +43,15 @@ describe("createFanHandlers", () => {
     ]);
   });
 
-  it("sends a whole speed from 1 to 100, so a groove never switches the fan off", () => {
+  it("sends a whole speed from 1 to 100, truncated as Home Assistant does, so a groove never switches the fan off", () => {
     const { callService, handlers } = setup();
     handlers.onPercentageChange(0);
     handlers.onPercentageChange(120);
-    handlers.onPercentageChange(66.6);
+    handlers.onPercentageChange(200 / 3);
     expect(callService.mock.calls.map((call) => (call as unknown[])[2])).toEqual([
       { entity_id: "fan.bedroom", percentage: 1 },
       { entity_id: "fan.bedroom", percentage: 100 },
-      { entity_id: "fan.bedroom", percentage: 67 },
+      { entity_id: "fan.bedroom", percentage: 66 },
     ]);
   });
 
