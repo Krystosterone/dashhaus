@@ -160,7 +160,7 @@ describe("climateFromHass", () => {
     }, "climate.fahrenheit");
 
     expect(celsius).toMatchObject({ minTemp: 10, maxTemp: 35 });
-    expect(fahrenheit).toMatchObject({ unit: "°F", minTemp: 44.6, maxTemp: 95, targetTemperature: 70 });
+    expect(fahrenheit).toMatchObject({ unit: "°F", minTemp: 45, maxTemp: 95, targetTemperature: 70 });
   });
 
   it("takes the house's unit system when the entity names no unit, as a real climate entity doesn't", () => {

@@ -22,7 +22,8 @@ const HVAC_MODES = new Set<HvacMode>(["off", "heat", "cool", "heat_cool", "auto"
 const HVAC_ACTIONS = new Set<HvacAction>(["heating", "cooling", "idle", "off", "drying", "fan"]);
 const DEFAULT_MIN_TEMP = 7;
 const DEFAULT_MAX_TEMP = 35;
-const DEFAULT_FAHRENHEIT_MIN_TEMP = 44.6;
+/** Home Assistant's 7 °C, rounded to a whole degree as it reports a °F thermostat's `min_temp`. */
+const DEFAULT_FAHRENHEIT_MIN_TEMP = 45;
 const DEFAULT_FAHRENHEIT_MAX_TEMP = 95;
 /** Home Assistant's frontend steps a whole degree in °F and half a degree in °C when the entity names no step. */
 const DEFAULT_STEP = { "°C": 0.5, "°F": 1 } as const;
