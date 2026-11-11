@@ -18,8 +18,9 @@
  *                    dashboard strategy in `window.customStrategies`, which creates a dashboard on that strategy
  *   /api/, /api/config, /api/states[/<id>]  the REST reads, with the bearer token
  *   /api/fake/state  what deploy left behind (resources, dashboards, saved layouts, the command log), as JSON
- *   /api/fake/lovelace  POST one `lovelace/*` command from a dashboard page, which the frontend would send over its
- *                    authenticated websocket: how a page such as the Add dashboard stand-in creates dashboards
+ *   /api/fake/lovelace  POST one page command, a `lovelace/*` command or a registry read, which the frontend would send
+ *                    over its authenticated websocket: how a page such as the Add dashboard stand-in creates dashboards,
+ *                    and how a card reads the areas its wall heads
  *
  * `--state` also writes that JSON to a file after every command. The www folder defaults to a new temporary one.
  */
@@ -146,8 +147,15 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
 }
 
 /**
- * One `lovelace/*` command from a dashboard page, answered as the websocket would: `{ success, result }` or
- * `{ success: false, error: { code, message } }`. Anything else is refused, so the page cannot change the house.
+ * The registry reads a dashboard page may make: the shapes a card's `hass` does not carry into its shadow root, which
+ * `useHaRegistry` asks the connection for.
+ */
+const PAGE_READS = new Set(["config/entity_registry/list_for_display", "config/device_registry/list", "config/area_registry/list"]);
+
+/**
+ * One page command from a dashboard page, answered as the websocket would: `{ success, result }` or
+ * `{ success: false, error: { code, message } }`. A `lovelace/*` command or one of the registry reads; anything else is
+ * refused, so the page cannot change the house.
  */
 function pageCommand(ha, request, response, persist) {
   const chunks = [];
@@ -160,7 +168,7 @@ function pageCommand(ha, request, response, persist) {
       return send(response, 400, "application/json", JSON.stringify({ success: false, error: { code: "invalid_format", message: "Not JSON" } }));
     }
     const { type, ...payload } = message ?? {};
-    if (typeof type !== "string" || !type.startsWith("lovelace/")) {
+    if (typeof type !== "string" || (!type.startsWith("lovelace/") && !PAGE_READS.has(type))) {
       return send(response, 200, "application/json", JSON.stringify({ success: false, error: { code: "unknown_command", message: `Unknown command ${type}` } }));
     }
     try {
@@ -352,8 +360,8 @@ try {
  * chosen view's strategy, expanded as the frontend's `expandLovelaceConfigStrategies` does (`STRATEGY_SCRIPT`); then
  * the view's first card created, configured and handed a `hass` whose connection answers `subscribe_entities` from the
  * fake house, applies `light/switch` toggles, so a press on a deployed card changes it, and sends `lovelace/*`
- * commands to the server, as an administrator unless the address says `?admin=false`. The view is the one whose path
- * the address names, or the first.
+ * commands and the registry reads to the server, as an administrator unless the address says `?admin=false`. The view
+ * is the one whose path the address names, or the first.
  */
 function dashboardPage(ha, dashboard, viewPath) {
   const saved = ha.saved.find((entry) => entry.url_path === dashboard.url_path)?.config;
@@ -371,6 +379,7 @@ const states = Object.fromEntries(data.states.map((state) => [state.entity_id, s
 const listeners = new Set();
 const events = new Map();
 const compress = (state) => ({ s: state.state, a: state.attributes, c: state.context.id, lc: Date.parse(state.last_changed) / 1000 });
+const pageReads = new Set(${JSON.stringify([...PAGE_READS])});
 const connection = {
   haVersion: data.version,
   connected: true,
@@ -400,7 +409,7 @@ const connection = {
       for (const listener of listeners) listener({ c: { [id]: { "+": { s: next, a: attributes, lc: Date.now() / 1000 } } } });
       return { context: { id: "fake" } };
     }
-    if (message.type.startsWith("lovelace/")) {
+    if (message.type.startsWith("lovelace/") || pageReads.has(message.type)) {
       const answer = await (await fetch("/api/fake/lovelace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(message) })).json();
       if (!answer.success) throw answer.error;
       return answer.result;
