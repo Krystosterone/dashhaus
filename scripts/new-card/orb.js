@@ -13,7 +13,7 @@
  * saying so. Nothing is written unless every file and every registration can be made.
  */
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir, smallPrint, seedWords } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, keypadWord, names, read, seams, skinDir, smallPrint, seedWords } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("orb");
@@ -41,6 +41,8 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   const values = kind === "control" ? { levels, choices, switches } : { levels: [], choices: [], switches: [] };
   // What asks first, or takes a code: a pill that asks (or tries, and asks for the code where the entity wants one).
   const asked = kind === "control" ? guarded : [];
+  // The keypad's verb phrase is the domain's core word (spec/cards.md → What every card says); the frame stays orb's.
+  const codeWord = asked.length ? keypadWord(domain) : undefined;
 
   // ---------- The domain's seeds and its demo, in core ----------
   const seedPath = packageFile("core", `src/seeds/${name}.ts`);
@@ -135,7 +137,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     values.choices.length + values.switches.length && "ChoiceChips",
     values.levels.length && "LevelBar",
     asked.length && "Confirm",
-    asked.length && "Keypad",
+    codeWord && "Keypad",
     kind === "reading" && "Readout",
     (sheet.length || asked.length) && "SheetBlock",
     today && "Today",
@@ -175,12 +177,14 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     "  });",
     ...(asks.length ? [`  const hint = asksFirst([${asks.map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${card.labelOf(action)}"`).join(", ")}]);`] : []),
   ].join("\n") : "";
-  // The sheet: while an action waits on its answer, its question or keypad in the other blocks' place.
-  const answer = [
+  // The sheet: while an action waits on its answer, its question or keypad in the other blocks' place. A domain with no
+  // code action only asks, so its question stands alone.
+  const confirm = `<Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`;
+  const answer = codeWord ? [
     "guard.code",
-    `  ? <Keypad key={guard.pendingKey} prompt={\`Enter the code to \${asked[guard.pending].label.toLowerCase()}\`} text={${domain.code ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
-    `  : <Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
-  ];
+    `  ? <Keypad key={guard.pendingKey} prompt={\`Enter the code to \${${codeWord.expression}}\`} text={${domain.code ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
+    `  : ${confirm}`,
+  ] : [confirm];
   const at = (indent, lines) => lines.map((line) => indent + line).join("\n");
   // What asks first, said once in the sheet while no question stands, in core's words (spec/cards.md → What every card says).
   const hint = asks.length ? "{hint && <p className=\"hd-note\">{hint}</p>}" : null;
@@ -211,7 +215,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __historyArg__: today ? ", history" : "",
     __actionProps__: drawn.map((action) => `  ${action}?: (${answers(action) === "GuardedResult" ? "code?: string" : handed(action)}) => ${answers(action)};`).join("\n"),
     __actionArgs__: drawn.map((action) => `, ${action}`).join("") + (asked.length ? ", action" : ""),
-    __guardImports__: asked.length ? `\nimport { ACTION_FAILED, ASKS_DETAIL${asks.length ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
+    __guardImports__: asked.length ? `\nimport { ACTION_FAILED, ASKS_DETAIL${asks.length ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";${codeWord ? `\n${codeWord.import}` : ""}` : "",
     __propsBase__: asked.length ? `ActionCardProps<${Name}Action>` : "CardProps",
     __propsBaseImport__: asked.length ? "ActionCardProps" : "CardProps",
     __actionType__: asked.length ? `\n/** What asks first, or takes a code: the sheet opens on its question or keypad. */\nexport type ${Name}Action = ${actionKeys};\n` : "",

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { LockAction, LockEntity, LockResult } from "@dashhaus/core/entities/lock/types";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
 import { batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
-import { JAMMED_MEANING, LOCK_WAITING, LOCK_WORD, lockAskAction, lockAskDetail, lockAsksHint, lockQuestion } from "@dashhaus/core/entities/lock/words";
+import { JAMMED_MEANING, LOCK_WAITING, LOCK_WORD, lockAskAction, lockAskDetail, lockAsksHint, lockCodeFor, lockQuestion } from "@dashhaus/core/entities/lock/words";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -126,7 +126,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       row={key(true)}
     >
       {pending ? (needsCode
-        ? <Keypad key={pending} prompt={`Code to ${pending === "open" ? "open the door" : pending}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
+        ? <Keypad key={pending} prompt={`Code to ${lockCodeFor(pending)}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
         : <Confirm key={pending}
             question={lockQuestion(pending, e.name)} detail={lockAskDetail(pending, e.name)}
             action={lockAskAction(pending)} actionLabel={`${lockAskAction(pending)}, ${e.name}`}
