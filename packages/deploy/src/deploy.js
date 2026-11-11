@@ -184,12 +184,13 @@ export async function deploy({
   report(`\n→ Reading ${targets.length === 1 ? "the file" : `the ${targets.length} files`}`);
   const files = [];
   for (const target of targets) files.push(await readTarget({ configFile: file, target, report }));
-  for (const target of files) await upload({ contents: target.contents, target, www: settings.www, sshPort: settings.sshPort, configFile: file, report });
 
+  // Connect before copying anything: a rejected token must leave the served file and its resource's version as they were.
   report(`\n→ Connecting to ${settings.url}`);
   const ha = await connect(settings.url, settings.token);
   try {
     report(`  ✓ Home Assistant ${ha.version}`);
+    for (const target of files) await upload({ contents: target.contents, target, www: settings.www, sshPort: settings.sshPort, configFile: file, report });
     report(`\n→ Registering ${files.length === 1 ? "the dashboard resource" : "the dashboard resources"}`);
     const resources = [];
     for (const target of files) resources.push(await registerResource(ha, target, report, warn));
@@ -257,6 +258,8 @@ export function connectHomeAssistant(base, token) {
     const client = {
       get version() { return version; },
       send(type, payload = {}) {
+        // A closed WebSocket drops send() without a word, so a request after a close would wait forever.
+        if (socket.readyState !== WebSocket.OPEN) return Promise.reject(new Error("Home Assistant closed the connection."));
         const request = ++id;
         socket.send(JSON.stringify({ id: request, type, ...payload }));
         return new Promise((res, rej) => pending.set(request, { res, rej }));

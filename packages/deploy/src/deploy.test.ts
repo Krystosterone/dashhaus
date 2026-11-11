@@ -1,9 +1,10 @@
 // @vitest-environment node
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import { afterEach, describe, expect, it } from "vitest";
-import { deploy } from "./deploy.js";
+import { connectHomeAssistant, deploy } from "./deploy.js";
 import type { DeployClient } from "./deploy.js";
 
 const directories: string[] = [];
@@ -460,5 +461,37 @@ export default {
     await expect(run(`export default { files: ["dist/orb-dashboard.js"], dashboards: [{ path: "home-a", title: "A", icon: "mdi:home" }] };`))
       .rejects.toThrowError("dashboards[0] needs a card");
     await expect(run(`export default { files: [], dashboards: [] };`)).rejects.toThrowError("files must name at least one file to upload");
+  });
+
+  it("copies nothing when Home Assistant refuses the token, so the served file keeps its resource's version", async () => {
+    const directory = await project();
+    const messages: string[] = [];
+    await expect(deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: (message) => messages.push(message),
+      connect: async () => { throw new Error("Home Assistant rejected HA_TOKEN. Create a new long-lived access token."); },
+    })).rejects.toThrowError("rejected HA_TOKEN");
+    expect(await readdir(join(directory, "www"))).toEqual([]);
+    expect(messages.some((message) => message.includes("Copying to"))).toBe(false);
+  });
+});
+
+describe("connectHomeAssistant", () => {
+  it("rejects a command sent after Home Assistant closes the connection instead of waiting forever", async () => {
+    const server = await startFakeHomeAssistant({ port: 0 });
+    try {
+      const ha = await connectHomeAssistant(server.settings.HA_URL, server.settings.HA_TOKEN);
+      await expect(ha.send("lovelace/dashboards/list")).resolves.toEqual(expect.any(Array));
+      await server.close();
+      // The first command can't be answered, so it settles once the client has seen the close.
+      await expect(ha.send("lovelace/dashboards/list")).rejects.toThrowError();
+      // The next one is sent on a closed socket, which drops it: only the client can settle it.
+      await expect(ha.send("lovelace/config/save")).rejects.toThrowError("Home Assistant closed the connection.");
+      ha.close();
+    } finally {
+      await server.close();
+    }
   });
 });
