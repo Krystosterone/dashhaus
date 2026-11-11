@@ -15,7 +15,8 @@ The spec wording is `spec/orb.md` → Orb design rules → "Compact cards carry 
 2. **Every row has a domain icon.** The orb carries it, at consistent size, stroke weight and perspective. The icon names the domain: thermostat, window/curtain, bulb.
 3. **Every row has primary + secondary text.** Primary: the short identity (room/control name). Secondary: the area line — the room for lights and covers, the current temperature and action for climate. Both concise. Under a titled bundle's lid, which names the room once for every part, a part in that room shows its own detail there instead (since when, warmth or colour, volume): the line stays, the repetition goes.
 4. **One explicit state/action cue per row.** A switch state, compact state word, active mark, or meaningful badge — never a decorative badge that repeats the row's colour.
-5. **Colour reinforces, never defines.** A row must stay distinguishable with colour removed: icon, text and cue carry identity and state.
+5. **An urgent warning may take the cue.** Where the row's cue is its value (no control, or a reading's figures), an urgent warning stands in its place behind the solid warn marker, as well as leading the area line; a control stays, and an advisory warning leaves the value alone (`spec/orb.md` → One palette, Warn orange; `CardFrame` draws it from the card's `level`).
+6. **Colour reinforces, never defines.** A row must stay distinguishable with colour removed: icon, text and cue carry identity and state.
 
 ## Per-domain content
 
