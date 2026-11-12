@@ -13,7 +13,7 @@ const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8")
 const packages = ["core", "deploy", "fake-home-assistant"];
 
 /** A Vitest project as the root config writes it. */
-type Project = { test?: { name?: string; include?: string[]; exclude?: string[]; environment?: string } };
+type Project = { test?: { name?: string; include?: string[]; exclude?: string[]; environment?: string; testTimeout?: number } };
 
 const project = (name: string) => (projects as Project[]).find((entry) => entry.test?.name === name)?.test;
 
@@ -62,6 +62,9 @@ describe("workspace projects", () => {
       deploy: "vmForks",
       "fake-home-assistant": "vmForks",
     });
+    // A hosted runner ran this suite 4.7× slower than a sibling run of the same tree (55.6s → 259.9s) and timed out
+    // the slowest files at Vitest's 5s default; every project allows 20s, the checks that pack the workspace more.
+    expect(projects.filter((entry) => entry.test?.testTimeout !== 20_000).map((entry) => entry.test?.name), "every project allows a slow runner 20s").toEqual([]);
   });
 
   it("runs every generator suite in exactly one CI shard", () => {

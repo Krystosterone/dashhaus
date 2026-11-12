@@ -15,6 +15,11 @@
  * replace its defaults rather than add to them, and a Node-environment file resolves through the server's list, so both
  * lists name the source condition beside Vite's own defaults (`defaultClientConditions` and `defaultServerConditions`,
  * spelt out so this file needn't load Vite).
+ *
+ * A test gets 20 seconds, not Vitest's 5: the same tree ran the unit lane in 55.6s on one hosted runner and 259.9s
+ * (4.7×) on another, which timed out the slowest files (guarded-actions, the lovelace contract) though they pass in
+ * under a second to two locally. The deadline is a slow-runner allowance, not a performance target; a check that
+ * packs the workspace sets its own.
  */
 /**
  * The repo checks that need a DOM, run with the app: the tokens load the custom-element entry, and the cross-skin checks
@@ -26,7 +31,7 @@ const SERVER_CONDITIONS = ["source", "module", "node", "development|production"]
 const project = (name: string, include: string[], environment: "jsdom" | "node" = "jsdom", test: Record<string, unknown> = {}) => ({
   resolve: { conditions: CLIENT_CONDITIONS },
   ssr: { resolve: { conditions: SERVER_CONDITIONS } },
-  test: { name, include, environment, globals: true, pool: "vmForks", ...test },
+  test: { name, include, environment, globals: true, pool: "vmForks", testTimeout: 20_000, ...test },
 });
 
 export const projects = [
