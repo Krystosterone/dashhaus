@@ -87,6 +87,50 @@ describe("HaCoverTile", () => {
     expect(fake.callService.mock.calls.map(([domain, service]) => `${domain}.${service}`)).toEqual(["cover.close_cover", "cover.open_cover"]);
   });
 
+  it("sends one set_cover_position for a drag or a tap, none before the release, and holds where it was let go", async () => {
+    const fake = renderConnected(<HaCoverTile entityId="cover.living_room" />, raw);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Living room blinds" })).toBeTruthy());
+    const bar = document.querySelector<HTMLElement>(".cv-bar")!;
+    Object.defineProperty(bar, "getBoundingClientRect", { value: () => ({ left: 0, width: 100 }) });
+    Object.defineProperty(Element.prototype, "setPointerCapture", { value: vi.fn(), configurable: true });
+    const at = (type: string, x: number) => {
+      const event = new MouseEvent(type, { bubbles: true, clientX: x, button: 0 });
+      Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
+      fireEvent(bar.querySelector(".hd-track-hit")!, event);
+    };
+    const sends = () => fake.calls.filter(({ domain, service }) => domain === "cover" && service === "set_cover_position").map(({ data }) => data.position);
+
+    act(() => { at("pointerdown", 80); at("pointermove", 60); at("pointermove", 40); });
+    expect(sends(), "nothing between press and release").toEqual([]);
+    act(() => { at("pointerup", 40); });
+    expect(sends(), "one set, where it was let go").toEqual([40]);
+    // Held where it was let go until Home Assistant reports, then follows what it reports.
+    expect((screen.getByRole("slider", { name: "Living room blinds position" }) as HTMLInputElement).value).toBe("40");
+    act(() => { at("pointerdown", 40); at("pointerup", 40); });
+    expect(sends(), "a tap where it is sends nothing").toEqual([40]);
+    expect((screen.getByRole("slider", { name: "Living room blinds position" }) as HTMLInputElement).value).toBe("40");
+    act(() => fake.emitEntity("cover.living_room", { attributes: { current_position: 45 } }));
+    expect((screen.getByRole("slider", { name: "Living room blinds position" }) as HTMLInputElement).value).toBe("45");
+    // A tap where it already is sends nothing; a tap elsewhere sends once.
+    act(() => { at("pointerdown", 45); at("pointerup", 45); });
+    expect(sends()).toEqual([40]);
+    act(() => { at("pointerdown", 60); at("pointerup", 60); });
+    expect(sends()).toEqual([40, 60]);
+  });
+
+  it("sends one set_cover_position for held keys, on key up", async () => {
+    const fake = renderConnected(<HaCoverTile entityId="cover.living_room" />, raw);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Living room blinds" })).toBeTruthy());
+    const sends = () => fake.calls.filter(({ domain, service }) => domain === "cover" && service === "set_cover_position").map(({ data }) => data.position);
+    const slider = screen.getByRole("slider", { name: "Living room blinds position" }) as HTMLInputElement;
+    act(() => { fireEvent.keyDown(slider, { key: "ArrowLeft" }); });
+    act(() => { fireEvent.keyDown(slider, { key: "ArrowLeft" }); });
+    expect(sends(), "nothing while a key is held").toEqual([]);
+    expect(slider.value).toBe("98");
+    act(() => { fireEvent.keyUp(slider, { key: "ArrowLeft" }); });
+    expect(sends()).toEqual([98]);
+  });
+
   it("asks before a template gate the YAML names a gate moves to a position, and sets it once answered", async () => {
     // Home Assistant gives it no device_class; the card's `device_class: gate` makes it one, so its bar asks first.
     const gate: HassEntities = {

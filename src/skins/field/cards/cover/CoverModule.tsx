@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { CoverAction, CoverAsk, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_ENDS, QUICK_POSITIONS, coverAskOpens, coverAskPosition, coverAskSettled, coverAskTo, coverAsksFirst, hasPosition, isMoving, openness, slatsBy, snapEnds } from "@dashhaus/core/entities/cover/position";
@@ -105,8 +105,24 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // would go and takes no press, so the second press of a double press can't ask again, and on Cancel it is back where
   // the cover is.
   const [draft, setDraft] = useState<number | null>(null);
-  const askTo = (v: number) => { setDraft(null); if (v !== pos) ask(coverAskTo(v)); };
-  const shown = draft ?? (pending != null ? coverAskPosition(pending) : pos);
+  // The position a released gesture asked for, held while Home Assistant catches up, so the fader never snaps back to
+  // where the cover was. The next report (a new position) takes over.
+  const [released, setReleased] = useState<{ at: number; from: number } | null>(null);
+  // Whether this gesture picked a value at all: a press where the fader already is reports nothing.
+  const picked = useRef(false);
+  const draftTo = (v: number) => { picked.current = true; setDraft(v); };
+  const askTo = (v: number) => { picked.current = false; setDraft(null); if (v !== pos) ask(coverAskTo(v)); };
+  const setTo = (v: number) => {
+    const changed = picked.current;
+    picked.current = false;
+    if (!changed) return;
+    setDraft(null);
+    if (v === pos) { setReleased(null); return; }
+    setReleased({ at: v, from: pos });
+    onSetPosition?.(v);
+  };
+  const held = released == null || released.from !== pos ? null : released.at;
+  const shown = draft ?? (pending != null ? coverAskPosition(pending) : held ?? pos);
   const openPanel = () => { guard.close(); details.openDetails(); };
   const adrift = asks && moving && !e.supportsStop;
   const toward: CoverAction = open ? "close" : "open";
@@ -136,15 +152,15 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
           id={`${uid}-${where}`}
           label={`${e.name} position${asks ? ": asks first" : ""}`}
           legend={moving ? word : "Position"}
-          value={asks ? shown : pos}
+          value={shown}
           min={0}
           max={100}
           lit={open}
           disabled={asks && (adrift || pending != null)}
-          valueText={positionText(asks ? shown : pos)}
+          valueText={positionText(shown)}
           snap={snap}
-          onChange={asks ? setDraft : onSetPosition}
-          onCommit={asks ? askTo : undefined}
+          onChange={draftTo}
+          onCommit={asks ? askTo : setTo}
         />
       )}
     </ModuleRow>
