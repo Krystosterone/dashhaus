@@ -22,6 +22,13 @@ const tarballsDir = outIndex === -1 ? join(root, "release") : process.argv[outIn
 
 const tarballFor = (manifest) => join(tarballsDir, `${manifest.name.replace(/^@/, "").replace("/", "-")}-${manifest.version}.tgz`);
 
+/**
+ * npm 11.18 blocks an install script no `allowScripts` entry names, and prints a warning for each blocked one. The
+ * root manifest denies esbuild (its platform binary comes from an optional dependency, so the postinstall is not
+ * needed) and the sandbox apps install the same dependencies; every generated manifest records that decision too.
+ */
+const ALLOW_SCRIPTS = { esbuild: false };
+
 function run(command, args, cwd) {
   execFileSync(command, args, { cwd, stdio: "inherit" });
 }
@@ -100,6 +107,7 @@ async function install(app, manifests) {
     name: "dashhaus-packed-consumer",
     private: true,
     type: "module",
+    allowScripts: ALLOW_SCRIPTS,
     dependencies: { ...dependencies, react: "18.3.1", "react-dom": "18.3.1" },
   };
   await writeFile(join(app, "package.json"), `${JSON.stringify(base, null, 2)}\n`);
@@ -302,6 +310,7 @@ async function scaffoldConsumer(manifests) {
       name: "dashhaus-scaffold-only",
       private: true,
       type: "module",
+      allowScripts: ALLOW_SCRIPTS,
       dependencies: { "create-dashhaus-skin": tarballFor(manifests.scaffold) },
     }, null, 2)}\n`);
     run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
@@ -330,6 +339,7 @@ async function deployConfigConsumer(manifests) {
       name: "dashhaus-deploy-only",
       private: true,
       type: "module",
+      allowScripts: ALLOW_SCRIPTS,
       dependencies: { "@dashhaus/deploy": tarballFor(manifests.deploy) },
     }, null, 2)}\n`);
     run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);

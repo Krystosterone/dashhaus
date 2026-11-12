@@ -1,0 +1,12 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+
+const frontmatter = {
+  title: "404",
+  template: "splash",
+  pagefind: false,
+  hero: { tagline: "Page not found. Check the URL or try using the search bar." },
+};
+---
+
+<StarlightPage frontmatter={frontmatter} />

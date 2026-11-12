@@ -1,7 +1,7 @@
 import { defineCollection } from "astro:content";
 import type { Loader } from "astro/loaders";
 import { z } from "astro/zod";
-import { docsLoader } from "@astrojs/starlight/loaders";
+import { docsLoader, i18nLoader } from "@astrojs/starlight/loaders";
 import { docsSchema } from "@astrojs/starlight/schema";
 import { KIND_GROUPS } from "./lib/groups.js";
 import { pendingChanges, releases } from "./lib/releases";
@@ -43,5 +43,8 @@ const change = z.object({ type: z.enum(["breaking", "feature", "fix"]), body: z.
 
 export const collections = {
   docs: defineCollection({ loader: docsLoader(), schema: docsSchema({ extend: z.object({ kind: kind.optional() }) }) }),
+  // Starlight reads UI translations from this collection even when the site has none; declaring its loader keeps a
+  // translated site working without a build warning and an untranslated one silent.
+  i18n: defineCollection({ loader: i18nLoader() }),
   releases: defineCollection({ loader: releaseLoader, schema: z.object({ version: z.string(), order: z.number(), changes: z.array(change) }) }),
 };

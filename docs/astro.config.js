@@ -35,6 +35,9 @@ export default defineConfig({
       social: [{ icon: "github", label: "GitHub", href: repo }],
       editLink: { baseUrl: `${repo}/edit/main/docs/` },
       customCss: ["./src/styles/theme.css"],
+      // The 404 page is src/pages/404.astro, which renders Starlight's page layout for a route outside the docs
+      // collection; keeping Starlight's own route would put two pages on /404 and make the build choose one.
+      disable404Route: true,
       // Code frames sit on their own tone, with no outline, like the rest of the site's surfaces.
       expressiveCode: { styleOverrides: { borderWidth: "0px" } },
       // The home page's and each skin's hero draw the skins live; every other page keeps Starlight's. On a skin's page

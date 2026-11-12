@@ -50,18 +50,17 @@
     "release:digests": "node scripts/release/pack.js && node scripts/release/candidate.js write"
   },
   "dependencies": {
-    "home-assistant-js-websocket": "9.8.1",
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
     "@dashhaus/core": "*",
     "@dashhaus/deploy": "*",
     "@dashhaus/fake-home-assistant": "*",
+    "@dashhaus/field": "*",
     "@dashhaus/orb": "*",
-    "@dashhaus/field": "*"
+    "home-assistant-js-websocket": "9.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@storybook/addon-a11y": "10.6.6",
     "@storybook/addon-docs": "10.6.6",
     "@storybook/icons": "2.2.0",
     "@storybook/react": "10.6.6",
@@ -98,6 +97,7 @@
     "docs"
   ],
   "allowScripts": {
+    "@parcel/watcher": false,
     "@swc/core": false,
     "esbuild": false,
     "fsevents": false

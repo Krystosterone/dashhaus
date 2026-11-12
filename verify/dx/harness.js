@@ -277,9 +277,14 @@ export async function makeApp(label) {
   return mkdtemp(join(tmpdir(), `dashhaus-dx-${label}-`));
 }
 
-/** Install the app's manifest and return the npm result. The app never inherits this workspace's dependencies. */
+/**
+ * Install the app's manifest and return the npm result. The app never inherits this workspace's dependencies. npm
+ * 11.18 blocks an install script no `allowScripts` entry names and warns about each; the root manifest denies esbuild
+ * (its platform binary comes from an optional dependency), and every journey's app installs it transitively, so the
+ * app records the same decision unless it has one of its own.
+ */
 export async function install(app, manifest) {
-  await writeJson(join(app, "package.json"), manifest);
+  await writeJson(join(app, "package.json"), { allowScripts: { esbuild: false }, ...manifest });
   return run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], { cwd: app });
 }
 
