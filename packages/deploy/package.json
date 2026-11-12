@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/deploy",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "license": "MIT",
   "description": "Deploy a Dashhaus dashboard into Home Assistant: copy each file, register its resource and create the dashboards from dashboard.config.mjs.",
