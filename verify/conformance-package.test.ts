@@ -22,6 +22,8 @@ const writeFiles = async (root: string, files: Record<string, string>) => {
 };
 
 describe("the packed public surface", () => {
+  // Packing every package and running the consumer takes ~25s on a green runner and crossed this check's first budget
+  // of 120s on one 4.7× slower (run 43136060879), so its own deadline leaves room for both.
   it("serves a skin outside the workspace the conformance preset and the card schema from dist", async () => {
     const work = await mkdtemp(join(tmpdir(), "dashhaus-conformance-"));
     try {
@@ -149,5 +151,5 @@ console.log(JSON.stringify({
     } finally {
       await rm(work, { recursive: true, force: true });
     }
-  }, 120_000);
+  }, 240_000);
 });
