@@ -14,7 +14,7 @@ const STUB = 14;
  */
 export function PositionBar({ id, label, kind, position, moving, disabled, text, onChange, onCommit }: {
   id: string; label: string; kind: "curtain" | "shade"; position: number; moving: boolean; disabled?: boolean; text: string; onChange: (v: number) => void;
-  /** Called once a tap or a drag lets go, with where it ended: a position that asks first asks then. */
+  /** Called once a tap or a drag lets go, with where it ended: the position is set then, or asked then on a cover that asks first. */
   onCommit?: (v: number) => void;
 }) {
   // The track's fill is the daylight, and carries its own copy of the label, so the text flips where daylight passes.

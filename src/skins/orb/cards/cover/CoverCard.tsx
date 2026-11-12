@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { CoverAction, CoverAsk, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_ENDS, QUICK_POSITIONS, coverAskPosition, coverAskSettled, coverAskTo, coverAsksFirst, hasPosition, isAccess, isMoving, openness, slatsBy } from "@dashhaus/core/entities/cover/position";
 import { COVER_ASKS_HINT, SLAT_ENDS, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
@@ -98,17 +98,33 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // of a double tap can't ask again, and on Cancel it is back where the cover is.
   const settable = withPos && onSetPosition != null;
   const [draft, setDraft] = useState<number | null>(null);
-  const askTo = (v: number) => { setDraft(null); if (v !== pos) guard.ask(coverAskTo(v)); };
-  const shown = draft ?? (pending != null ? coverAskPosition(pending) : pos);
+  // The position a released gesture asked for, held while Home Assistant catches up, so the bar never snaps back to
+  // where the cover was. The next report (a new position) takes over.
+  const [released, setReleased] = useState<{ at: number; from: number } | null>(null);
+  // Whether this gesture picked a value at all: a tap where the bar already is reports nothing.
+  const picked = useRef(false);
+  const draftTo = (v: number) => { picked.current = true; setDraft(v); };
+  const askTo = (v: number) => { picked.current = false; setDraft(null); if (v !== pos) guard.ask(coverAskTo(v)); };
+  const setTo = (v: number) => {
+    const changed = picked.current;
+    picked.current = false;
+    if (!changed) return;
+    setDraft(null);
+    if (v === pos) { setReleased(null); return; }
+    setReleased({ at: v, from: pos });
+    onSetPosition?.(v);
+  };
+  const held = released == null || released.from !== pos ? null : released.at;
+  const shown = draft ?? (pending != null ? coverAskPosition(pending) : held ?? pos);
   const shownText = shown === pos ? text : shown === 0 ? "Closed" : shown === 100 ? "Open" : `Open · ${shown}%`;
   let slot;
   if (settable && asks) {
     slot = (
       <PositionBar id={`${uid}-p`} label={`${e.name} position…`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={shown} moving={moving && draft == null} text={shownText}
-        disabled={adrift || pending != null} onChange={setDraft} onCommit={askTo} />
+        disabled={adrift || pending != null} onChange={draftTo} onCommit={askTo} />
     );
   } else if (settable) {
-    slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
+    slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={shown} moving={moving && draft == null && held == null} text={shownText} onChange={draftTo} onCommit={setTo} />;
   } else {
     slot = (
       <OpenCloseControl name={e.name} open={open} moving={moving} either={either} asks={asks} flat={adrift || pending != null} text={text} canStop={e.supportsStop}
