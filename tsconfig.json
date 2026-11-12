@@ -1,5 +1,8 @@
 {
   "extends": "./config/tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true
+  },
   "include": ["src", "verify", ".storybook", "scripts/*/*.test.ts"],
   "exclude": ["verify/dx/fixtures"]
 }

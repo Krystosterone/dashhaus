@@ -17,9 +17,6 @@ npm run deploy            # build, upload, register, create the dashboard (needs
 npm run add -- climate    # one more domain's card, registered and on the sample house (see Adding a domain)
 ```
 
-`npm install` under npm 12 may warn that it skipped esbuild's install script (`not covered by allowScripts`); the
-build doesn't need it.
-
 Look at your work after every change: run `npm run snapshot` and open the PNGs (an image-reading tool works).
 The first run prints the two commands that install Playwright's Chromium if it's missing; to use a Chromium or Chrome
 already on the machine instead, set `DASHHAUS_CHROMIUM=/path/to/chrome`. `npm run preview` serves

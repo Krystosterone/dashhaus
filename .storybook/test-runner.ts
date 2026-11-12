@@ -1,7 +1,7 @@
 import type { TestRunnerConfig } from "@storybook/test-runner";
 import { getStoryContext } from "@storybook/test-runner";
 import { injectAxe, getAxeResults } from "axe-playwright";
-import { GLOW_BUDGET, glowCensus } from "./glow-census";
+import { GLOW_BUDGET, glowCensus } from "./glow-census.ts";
 
 /**
  * Every story must render and pass axe (a11y). Field modules must also fit their own

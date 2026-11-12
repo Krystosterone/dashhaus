@@ -35,7 +35,7 @@ jobs:
   # comment's write access. It hands the laid-out site to `upload` as an artifact.
   preview:
     if: github.event_name != 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     concurrency:
       group: docs-preview-${{ github.ref }}
@@ -73,7 +73,7 @@ jobs:
   # runner holds every secret its job references from the start, whichever step names it.
   upload:
     needs: preview
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
       group: docs-upload-${{ github.ref }}
@@ -143,7 +143,7 @@ jobs:
   # The public site: a release's own docs, built from its tag.
   site:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.event.repository.visibility == 'public'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     concurrency:
       group: docs-site
@@ -180,7 +180,7 @@ jobs:
 
   deploy:
     needs: site
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     concurrency:
       group: docs-site-deploy
       cancel-in-progress: false

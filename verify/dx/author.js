@@ -31,6 +31,7 @@ import {
   exerciseDetails,
   exerciseGuarded,
   inPage,
+  install,
   installedPackage,
   makeApp,
   read,
@@ -41,7 +42,6 @@ import {
   shown,
   tarballs,
   tarballsDir,
-  writeJson,
 } from "./harness.js";
 
 const SKIN = "my-skin";
@@ -72,8 +72,11 @@ try {
         // The scaffolder alone, as `npx --package <tgz> create-dashhaus-skin` would fetch it.
         const tool = join(app, ".scaffolder");
         await mkdir(tool, { recursive: true });
-        await writeJson(join(tool, "package.json"), { name: "scaffolder", private: true });
-        run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline", required.found["create-dashhaus-skin"]], { cwd: tool });
+        await install(tool, {
+          name: "scaffolder",
+          private: true,
+          dependencies: { "create-dashhaus-skin": `file:${required.found["create-dashhaus-skin"]}` },
+        });
         const { directory, manifest } = installedPackage(tool, "create-dashhaus-skin");
         const output = run(process.execPath, [join(directory, manifest.bin["create-dashhaus-skin"]), SKIN, "--tarballs", tarballsDir], { cwd: app }).output;
         assert.match(output, /AGENTS\.md/, "the scaffolder's closing words must point at the agent guide");

@@ -106,9 +106,6 @@ const preview: Preview = {
   loaders: [withSkinFont],
   parameters: {
     backgrounds: { disable: true },
-    // The a11y addon runs axe after every render unless told not to; the gate is the test runner's own axe pass
-    // (.storybook/test-runner.ts), so the addon runs only when its panel's button is pressed, and a story is checked once.
-    a11y: { test: "off" },
     controls: { expanded: true },
     // Storybook reads this statically, so it must stay a literal: one section per skin, then its own order.
     options: {

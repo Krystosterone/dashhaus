@@ -33,7 +33,7 @@ concurrency:
 jobs:
   # Whether this commit has a release to ship: its version is untagged, or tagged at this very commit (a rerun).
   plan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       version: ${{ steps.plan.outputs.version }}
@@ -71,7 +71,7 @@ jobs:
   build:
     needs: plan
     if: needs.plan.outputs.release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -114,7 +114,7 @@ jobs:
   # A draft release at this commit, with the record's notes and no file. A draft makes no tag and nobody sees it yet.
   draft:
     needs: [plan, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: write
@@ -153,7 +153,7 @@ jobs:
   # build packed.
   publish:
     needs: [plan, build, draft]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: npm
     permissions:
@@ -208,7 +208,7 @@ jobs:
   # from it. Read-only, like the build. Its time covers release:registry's ten-minute wait for npm, then the journeys.
   registry:
     needs: [plan, publish]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       VERSION: ${{ needs.plan.outputs.version }}
@@ -234,7 +234,7 @@ jobs:
   # started rather than called, so the Pages deploy's OIDC identity never comes from this workflow, which npm trusts.
   release:
     needs: [plan, registry]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: write
@@ -267,7 +267,7 @@ jobs:
   # run means npm and both listings are done; a rerun starts only the ones still missing.
   listings:
     needs: [plan, release]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions: {}
     env:
